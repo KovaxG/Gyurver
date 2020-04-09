@@ -1,41 +1,12 @@
-module Gyurver (runServer, IP(..), Port(..)) where
+module Gyurver.Request (Request, parseRequest) where
 
-import Data.ByteString.Char8 (pack, unpack)
-import           Data.Map (Map)
+import Data.ByteString.Char8 (ByteString, unpack)
+import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe)
-import Network.Simple.TCP (serve, HostPreference(..), send, recv, Socket, SockAddr)
 import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, char, option, sepBy, noneOf, newline, anyChar)
 
-test :: IO ()
-test = runServer (IP "localhost") (Port 8080) show 
-
--- TODO need to make a Response
-type RequestProcessor = Request -> String
-data IP = IP String
-data Port = Port Int
-
-runServer:: IP -> Port -> RequestProcessor -> IO ()
-runServer (IP address) (Port port) processRequest =
-  serve (Host address) (show port) (processConnection processRequest)
-
-processConnection :: RequestProcessor -> (Socket, SockAddr) -> IO ()
-processConnection processRequest (connectionSocket, remoteAddr) =
-  recv connectionSocket 1024
-  >>= maybe failedToRecieveMessage (sendResponse connectionSocket . unpack)
-  where
-    failedToRecieveMessage :: IO ()
-    failedToRecieveMessage =
-      putStrLn "[Error] I got a connection, but did not receive any message!"
-
-    sendResponse :: Socket -> String -> IO ()
-    sendResponse connectionSocket =
-      send connectionSocket
-      . pack
-      . fromMaybe "omg"
-      . fmap processRequest
-      . parseRequest
-
+import Gyurver.Gyurror
+import Utils
 
 data RequestType = Get | Post deriving (Show)
 data Request = Request
@@ -46,8 +17,12 @@ data Request = Request
   , content :: String
   } deriving (Show)
 
-parseRequest :: String -> Maybe Request
-parseRequest = either (const Nothing) Just . parse request "URL" . removeCarries
+parseRequest :: ByteString -> Either Gyurror Request
+parseRequest = 
+  mapLeft (FailedParse . show)
+  . parse request "Request" 
+  . removeCarries 
+  . unpack
   where
     removeCarries :: String -> String
     removeCarries = filter (/='\r')
@@ -97,5 +72,3 @@ parseRequest = either (const Nothing) Just . parse request "URL" . removeCarries
       return (key, value)
     keyChar = alphaNum <|> char '-'
     valueChar = noneOf "\n"
-
-($>) = flip (<$)
