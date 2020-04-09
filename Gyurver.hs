@@ -7,6 +7,9 @@ import Data.Maybe (fromMaybe)
 import Network.Simple.TCP (serve, HostPreference(..), send, recv, Socket, SockAddr)
 import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, char, option, sepBy, noneOf, newline, anyChar)
 
+test :: IO ()
+test = runServer (IP "localhost") (Port 8080) show 
+
 -- TODO need to make a Response
 type RequestProcessor = Request -> String
 data IP = IP String
