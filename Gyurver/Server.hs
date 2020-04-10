@@ -43,8 +43,8 @@ processConnection log processRequest (connectionSocket, remoteAddr) = do
       responseIO >>= send connectionSocket . toByteString
 
 parseFailedResponse :: Response
-parseFailedResponse = mkResponse BadRequest "Failed to decode request!"
+parseFailedResponse = makeResponse BadRequest "Failed to decode request!"
 
 receiveFailedResponse :: Response
 receiveFailedResponse =
-  mkResponse BadRequest "I got a connection but no message... Not sure if anyone will ever see this :D"
+  makeResponse BadRequest "I got a connection but no message... Not sure if anyone will ever see this :D"

@@ -2,6 +2,7 @@
 module Main where
 
 import Prelude hiding (log)
+import qualified Data.ByteString as BS
 
 import Gyurver.Request
 import Gyurver.Response
@@ -22,12 +23,17 @@ process Request{requestType, path} = do
     (Get, "/") -> do
       info log $ "Requested landing page, sending " ++ landingPage
       contents <- readFile landingPage
-      return $ mkResponse OK contents
+      return $ makeResponse OK contents
+    (Get, "/cv") -> do
+      info log $ "Requested CV."
+      contents <- BS.readFile cvPath
+      return $ makeResponse OK contents
     (Get, other) -> do
       info log $ "[GET " ++ other ++ "] No such thing, blaming the user."
-      return $ mkResponse BadRequest badRequest
+      return $ makeResponse BadRequest badRequest
     _ ->
-      return $ mkResponse BadRequest badRequest
+      return $ makeResponse BadRequest badRequest
 
 landingPage = "Content/landing.html"
+cvPath = "Content/pdfs/cv.pdf"
 badRequest = "<h1>Bad Request</h1>"

@@ -1,40 +1,53 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Gyurver.Response 
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+module Gyurver.Response
   ( Response
   , Status(..)
   , toByteString
-  , mkResponse
+  , makeResponse
   ) where
 
-import Data.ByteString.Char8 (ByteString, pack)
+import Data.Monoid
+import Data.ByteString.Char8 (ByteString)
+import qualified Data.ByteString.Char8 as BS
 
-data Status 
+data Status
   = OK
   | BadRequest
 
 instance Show Status where
-  show status = 
+  show status =
     case status of
       OK -> "200 OK"
       BadRequest -> "400 Bad Request"
 
-data Response = Response 
+data Response = Response
   { status  :: Status
   , address :: String
-  , content :: String
+  , content :: ByteString
   } deriving (Show)
 
 toByteString :: Response -> ByteString
 toByteString Response{content, status} =
-  pack $  unlines
-    [ "HTTP/1.1 " ++ show status
-    , ""
+  BS.unlines
+    [ BS.pack $ "HTTP/1.1 " <> show status
+    , BS.pack ""
     , content
     ]
 
-mkResponse :: Status -> String -> Response
-mkResponse status content = Response
+makeResponse :: CanSend a => Status -> a -> Response
+makeResponse status content = Response
   { status = status
   , address = "localhost"
-  , content = content
+  , content = toBytes content
   }
+
+class CanSend a where
+  toBytes :: a -> ByteString
+
+instance CanSend ByteString where
+  toBytes = id
+
+instance CanSend String where
+  toBytes = BS.pack
