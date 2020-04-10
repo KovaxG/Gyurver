@@ -7,19 +7,21 @@ import Network.Simple.TCP (serve, HostPreference(..), send, recv, Socket, SockAd
 import Gyurver.Gyurror
 import Gyurver.Request
 import Gyurver.Response
+import Gyurver.Logger (Logger)
+import qualified Gyurver.Logger as Log
 import Utils
 
 type RequestProcessor = Request -> IO Response
 data IP = IP String
 data Port = Port Int
 
-runServer:: IP -> Port -> RequestProcessor -> IO ()
-runServer (IP address) (Port port) processRequest =
-  serve (Host address) (show port) (processConnection processRequest)
+runServer:: Logger -> IP -> Port -> RequestProcessor -> IO ()
+runServer log (IP address) (Port port) processRequest =
+  serve (Host address) (show port) (processConnection log processRequest)
 
-processConnection :: RequestProcessor -> (Socket, SockAddr) -> IO ()
-processConnection processRequest (connectionSocket, remoteAddr) = do
-  getMessage >>= either handleFailure (sendResponse . processRequest) 
+processConnection :: Logger -> RequestProcessor -> (Socket, SockAddr) -> IO ()
+processConnection log processRequest (connectionSocket, remoteAddr) = do
+  getMessage >>= either handleFailure (sendResponse . processRequest)
   where
     getMessage :: IO (Either Gyurror Request)
     getMessage = do
@@ -31,18 +33,18 @@ processConnection processRequest (connectionSocket, remoteAddr) = do
       case error of
         FailedReceive -> do
           sendResponse (return receiveFailedResponse)
-          putStrLn "[Error] I got a connection, but did not receive any message!"
+          Log.error log "I got a connection, but did not receive any message!"
         FailedParse msg -> do
           sendResponse (return parseFailedResponse)
-          putStrLn "[Error] Failed to parse!"
+          Log.error log "Failed to parse!"
 
     sendResponse :: IO Response -> IO ()
-    sendResponse responseIO = 
+    sendResponse responseIO =
       responseIO >>= send connectionSocket . toByteString
 
 parseFailedResponse :: Response
 parseFailedResponse = mkResponse BadRequest "Failed to decode request!"
 
 receiveFailedResponse :: Response
-receiveFailedResponse = 
+receiveFailedResponse =
   mkResponse BadRequest "I got a connection but no message... Not sure if anyone will ever see this :D"

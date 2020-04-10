@@ -1,4 +1,4 @@
-module Gyurver.Request (Request, parseRequest) where
+module Gyurver.Request (Request(..), RequestType(..), parseRequest) where
 
 import Data.ByteString.Char8 (ByteString, unpack)
 import Data.Map (Map)
@@ -18,10 +18,10 @@ data Request = Request
   } deriving (Show)
 
 parseRequest :: ByteString -> Either Gyurror Request
-parseRequest = 
+parseRequest =
   mapLeft (FailedParse . show)
-  . parse request "Request" 
-  . removeCarries 
+  . parse request "Request"
+  . removeCarries
   . unpack
   where
     removeCarries :: String -> String
