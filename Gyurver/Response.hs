@@ -12,6 +12,8 @@ import Data.Monoid
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 
+import Gyurver.Html (Document)
+
 data Status
   = OK
   | BadRequest
@@ -51,3 +53,6 @@ instance CanSend ByteString where
 
 instance CanSend String where
   toBytes = BS.pack
+
+instance CanSend Document where
+  toBytes = BS.pack . show
