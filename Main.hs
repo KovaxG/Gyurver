@@ -28,6 +28,10 @@ process Request{requestType, path} = do
       info log $ "Requested CV."
       contents <- BS.readFile cvPath
       return $ makeResponse OK contents
+    (Get, "/favicon.ico") -> do
+      info log $ "Requested favicon."
+      contents <- BS.readFile faviconPath
+      return $ makeResponse OK contents
     (Get, other) -> do
       info log $ "[GET " ++ other ++ "] No such thing, blaming the user."
       return $ makeResponse BadRequest badRequest
@@ -36,4 +40,5 @@ process Request{requestType, path} = do
 
 landingPage = "Content/landing.html"
 cvPath = "Content/pdfs/cv.pdf"
+faviconPath = "Content/favicon.ico"
 badRequest = "<h1>Bad Request</h1>"
