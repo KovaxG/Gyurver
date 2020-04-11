@@ -1,0 +1,1 @@
+[Tojas {nev = "Sargacska", hatterSzin = Sarga, motivum = Semmi, strategiak = [V,A,A]},Tojas {nev = "Piroska", hatterSzin = Piros, motivum = Semmi, strategiak = [A,V,A]}]

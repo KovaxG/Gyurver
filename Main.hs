@@ -4,6 +4,7 @@ module Main where
 import Prelude hiding (log)
 import qualified Data.ByteString as BS
 
+import Events.Cokkolo
 import Gyurver.Html
 import Gyurver.Request
 import Gyurver.Response
@@ -33,10 +34,13 @@ process Request{requestType, path} = case (requestType, path) of
   (Get, "/articles") -> do
     info log $ "Requested articles page."
     sendFile articlesPath
+  (Get, "/cokk/list") -> do
+    info log $ "Requested cokkolesi lista."
+    tojasok <- filebolOlvasas "Data/cokkolo2020.txt"
+    return $ makeResponse OK $ show tojasok
   (Get, path) 
     | isResourceReq path -> do
       info log $ "Requesting resource [" ++ path ++ "]."
-      
       case resourceType path of
         Just ft -> do
           let filePath = "Content/" ++ show ft ++ "s/" ++ fileName path ++ "." ++ show ft
