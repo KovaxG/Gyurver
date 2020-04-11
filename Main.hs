@@ -1,10 +1,14 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE BangPatterns #-}
 module Main where
 
 import Prelude hiding (log)
 import qualified Data.ByteString as BS
 
+import Component.Database
+
 import Events.Cokkolo
+
 import Gyurver.Html
 import Gyurver.Request
 import Gyurver.Response
@@ -18,10 +22,11 @@ log = Console
 main :: IO ()
 main = do
   putStrLn "Gyurver is starting."
-  runServer log (IP "localhost") (Port 8080) process
+  db <- newDB "Data/cokkolo2020.txt"
+  runServer log (IP "localhost") (Port 8080) (process db)
 
-process :: Request -> IO Response
-process Request{requestType, path} = case (requestType, path) of
+process :: DB -> Request -> IO Response
+process db Request{requestType, path} = case (requestType, path) of
   (Get, "/") -> do
     info log $ "Requested landing page, sending " ++ landingPagePath
     sendFile landingPagePath
@@ -36,7 +41,7 @@ process Request{requestType, path} = case (requestType, path) of
     sendFile articlesPath
   (Get, "/cokk/list") -> do
     info log $ "Requested cokkolesi lista."
-    tojasok <- filebolOlvasas "Data/cokkolo2020.txt"
+    tojasok <- readDB db :: IO [Tojas]
     return $ makeResponse OK $ show tojasok
   (Get, path) 
     | isResourceReq path -> do
@@ -52,6 +57,10 @@ process Request{requestType, path} = case (requestType, path) of
     | otherwise -> do
       info log $ "[GET " ++ path ++ "] No such thing, blaming the user."
       badRequest
+  (Post, "/cokk/add") -> do
+    info log $ "Adding new tojas."
+    writeDB db [piroska, sargacska]
+    return $ makeResponse OK "Tegyuk fel"
   (Post, path) -> do
     info log $ "[POST " ++ path ++ "] No such thing, blaming the user."
     badRequest
