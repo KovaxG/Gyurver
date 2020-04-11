@@ -50,7 +50,7 @@ parseRequest =
     postRequest = string "POST" $> Post
 
     path = many pathChars
-    pathChars = alphaNum <|> char '/' <|> char '.'
+    pathChars = alphaNum <|> char '/' <|> char '.' <|> char '_'
 
     query = option Map.empty queryPairs
     queryPairs = do
