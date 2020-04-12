@@ -1,2 +1,6 @@
+# Haskell
 *.hi
 *.o
+
+# Elm
+elm-stuff/
