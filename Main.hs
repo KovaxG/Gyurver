@@ -44,10 +44,16 @@ process db Request{requestType, path, content} = case (requestType, path) of
   (Get, "/cokk/list") -> do
     info log $ "Requested cokkolesi lista."
     tojasok <- readDB db
-    return $ makeResponse OK $ show tojasok
+    return
+      $ addHeaders [("Content-Type", "application/json")]
+      $ makeResponse OK
+      $ tojasokToJson tojasok
   (Get, "/cokk/add") -> do
     info log $ "Requested add egg page."
     sendFile addEggPath
+  (Get, "/cokk") -> do
+    info log $ "Requested add egg page."
+    sendFile eggListPath
   (Get, path)
     | isResourceReq path -> do
       info log $ "Requesting resource [" ++ path ++ "]."
@@ -88,6 +94,7 @@ cvPath = "Content/pdfs/cv.pdf"
 faviconPath = "Content/favicon.ico"
 articlesPath = "Content/articles.html"
 addEggPath = "Content/addegg.html"
+eggListPath = "Content/egglist.html"
 
 badRequest :: IO Response
 badRequest =
