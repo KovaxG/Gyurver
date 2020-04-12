@@ -4,12 +4,12 @@ import Control.Concurrent.MVar
 
 import Utils
 
-data DB = DB 
+data DB a = DB
   { semaphore :: MVar ()
-  , path :: String 
+  , path :: String
   }
 
-newDB :: String -> IO DB
+newDB :: String -> IO (DB a)
 newDB filePath = do
   sem <- newMVar ()
   return $ DB
@@ -17,25 +17,16 @@ newDB filePath = do
     , path = filePath
     }
 
-readDB :: Read a => DB -> IO [a]
+readDB :: Read a => DB a -> IO [a]
 readDB db = do
-  putStrLn "read waiting..."
   takeMVar (semaphore db)
-  putStrLn "blocking"
   raw <- safeReadFile (path db)
-  putStrLn "time to release"
   putMVar (semaphore db) ()
   return $ maybe [] read raw
 
-writeDB :: Show a => DB -> [a] -> IO ()
+writeDB :: Show a => DB a -> [a] -> IO ()
 writeDB db as = do
-  putStrLn "write waiting..."
   takeMVar (semaphore db)
-  putStrLn "blocking"
   result <- safeWriteFile (path db) (show as)
-  putStrLn "time to release"
   putMVar (semaphore db) ()
-  maybe (putStrLn "Failed to write, trying again...")
-        return
-        result
-  
+  maybe (return ()) return result

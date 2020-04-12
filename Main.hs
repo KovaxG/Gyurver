@@ -25,7 +25,7 @@ main = do
   db <- newDB "Data/cokkolo2020.txt"
   runServer log (IP "localhost") (Port 8080) (process db)
 
-process :: DB -> Request -> IO Response
+process :: DB Tojas -> Request -> IO Response
 process db Request{requestType, path} = case (requestType, path) of
   (Get, "/") -> do
     info log $ "Requested landing page, sending " ++ landingPagePath
@@ -41,9 +41,9 @@ process db Request{requestType, path} = case (requestType, path) of
     sendFile articlesPath
   (Get, "/cokk/list") -> do
     info log $ "Requested cokkolesi lista."
-    tojasok <- readDB db :: IO [Tojas]
+    tojasok <- readDB db
     return $ makeResponse OK $ show tojasok
-  (Get, path) 
+  (Get, path)
     | isResourceReq path -> do
       info log $ "Requesting resource [" ++ path ++ "]."
       case resourceType path of
@@ -95,10 +95,10 @@ parseFileType s = case s of
   _ -> Nothing
 
 resourceType :: String -> Maybe FileType
-resourceType = 
-  parseFileType 
-  . reverse 
-  . takeWhile (/= '.') 
+resourceType =
+  parseFileType
+  . reverse
+  . takeWhile (/= '.')
   . reverse
 
 fileName :: String -> String
