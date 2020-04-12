@@ -59,7 +59,7 @@ process db Request{requestType, path} = case (requestType, path) of
       badRequest
   (Post, "/cokk/add") -> do
     info log $ "Adding new tojas."
-    writeDB db [piroska, sargacska]
+    appendDB db piroska
     return $ makeResponse OK "Tegyuk fel"
   (Post, path) -> do
     info log $ "[POST " ++ path ++ "] No such thing, blaming the user."
