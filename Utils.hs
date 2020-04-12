@@ -2,12 +2,13 @@ module Utils where
 
 import Control.Exception
 import Data.Bifunctor
+import Data.Maybe
 
 ($>) :: Functor f => f a -> b -> f b
 ($>) = flip (<$)
 
 toRight :: l -> Maybe r -> Either l r
-toRight l = maybe (Left l) Right  
+toRight l = maybe (Left l) Right
 
 mapLeft :: (a -> b) -> Either a r -> Either b r
 mapLeft f = bimap f id
@@ -28,3 +29,6 @@ safeWriteFile path content = do
   return $ case a of
     Right bla -> Just bla
     Left _ -> Nothing
+
+safeRead :: Read a => String -> Maybe a
+safeRead = fmap fst . listToMaybe . reads

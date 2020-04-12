@@ -69,10 +69,22 @@ process db Request{requestType, path, content} = case (requestType, path) of
       info log $ "[GET " ++ path ++ "] No such thing, blaming the user."
       badRequest
   (Post, "/cokk/add") -> do
-    info log $ "Adding new tojas " ++ content
-    let tojas = read content :: Tojas
-    appendDB db tojas
-    return $ makeResponse OK "Tegyuk fel"
+
+    let !tojas = safeRead content
+    let
+      canParse :: Tojas -> IO Response
+      canParse toj = do
+        info log $ "Adding new tojas " ++ show toj
+        appendDB db toj
+        return $ makeResponse OK "Megható"
+
+      cantParse :: IO Response
+      cantParse = do
+        info log $ "Failed to parse \"" ++ content ++ "\""
+        return $ makeResponse BadRequest "Nem tudtam kiolvasni."
+    maybe cantParse canParse tojas
+
+
   (Post, path) -> do
     info log $ "[POST " ++ path ++ "] No such thing, blaming the user."
     badRequest
