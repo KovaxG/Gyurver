@@ -22,8 +22,8 @@ log = Console
 main :: IO ()
 main = do
   putStrLn "Gyurver is starting..."
-  db <- newDB "Data/cokkolo2020.txt"
-  host <- maybe "localhost" id <$> safeReadFile "settings.txt"
+  db <- newDB "cokkolo2020"
+  host <- maybe "localhost" id <$> safeReadFile "gyurver.settings"
   putStrLn $ "Ok, running on " ++ host
   runServer log (IP host) (Port 8080) (process db)
 

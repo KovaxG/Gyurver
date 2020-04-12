@@ -15,10 +15,17 @@ data DB a = DB
 newDB :: String -> IO (DB a)
 newDB filePath = do
   sem <- newMVar ()
+  let newPath = "Data/" ++ filePath ++ ".db"
+  contents <- safeReadFile newPath
+  maybe (makeNewFile newPath) (return . const ()) contents
   return $ DB
     { semaphore = sem
-    , path = filePath
+    , path = newPath
     }
+  where
+    makeNewFile :: String -> IO ()
+    makeNewFile name = writeFile name "[]"
+
 
 readDB :: (Show a, Read a) => DB a -> IO [a]
 readDB db = do

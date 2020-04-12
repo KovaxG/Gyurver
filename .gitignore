@@ -4,3 +4,7 @@
 
 # Elm
 elm-stuff/
+
+# Gyurver
+*.db
+*.settings

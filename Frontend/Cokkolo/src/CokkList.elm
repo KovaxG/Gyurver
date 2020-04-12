@@ -20,11 +20,6 @@ main = Browser.element
 subscriptions : Model -> Sub Msg
 subscriptions _ = Sub.none
 
-testTojasok =
-  [ Tojas "Gyuri" "red"
-  , Tojas "Petra" "yellow"
-  ]
-
 type alias Tojas =
   { nev : String
   , szin : String
@@ -37,11 +32,8 @@ type alias Model =
 init : () -> (Model, Cmd Msg)
 init _ =
   let
-    kezdeti =
-      { tojasok = testTojasok
-      }
-    parancs =
-      get
+    kezdeti = { tojasok = [] }
+    parancs = get
       { url = "/cokk/list"
       , expect = expectJson Tojasok (Decoder.list tojasDecoder)
       }
@@ -67,7 +59,9 @@ view model =
     , p [] [text "bla bla bla"]
     , button [onClick UjTojasOldal] [text "Én is akarok részt venni!"]
     , h3 [] [text "Versenyzők"]
-    , ol [] (List.map toListItem model.tojasok)
+    , if List.isEmpty model.tojasok
+      then div [] [text "Még nincs jelentkező, lehetnél az első :D"]
+      else ol [] (List.map toListItem model.tojasok)
     ]
 
 toListItem : Tojas -> Html Msg
@@ -81,8 +75,7 @@ toListItem tojas =
           , style "padding" "2px"
           , style "background" tojas.szin
           , style "border-radius" "50% 50% 50% 50% / 60% 60% 40% 40%"
-          ]
-          []
+          ] []
   in li [] [tojasPic, text tojas.nev]
 
 tojasDecoder : Decoder Tojas
