@@ -18,7 +18,7 @@ main = Browser.element
 subscriptions : Model -> Sub Msg
 subscriptions _ = Sub.none
 
-type Szin = Piros | Sarga | Zold | Kek
+type Szin = Piros | Sarga | Zold | Kek | Narancs | Lila | Fekete | Csore
 
 type alias Model =
   { nev : String
@@ -32,6 +32,10 @@ toString szin = case szin of
   Sarga -> "yellow"
   Zold -> "green"
   Kek -> "blue"
+  Narancs -> "orange"
+  Lila -> "purple"
+  Fekete -> "black"
+  Csore -> "#F6DADA"
 
 init : () -> (Model, Cmd Msg)
 init _ =
@@ -160,20 +164,32 @@ szinValaszto =
       div [ style "width" "50px"
           , style "height" "50px"
           , style "background" (toString szin)
+          , style "border-radius" "50% 50% 50% 50%"
+          , style "border-style" "solid"
+          , style "border-width" "1.5px"
           , onClick (SzinValtozott szin)
           ]
           []
+
+    colorCol : Szin -> Szin -> Szin -> Szin -> String -> Html Msg
+    colorCol s1 s2 s3 s4 left =
+      div
+        [ style "position" "absolute"
+        , style "top" "100px"
+        , style "left" left
+        ]
+        [ minta s1
+        , minta s2
+        , minta s3
+        , minta s4
+        ]
+
   in
-  div
-    [ style "position" "absolute"
-    , style "top" "100px"
-    , style "left" "240px"
-    ]
-    [ minta Piros
-    , minta Sarga
-    , minta Zold
-    , minta Kek
-    ]
+    div []
+      [ colorCol Piros Sarga Zold Kek "240px"
+      , colorCol Narancs Lila Fekete Csore "292px"
+      ]
+
 
 toHaskellNotation : Model -> String
 toHaskellNotation model =

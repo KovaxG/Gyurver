@@ -6289,7 +6289,11 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		$elm$json$Json$Decode$succeed(msg));
 };
 var $elm$html$Html$p = _VirtualDom_node('p');
+var $author$project$Main$Csore = {$: 'Csore'};
+var $author$project$Main$Fekete = {$: 'Fekete'};
 var $author$project$Main$Kek = {$: 'Kek'};
+var $author$project$Main$Lila = {$: 'Lila'};
+var $author$project$Main$Narancs = {$: 'Narancs'};
 var $author$project$Main$Sarga = {$: 'Sarga'};
 var $author$project$Main$SzinValtozott = function (a) {
 	return {$: 'SzinValtozott', a: a};
@@ -6303,8 +6307,16 @@ var $author$project$Main$toString = function (szin) {
 			return 'yellow';
 		case 'Zold':
 			return 'green';
-		default:
+		case 'Kek':
 			return 'blue';
+		case 'Narancs':
+			return 'orange';
+		case 'Lila':
+			return 'purple';
+		case 'Fekete':
+			return 'black';
+		default:
+			return '#F6DADA';
 	}
 };
 var $author$project$Main$szinValaszto = function () {
@@ -6319,25 +6331,39 @@ var $author$project$Main$szinValaszto = function () {
 					$elm$html$Html$Attributes$style,
 					'background',
 					$author$project$Main$toString(szin)),
+					A2($elm$html$Html$Attributes$style, 'border-radius', '50% 50% 50% 50%'),
+					A2($elm$html$Html$Attributes$style, 'border-style', 'solid'),
+					A2($elm$html$Html$Attributes$style, 'border-width', '1.5px'),
 					$elm$html$Html$Events$onClick(
 					$author$project$Main$SzinValtozott(szin))
 				]),
 			_List_Nil);
 	};
+	var colorCol = F5(
+		function (s1, s2, s3, s4, left) {
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+						A2($elm$html$Html$Attributes$style, 'top', '100px'),
+						A2($elm$html$Html$Attributes$style, 'left', left)
+					]),
+				_List_fromArray(
+					[
+						minta(s1),
+						minta(s2),
+						minta(s3),
+						minta(s4)
+					]));
+		});
 	return A2(
 		$elm$html$Html$div,
+		_List_Nil,
 		_List_fromArray(
 			[
-				A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-				A2($elm$html$Html$Attributes$style, 'top', '100px'),
-				A2($elm$html$Html$Attributes$style, 'left', '240px')
-			]),
-		_List_fromArray(
-			[
-				minta($author$project$Main$Piros),
-				minta($author$project$Main$Sarga),
-				minta($author$project$Main$Zold),
-				minta($author$project$Main$Kek)
+				A5(colorCol, $author$project$Main$Piros, $author$project$Main$Sarga, $author$project$Main$Zold, $author$project$Main$Kek, '240px'),
+				A5(colorCol, $author$project$Main$Narancs, $author$project$Main$Lila, $author$project$Main$Fekete, $author$project$Main$Csore, '292px')
 			]));
 }();
 var $author$project$Main$tojaskepek = function (model) {
