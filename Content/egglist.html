@@ -6128,11 +6128,6 @@ var $author$project$CokkList$Tojas = F2(
 	function (nev, szin) {
 		return {nev: nev, szin: szin};
 	});
-var $author$project$CokkList$testTojasok = _List_fromArray(
-	[
-		A2($author$project$CokkList$Tojas, 'Gyuri', 'red'),
-		A2($author$project$CokkList$Tojas, 'Petra', 'yellow')
-	]);
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$CokkList$tojasDecoder = A3(
@@ -6149,7 +6144,7 @@ var $author$project$CokkList$init = function (_v0) {
 				$elm$json$Json$Decode$list($author$project$CokkList$tojasDecoder)),
 			url: '/cokk/list'
 		});
-	var kezdeti = {tojasok: $author$project$CokkList$testTojasok};
+	var kezdeti = {tojasok: _List_Nil};
 	return _Utils_Tuple2(kezdeti, parancs);
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
@@ -6184,6 +6179,13 @@ var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
 var $elm$html$Html$ol = _VirtualDom_node('ol');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
@@ -6268,7 +6270,13 @@ var $author$project$CokkList$view = function (model) {
 					[
 						$elm$html$Html$text('Versenyzők')
 					])),
-				A2(
+				$elm$core$List$isEmpty(model.tojasok) ? A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Még nincs jelentkező, lehetnél az első :D')
+					])) : A2(
 				$elm$html$Html$ol,
 				_List_Nil,
 				A2($elm$core$List$map, $author$project$CokkList$toListItem, model.tojasok))
