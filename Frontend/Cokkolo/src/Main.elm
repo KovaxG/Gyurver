@@ -6,8 +6,15 @@ import Html.Events exposing (onClick, onInput)
 import Html.Attributes exposing (placeholder, value, style)
 import Debug
 
-main =
-  Browser.sandbox { init = init, update = update, view = view }
+main = Browser.element
+  { init = init
+  , update = update
+  , view = view
+  , subscriptions = subscriptions
+  }
+
+subscriptions : Model -> Sub Msg
+subscriptions _ = Sub.none
 
 type Szin = Piros | Sarga | Zold | Kek
 
@@ -23,22 +30,29 @@ toString szin = case szin of
   Zold -> "green"
   Kek -> "blue"
 
-init : Model
-init =
-  { nev = ""
-  , szin = Piros
-  }
+init : () -> (Model, Cmd Msg)
+init _ =
+  let
+    kezdeti =
+      { nev = ""
+      , szin = Piros
+      }
+  in (kezdeti, Cmd.none)
 
 type Msg
   = NevValtozott String
   | SzinValtozott Szin
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    NevValtozott nev -> { model | nev = nev }
-    SzinValtozott szin -> { model | szin = szin }
+    NevValtozott nev ->
+      let ujModel = { model | nev = nev }
+      in (ujModel, Cmd.none)
+    SzinValtozott szin ->
+      let ujModel = { model | szin = szin }
+      in (ujModel, Cmd.none)
 
 view : Model -> Html Msg
 view model =
@@ -54,7 +68,6 @@ view model =
     , szinValaszto
     , br [] []
     , button [] [text "Add"]
-    , text <| toHaskellNotation model
     ]
 
 szinValaszto : Html Msg
