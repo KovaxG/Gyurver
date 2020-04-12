@@ -4,18 +4,13 @@ module Events.Cokkolo where
 import Data.List (intersperse)
 import System.Random
 
-data Szin = Piros | Zold | Sarga deriving (Show, Read)
-data Motivum = Semmi deriving (Show, Read)
-data Strategia = A | V deriving (Show, Read)
-
 data Tojas = Tojas
   { nev :: String
-  , hatterSzin :: Szin
-  , motivum :: Motivum
+  , hatterSzin :: String
   } deriving (Show, Read)
 
-piroska = Tojas "Piroska" Piros Semmi
-sargacska = Tojas "Sargacska" Sarga Semmi
+piroska = Tojas "Piroska" "red"
+sargacska = Tojas "Sargacska" "yellow"
 
 data Harc = Harc
   { tojas1 :: String
@@ -37,11 +32,4 @@ tojasokToJson = surround . concat . intersperse "," . map tojasToJson
 
 tojasToJson :: Tojas -> String
 tojasToJson Tojas{nev, hatterSzin} =
-  "{ \"nev\":\"" ++ nev ++ "\", \"szin\":\"" ++ showSzin hatterSzin ++ "\"}"
-  where
-    showSzin :: Szin -> String
-    showSzin szin =
-      case szin of
-        Piros -> "red"
-        Zold -> "green"
-        Sarga -> "yellow"
+  "{ \"nev\":\"" ++ nev ++ "\", \"szin\":\"" ++ hatterSzin ++ "\"}"
