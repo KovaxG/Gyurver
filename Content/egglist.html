@@ -6186,6 +6186,28 @@ var $elm$core$List$isEmpty = function (xs) {
 		return false;
 	}
 };
+var $elm$html$Html$br = _VirtualDom_node('br');
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$CokkList$leiras = A2(
+	$elm$html$Html$p,
+	_List_Nil,
+	_List_fromArray(
+		[
+			$elm$html$Html$text('Kellemes ünnepeket! Üdv az első online cökkölési versenyen.'),
+			A2($elm$html$Html$br, _List_Nil, _List_Nil),
+			A2($elm$html$Html$br, _List_Nil, _List_Nil),
+			$elm$html$Html$text('Mi az a cökkölés? Egyesek kocogtatásnak nevezik, de egy játék, ahol két résztvevő egy-egy húsvéti tojást kiválaszt és a két tojást összeütik. Akinek eltörik a tojása, az veszít.'),
+			A2($elm$html$Html$br, _List_Nil, _List_Nil),
+			$elm$html$Html$text('Mivel mostanság nem nagyon mehetünk ki, gondoltam hogy az online világba viszem ezt a játékot.'),
+			A2($elm$html$Html$br, _List_Nil, _List_Nil),
+			A2($elm$html$Html$br, _List_Nil, _List_Nil),
+			$elm$html$Html$text('Nos, mostantól egész Április 13ig fel lehet íratkozni egy tojással, és majd Április 14én egy tournament stílusban összecökkentem a tolyásokat (digitálisan), amíg egy nyertes marad.'),
+			A2($elm$html$Html$br, _List_Nil, _List_Nil),
+			A2($elm$html$Html$br, _List_Nil, _List_Nil),
+			$elm$html$Html$text('Mi a nyeremény? Hát, legyen egy hivatalosan aláírt bizonyítvány, hogy a 2020 Cökkölési verseny nyertese vagy, és hogy neked volt a legkeményebb tojásod. Ezt linkelheted a LinkedInes profilodra. Ha akarod.')
+		]));
 var $elm$html$Html$ol = _VirtualDom_node('ol');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
@@ -6204,9 +6226,6 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
-var $elm$html$Html$p = _VirtualDom_node('p');
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$li = _VirtualDom_node('li');
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
@@ -6246,13 +6265,7 @@ var $author$project$CokkList$view = function (model) {
 					[
 						$elm$html$Html$text('2020 Húsvéti játékok')
 					])),
-				A2(
-				$elm$html$Html$p,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('bla bla bla')
-					])),
+				$author$project$CokkList$leiras,
 				A2(
 				$elm$html$Html$button,
 				_List_fromArray(
@@ -6261,7 +6274,7 @@ var $author$project$CokkList$view = function (model) {
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Én is akarok részt venni!')
+						$elm$html$Html$text('Én is részt akarok venni!')
 					])),
 				A2(
 				$elm$html$Html$h3,
