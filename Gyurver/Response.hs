@@ -6,6 +6,7 @@ module Gyurver.Response
   , Status(..)
   , toByteString
   , makeResponse
+  , addHeaders
   ) where
 
 import Data.Monoid
@@ -27,21 +28,26 @@ instance Show Status where
 data Response = Response
   { status  :: Status
   , address :: String
+  , headers :: [(String, String)]
   , content :: ByteString
   } deriving (Show)
 
 toByteString :: Response -> ByteString
-toByteString Response{content, status} =
+toByteString Response{content, status, headers} =
   BS.unlines
     [ BS.pack $ "HTTP/1.1 " <> show status
-    , BS.pack ""
+    , BS.pack $ concat $ map showHeader headers
     , content
     ]
+
+addHeaders :: [(String, String)] -> Response -> Response
+addHeaders hs r = r { headers = headers r ++ hs }
 
 makeResponse :: CanSend a => Status -> a -> Response
 makeResponse status content = Response
   { status = status
   , address = "localhost"
+  , headers = []
   , content = toBytes content
   }
 
@@ -56,3 +62,6 @@ instance CanSend String where
 
 instance CanSend Document where
   toBytes = BS.pack . show
+
+showHeader :: (String, String) -> String
+showHeader (k, v) = k ++ ": " ++ v ++ "\n"

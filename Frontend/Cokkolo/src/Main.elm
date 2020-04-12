@@ -1,9 +1,11 @@
 module Main exposing (..)
 
 import Browser
+import Browser.Navigation exposing (load)
 import Html exposing (Html, button, div, text, input, br)
 import Html.Events exposing (onClick, onInput)
 import Html.Attributes exposing (placeholder, value, style)
+import Http exposing (post, stringBody, expectWhatever, Error)
 import Debug
 
 main = Browser.element
@@ -42,6 +44,8 @@ init _ =
 type Msg
   = NevValtozott String
   | SzinValtozott Szin
+  | Adatkuldes
+  | MindenOk (Result Error ())
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -53,6 +57,16 @@ update msg model =
     SzinValtozott szin ->
       let ujModel = { model | szin = szin }
       in (ujModel, Cmd.none)
+    Adatkuldes ->
+      let
+        parancs =
+          post
+          { url = "/cokk/add"
+          , body = stringBody "text/html" (toHaskellNotation model)
+          , expect = expectWhatever MindenOk
+          }
+      in (model, parancs)
+    MindenOk _ -> (model, load "/cokk/list")
 
 view : Model -> Html Msg
 view model =
@@ -67,7 +81,7 @@ view model =
           ] []
     , szinValaszto
     , br [] []
-    , button [] [text "Add"]
+    , button [onClick Adatkuldes] [text "Add"]
     ]
 
 szinValaszto : Html Msg

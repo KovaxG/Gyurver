@@ -8,7 +8,7 @@ import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, char, option, 
 import Gyurver.Gyurror
 import Utils
 
-data RequestType = Get | Post deriving (Show)
+data RequestType = Get | Post | Options deriving (Show)
 data Request = Request
   { requestType :: RequestType
   , path :: String
@@ -45,9 +45,10 @@ parseRequest =
         content = content
       }
 
-    requestType = getRequest <|> postRequest
+    requestType = getRequest <|> postRequest <|> optionsRequest
     getRequest = string "GET" $> Get
     postRequest = string "POST" $> Post
+    optionsRequest = string "OPTIONS" $> Options
 
     path = many pathChars
     pathChars = alphaNum <|> char '/' <|> char '.' <|> char '_'
