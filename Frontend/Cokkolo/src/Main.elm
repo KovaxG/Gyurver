@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Browser.Navigation exposing (load)
-import Html exposing (Html, button, div, text, input, br, h1)
+import Html exposing (Html, button, div, text, input, br, h1, p)
 import Html.Events exposing (onClick, onInput)
 import Html.Attributes exposing (placeholder, value, style)
 import Http exposing (post, stringBody, expectWhatever, Error)
@@ -23,6 +23,7 @@ type Szin = Piros | Sarga | Zold | Kek
 type alias Model =
   { nev : String
   , szin : Szin
+  , uzenet : Html Msg
   }
 
 toString : Szin -> String
@@ -36,8 +37,9 @@ init : () -> (Model, Cmd Msg)
 init _ =
   let
     kezdeti =
-      { nev = "asdsa"
+      { nev = ""
       , szin = Piros
+      , uzenet = text "Színezd ki, majd nevezd meg a tojásod!"
       }
   in (kezdeti, Cmd.none)
 
@@ -45,14 +47,21 @@ type Msg
   = NevValtozott String
   | SzinValtozott Szin
   | Adatkuldes
-  | MindenOk (Result Error ())
+  | Valasz (Result Error ())
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     NevValtozott nev ->
-      let ujModel = { model | nev = nev }
+      let
+        ujModel =
+          { model
+          | nev = nev
+          , uzenet = if String.isEmpty nev
+                     then text "Színezd ki, majd nevezd meg a tojásod!"
+                     else text "Remek, nyomd meg a gombot, és mutatom is a listát :)"
+          }
       in (ujModel, Cmd.none)
     SzinValtozott szin ->
       let ujModel = { model | szin = szin }
@@ -63,33 +72,66 @@ update msg model =
           post
           { url = "/cokk/add"
           , body = stringBody "text/html" (toHaskellNotation model)
-          , expect = expectWhatever MindenOk
+          , expect = expectWhatever Valasz
           }
       in (model, parancs)
-    MindenOk _ -> (model, load "/cokk")
+    Valasz (Ok _) -> (model, load "/cokk")
+    Valasz (Err err) ->
+      let ujModel =
+            { model
+            | uzenet =
+                div []
+                  [ text "Hoppá, valami baj lett, nem tudtam elküldeni az adatokat :("
+                  , br [] []
+                  , text <| "Szólj gyurinak légyszi, hogy a szervertől ezt kaptam vissza: " ++ Debug.toString err
+                  ]
+            }
+      in (ujModel, Cmd.none)
 
 view : Model -> Html Msg
 view model =
-  if String.isEmpty model.nev
-  then nevbeiras model
-  else tojasKep model
-
-nevbeiras : Model -> Html Msg
-nevbeiras model =
   div []
     [ h1 [] [text "Új tojás!"]
-    , text "Tojás Neve: "
-    , input [placeholder "A tojás neve", value model.nev, onInput NevValtozott] []
+    , tojaskepek model
+    , if String.isEmpty model.nev
+      then
+        div []
+          [ p [ style "position" "absolute"
+              , style "top" "370px"
+              ]
+              [model.uzenet]
+          ]
+
+      else
+        div []
+        [ button
+          [ style "position" "absolute"
+          , style "top" "385px"
+          , onClick Adatkuldes
+          ]
+          [text "Ok, szeretnék ezzel a tojással résztvenni!"]
+        , p [ style "position" "absolute"
+            , style "top" "400px"
+            ]
+            [model.uzenet]
+        ]
+
+    , nevesSor model
     ]
 
-tojasKep : Model -> Html Msg
-tojasKep model =
-  div []
-    [ h1 [] [text "Új tojás!"]
-    , text "Tojás Neve: "
-    , input [placeholder "A tojás neve", value model.nev, onInput NevValtozott] []
-    , br [] []
-    , tojaskepek model
+nevesSor : Model -> Html Msg
+nevesSor model =
+  div
+    [ style "position" "absolute"
+    , style "top" "350px"
+    ]
+    [ text "Tojás Neve: "
+    , input
+      [ placeholder "A tojás neve"
+      , value model.nev
+      , onInput NevValtozott
+
+      ] []
     ]
 
 
@@ -97,20 +139,15 @@ tojaskepek : Model -> Html Msg
 tojaskepek model =
   div []
     [ div [ style "position" "absolute"
-          , style "top" "150px"
+          , style "top" "100px"
           , style "left" "20px"
           , style "width" "126px"
           , style "height" "180px"
           , style "padding" "20px"
           , style "background" (toString model.szin)
           , style "border-radius" "50% 50% 50% 50% / 60% 60% 40% 40%"
-          , style "text-align" "center"
-          , style "vertical-align" "middle"
-          , style "line-height" "180px"
-          , onClick Adatkuldes
           ]
-          [ text "Küldés"
-          ]
+          []
     , szinValaszto
     ]
 
@@ -129,7 +166,7 @@ szinValaszto =
   in
   div
     [ style "position" "absolute"
-    , style "top" "150px"
+    , style "top" "100px"
     , style "left" "240px"
     ]
     [ minta Piros
