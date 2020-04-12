@@ -21,9 +21,11 @@ log = Console
 
 main :: IO ()
 main = do
-  putStrLn "Gyurver is starting."
+  putStrLn "Gyurver is starting..."
   db <- newDB "Data/cokkolo2020.txt"
-  runServer log (IP "localhost") (Port 8080) (process db)
+  host <- maybe "localhost" id <$> safeReadFile "settings.txt"
+  putStrLn $ "Ok, running on " ++ host
+  runServer log (IP host) (Port 8080) (process db)
 
 process :: DB Tojas -> Request -> IO Response
 process db Request{requestType, path, content} = case (requestType, path) of
