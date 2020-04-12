@@ -193,4 +193,4 @@ szinValaszto =
 
 toHaskellNotation : Model -> String
 toHaskellNotation model =
-  "Tojas { nev = \"" ++ model.nev ++ "\", hatterSzin = " ++ Debug.toString model.szin ++ ", motivum = Semmi }"
+  "Tojas { nev = \"" ++ model.nev ++ "\", hatterSzin = \"" ++ toString model.szin ++ "\", motivum = Semmi }"

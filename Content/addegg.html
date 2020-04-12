@@ -6139,10 +6139,30 @@ var $elm$http$Http$post = function (r) {
 		{body: r.body, expect: r.expect, headers: _List_Nil, method: 'POST', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
 };
 var $elm$http$Http$stringBody = _Http_pair;
-var $elm$core$Debug$toString = _Debug_toString;
-var $author$project$Main$toHaskellNotation = function (model) {
-	return 'Tojas { nev = \"' + (model.nev + ('\", hatterSzin = ' + ($elm$core$Debug$toString(model.szin) + ', motivum = Semmi }')));
+var $author$project$Main$toString = function (szin) {
+	switch (szin.$) {
+		case 'Piros':
+			return 'red';
+		case 'Sarga':
+			return 'yellow';
+		case 'Zold':
+			return 'green';
+		case 'Kek':
+			return 'blue';
+		case 'Narancs':
+			return 'orange';
+		case 'Lila':
+			return 'purple';
+		case 'Fekete':
+			return 'black';
+		default:
+			return '#F6DADA';
+	}
 };
+var $author$project$Main$toHaskellNotation = function (model) {
+	return 'Tojas { nev = \"' + (model.nev + ('\", hatterSzin = \"' + ($author$project$Main$toString(model.szin) + '\", motivum = Semmi }')));
+};
+var $elm$core$Debug$toString = _Debug_toString;
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -6299,26 +6319,6 @@ var $author$project$Main$SzinValtozott = function (a) {
 	return {$: 'SzinValtozott', a: a};
 };
 var $author$project$Main$Zold = {$: 'Zold'};
-var $author$project$Main$toString = function (szin) {
-	switch (szin.$) {
-		case 'Piros':
-			return 'red';
-		case 'Sarga':
-			return 'yellow';
-		case 'Zold':
-			return 'green';
-		case 'Kek':
-			return 'blue';
-		case 'Narancs':
-			return 'orange';
-		case 'Lila':
-			return 'purple';
-		case 'Fekete':
-			return 'black';
-		default:
-			return '#F6DADA';
-	}
-};
 var $author$project$Main$szinValaszto = function () {
 	var minta = function (szin) {
 		return A2(
