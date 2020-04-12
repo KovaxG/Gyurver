@@ -66,7 +66,7 @@ update msg model =
           , expect = expectWhatever MindenOk
           }
       in (model, parancs)
-    MindenOk _ -> (model, load "/cokk/list")
+    MindenOk _ -> (model, load "/cokk")
 
 view : Model -> Html Msg
 view model =

@@ -1,1 +1,1 @@
-[Tojas {nev = "Zoldesur", hatterSzin = Zold, motivum = Semmi},Tojas {nev = "Sargasag", hatterSzin = Sarga, motivum = Semmi}]
+[Tojas {nev = "Fross", hatterSzin = Zold, motivum = Semmi},Tojas {nev = "Piroska", hatterSzin = Piros, motivum = Semmi},Tojas {nev = "Zoldesur", hatterSzin = Zold, motivum = Semmi},Tojas {nev = "Sargasag", hatterSzin = Sarga, motivum = Semmi}]

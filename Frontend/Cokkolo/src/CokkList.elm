@@ -42,12 +42,14 @@ init _ =
       }
     parancs =
       get
-      { url = "http://localhost:8080/cokk/list"
+      { url = "/cokk/list"
       , expect = expectJson Tojasok (Decoder.list tojasDecoder)
       }
   in (kezdeti, parancs)
 
-type Msg = Tojasok (Result Error (List Tojas))
+type Msg
+  = Tojasok (Result Error (List Tojas))
+  | UjTojasOldal
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -56,12 +58,14 @@ update msg model =
     Tojasok (Ok tojasok) ->
       let ujModel = { model | tojasok = tojasok }
       in (ujModel, Cmd.none)
+    UjTojasOldal -> (model, load "/cokk/add")
 
 view : Model -> Html Msg
 view model =
   div []
     [ h1 [] [text "2020 Húsvéti játékok"]
     , p [] [text "bla bla bla"]
+    , button [onClick UjTojasOldal] [text "Én is akarok részt venni!"]
     , h3 [] [text "Versenyzők"]
     , ol [] (List.map toListItem model.tojasok)
     ]

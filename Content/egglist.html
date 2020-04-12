@@ -6147,7 +6147,7 @@ var $author$project$CokkList$init = function (_v0) {
 				$elm$http$Http$expectJson,
 				$author$project$CokkList$Tojasok,
 				$elm$json$Json$Decode$list($author$project$CokkList$tojasDecoder)),
-			url: 'http://localhost:8080/cokk/list'
+			url: '/cokk/list'
 		});
 	var kezdeti = {tojasok: $author$project$CokkList$testTojasok};
 	return _Utils_Tuple2(kezdeti, parancs);
@@ -6157,25 +6157,51 @@ var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $author$project$CokkList$subscriptions = function (_v0) {
 	return $elm$core$Platform$Sub$none;
 };
+var $elm$browser$Browser$Navigation$load = _Browser_load;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$CokkList$update = F2(
 	function (msg, model) {
-		if (msg.a.$ === 'Err') {
-			var err = msg.a.a;
-			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		if (msg.$ === 'Tojasok') {
+			if (msg.a.$ === 'Err') {
+				var err = msg.a.a;
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			} else {
+				var tojasok = msg.a.a;
+				var ujModel = _Utils_update(
+					model,
+					{tojasok: tojasok});
+				return _Utils_Tuple2(ujModel, $elm$core$Platform$Cmd$none);
+			}
 		} else {
-			var tojasok = msg.a.a;
-			var ujModel = _Utils_update(
+			return _Utils_Tuple2(
 				model,
-				{tojasok: tojasok});
-			return _Utils_Tuple2(ujModel, $elm$core$Platform$Cmd$none);
+				$elm$browser$Browser$Navigation$load('/cokk/add'));
 		}
 	});
+var $author$project$CokkList$UjTojasOldal = {$: 'UjTojasOldal'};
+var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $elm$html$Html$ol = _VirtualDom_node('ol');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
@@ -6224,6 +6250,16 @@ var $author$project$CokkList$view = function (model) {
 				_List_fromArray(
 					[
 						$elm$html$Html$text('bla bla bla')
+					])),
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Events$onClick($author$project$CokkList$UjTojasOldal)
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Én is akarok részt venni!')
 					])),
 				A2(
 				$elm$html$Html$h3,
