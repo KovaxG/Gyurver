@@ -103,8 +103,8 @@ leiras =
     , text "Mivel mostanság nem nagyon mehetünk ki, gondoltam hogy az online világba viszem ezt a játékot."
     , br [] []
     , br [] []
-    , text "Nos, mostantól egész Április 13ig fel lehet íratkozni egy tojással, és majd Április 14én egy tournament stílusban összecökkentem a tolyásokat (digitálisan), amíg egy nyertes marad."
+    , text "Nos, mostantól egész Április 13ig fel lehet iratkozni egy tojással, és majd Április 14én egy tournament stílusban összecökkentem a tojásokat (digitálisan), amíg egy nyertes marad."
     , br [] []
     , br [] []
-    , text "Mi a nyeremény? Hát, legyen egy hivatalosan aláírt bizonyítvány, hogy a 2020 Cökkölési verseny nyertese vagy, és hogy neked volt a legkeményebb tojásod. Ezt linkelheted a LinkedInes profilodra. Ha akarod."
+    , text "Mi a nyeremény? Hát, legyen egy hivatalosan aláírt bizonyitvány, hogy a 2020 Cökkölési verseny nyertese vagy, és hogy neked volt a legkeményebb tojásod. Ezt linkelheted a LinkedInes profilodra. Ha akarod."
     ]
