@@ -9,6 +9,10 @@ import Http exposing (get, expectJson, Error)
 import Json.Decode exposing (Decoder)
 import Json.Decode as Decoder
 
+import Bootstrap.CDN as CDN
+import Bootstrap.Grid as Grid
+import Bootstrap.Button as Button
+
 main = Browser.element
   { init = init
   , update = update
@@ -31,7 +35,7 @@ type alias Model =
 init : () -> (Model, Cmd Msg)
 init _ =
   let
-    kezdeti = { tojasok = [] }
+    kezdeti = { tojasok = [Tojas "Gyuri" "red"] }
     parancs = get
       { url = "/cokk/list"
       , expect = expectJson Tojasok (Decoder.list tojasDecoder)
@@ -53,15 +57,21 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  div []
-    [ h1 [] [text "2020 Húsvéti játékok"]
-    , leiras
-    , button [onClick UjTojasOldal] [text "Én is részt akarok venni!"]
-    , h3 [] [text "Versenyzők"]
-    , if List.isEmpty model.tojasok
+  Grid.container []
+      [ CDN.stylesheet -- creates an inline style node with the Bootstrap CSS
+      , Grid.row []
+          [ Grid.col []
+            [ h1 [] [text "2020 Húsvéti játékok"]
+            , leiras
+            , Button.button [Button.attrs [onClick UjTojasOldal], Button.primary] [text "Én is részt akarok venni!"]
+            , h3 [] [text "Versenyzők"]
+            , if List.isEmpty model.tojasok
       then div [] [text "Még nincs jelentkező, lehetnél az első :D"]
       else ol [] (List.map toListItem model.tojasok)
-    ]
+            ]
+          ]
+
+      ]
 
 toListItem : Tojas -> Html Msg
 toListItem tojas =
@@ -69,8 +79,8 @@ toListItem tojas =
     tojasPic =
       div [ style "float" "left"
           , style "top" "-15px"
-          , style "width" "6px"
-          , style "height" "9px"
+          , style "width" "15px"
+          , style "height" "23px"
           , style "padding" "2px"
           , style "background" tojas.szin
           , style "border-radius" "50% 50% 50% 50% / 60% 60% 40% 40%"
