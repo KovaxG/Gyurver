@@ -46,7 +46,7 @@ appendDB db a = do
   takeMVar (semaphore db)
   !raw <- safeReadFile (path db)
   let !oldData = maybe [] read raw
-  let !newData = a : oldData
+  let !newData = oldData ++ [a]
   !result <- safeWriteFile (path db) (show newData)
   putMVar (semaphore db) ()
   maybe (return ()) return result
