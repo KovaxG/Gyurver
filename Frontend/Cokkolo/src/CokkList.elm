@@ -63,7 +63,7 @@ view model =
           [ Grid.col []
             [ h1 [] [text "2020 Húsvéti játékok"]
             , leiras
-            , Button.button [Button.attrs [onClick UjTojasOldal], Button.primary] [text "Én is részt akarok venni!"]
+            , text "A felíratkozásnak már vége, a nap folyamán itt lesz egy link ahol majd meg lehet nézni az eredményeket. Sok sikert mindenkinek :)"
             , h3 [] [text "Versenyzők"]
             , if List.isEmpty model.tojasok
       then div [] [text "Még nincs jelentkező, lehetnél az első :D"]

@@ -48,9 +48,6 @@ process db Request{requestType, path, content} = case (requestType, path) of
       $ addHeaders [("Content-Type", "application/json")]
       $ makeResponse OK
       $ tojasokToJson tojasok
-  (Get, "/cokk/add") -> do
-    info log $ "Requested add egg page."
-    sendFile addEggPath
   (Get, "/cokk") -> do
     info log $ "Requested add egg page."
     sendFile eggListPath
@@ -68,35 +65,9 @@ process db Request{requestType, path, content} = case (requestType, path) of
     | otherwise -> do
       info log $ "[GET " ++ path ++ "] No such thing, blaming the user."
       badRequest
-  (Post, "/cokk/add") -> do
-
-    let !tojas = safeRead content
-    let
-      canParse :: Tojas -> IO Response
-      canParse toj = do
-        info log $ "Adding new tojas " ++ show toj
-        appendDB db toj
-        return $ makeResponse OK "Megható"
-
-      cantParse :: IO Response
-      cantParse = do
-        info log $ "Failed to parse \"" ++ content ++ "\""
-        return $ makeResponse BadRequest "Nem tudtam kiolvasni."
-    maybe cantParse canParse tojas
-
-
   (Post, path) -> do
     info log $ "[POST " ++ path ++ "] No such thing, blaming the user."
     badRequest
-  (Options, "/cokk/add") -> do
-    info log $ "People are asking if you can add eggs to cokk. The answer is yes."
-    return
-      $ addHeaders
-        [ ("Access-Control-Allow-Origin", "*")
-        , ("Access-Control-Allow-Headers", "*")
-        , ("Access-Control-Allow-Methods", "OPTIONS, POST")
-        ]
-      $ makeResponse OK ""
   (Options, path) -> do
     info log $ "[OPTIONS " ++ path ++ "] No such thing, blaming the user."
     badRequest
@@ -105,7 +76,6 @@ landingPagePath = "Content/landing.html"
 cvPath = "Content/pdfs/cv.pdf"
 faviconPath = "Content/favicon.ico"
 articlesPath = "Content/articles.html"
-addEggPath = "Content/addegg.html"
 eggListPath = "Content/egglist.html"
 
 badRequest :: IO Response
