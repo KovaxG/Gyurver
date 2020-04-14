@@ -2,9 +2,9 @@ module CokkList exposing (..)
 
 import Browser
 import Browser.Navigation exposing (load)
-import Html exposing (Html, button, div, text, h1, h3, p, ol, li, br)
+import Html exposing (Html, button, div, text, h1, h3, p, ol, li, br, a)
 import Html.Events exposing (onClick)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (style, href)
 import Http exposing (get, expectJson, Error)
 import Json.Decode exposing (Decoder)
 import Json.Decode as Decoder
@@ -64,6 +64,8 @@ view model =
             [ h1 [] [text "2020 Húsvéti játékok"]
             , leiras
             , text "A felíratkozásnak már vége, a nap folyamán itt lesz egy link ahol majd meg lehet nézni az eredményeket. Sok sikert mindenkinek :)"
+            , br [] []
+            , a [href "/cokk/eredmeny"] [text "Mutasd az Eredményeket!"]
             , h3 [] [text "Versenyzők"]
             , if List.isEmpty model.tojasok
       then div [] [text "Még nincs jelentkező, lehetnél az első :D"]

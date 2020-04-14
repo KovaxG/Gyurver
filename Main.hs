@@ -48,6 +48,9 @@ process db Request{requestType, path, content} = case (requestType, path) of
       $ addHeaders [("Content-Type", "application/json")]
       $ makeResponse OK
       $ tojasokToJson tojasok
+  (Get, "/cokk/eredmeny") -> do
+    info log $ "Requested results."
+    sendFile resultsPath
   (Get, "/cokk") -> do
     info log $ "Requested add egg page."
     sendFile eggListPath
@@ -77,6 +80,7 @@ cvPath = "Content/pdfs/cv.pdf"
 faviconPath = "Content/favicon.ico"
 articlesPath = "Content/articles.html"
 eggListPath = "Content/egglist.html"
+resultsPath = "Content/eredmenyek.html"
 
 badRequest :: IO Response
 badRequest =
