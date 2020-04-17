@@ -6128,6 +6128,8 @@ var $author$project$Eredmenyek$csoportTable = function (rows) {
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$h5 = _VirtualDom_node('h5');
+var $elm$html$Html$iframe = _VirtualDom_node('iframe');
+var $elm$html$Html$p = _VirtualDom_node('p');
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$Col = 0;
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$Width = F2(
 	function (screenSize, columnCount) {
@@ -6914,6 +6916,12 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$row = F2(
 			$rundis$elm_bootstrap$Bootstrap$Grid$Internal$rowAttributes(options),
 			A2($elm$core$List$map, $rundis$elm_bootstrap$Bootstrap$Grid$renderCol, cols));
 	});
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
 var $elm$html$Html$Attributes$href = function (url) {
 	return A2(
 		$elm$html$Html$Attributes$stringProperty,
@@ -6959,7 +6967,98 @@ var $author$project$Eredmenyek$view = function (model) {
 									[
 										$elm$html$Html$text('2020 Cökkölés Eredmények')
 									])),
-								$elm$html$Html$text('A verseny szabályait elmagyarázom majd egy youtube videóban, és a pontszámokat egy másik videóban, ahol va fél órát dobigálok egy dobokockával. Majd teszek linkeket ha sikerűl befejezni őket :)'),
+								A2(
+								$elm$html$Html$h2,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Nyertes: Törékeny, de erős!')
+									])),
+								A2(
+								$elm$html$Html$p,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Idén a legkeményebb tojás biza a \"Törékeny, de erős!\" lett. Kiderült, hogy valójában erős :)')
+									]))
+							]))
+					])),
+				A2(
+				$rundis$elm_bootstrap$Bootstrap$Grid$row,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$h2,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Szabályok')
+									])),
+								A2(
+								$elm$html$Html$iframe,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$src('https://www.youtube.com/embed/V01as85s8NY')
+									]),
+								_List_Nil)
+							])),
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$h2,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Meccsek')
+									])),
+								A2(
+								$elm$html$Html$p,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Ha ezt látod, akkor még nincs meg a videó, de készűl!')
+									]))
+							]))
+					])),
+				A2(
+				$rundis$elm_bootstrap$Bootstrap$Grid$row,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$h2,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Verseny Ágak')
+									])),
+								$author$project$Eredmenyek$brackets
+							]))
+					])),
+				A2(
+				$rundis$elm_bootstrap$Bootstrap$Grid$row,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
 								A2(
 								$elm$html$Html$h2,
 								_List_Nil,
@@ -7347,27 +7446,6 @@ var $author$project$Eredmenyek$view = function (model) {
 												])),
 										2)
 									]))
-							]))
-					])),
-				A2(
-				$rundis$elm_bootstrap$Bootstrap$Grid$row,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						$rundis$elm_bootstrap$Bootstrap$Grid$col,
-						_List_Nil,
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$h2,
-								_List_Nil,
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Verseny Ágak')
-									])),
-								$author$project$Eredmenyek$brackets,
-								$elm$html$Html$text('Idén a legkeményebb tojás biza a \"Törékeny, de erős!\" lett. Kiderült, hogy valójában erős :)')
 							]))
 					]))
 			]));
