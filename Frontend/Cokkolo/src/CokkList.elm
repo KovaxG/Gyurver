@@ -12,6 +12,8 @@ import Json.Decode as Decoder
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Button as Button
+import Bootstrap.Spinner as Spinner
+import Bootstrap.Text as Text
 
 main = Browser.element
   { init = init
@@ -30,12 +32,13 @@ type alias Tojas =
 
 type alias Model =
   { tojasok : List Tojas
+  , betoltve : Bool
   }
 
 init : () -> (Model, Cmd Msg)
 init _ =
   let
-    kezdeti = { tojasok = [Tojas "Gyuri" "red"] }
+    kezdeti = { tojasok = [], betoltve = False }
     parancs = get
       { url = "/cokk/list"
       , expect = expectJson Tojasok (Decoder.list tojasDecoder)
@@ -49,10 +52,14 @@ type Msg
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    Tojasok (Err err) -> (model, Cmd.none)
+    Tojasok (Err err) -> 
+      ( { model | betoltve = True }
+      , Cmd.none
+      )
     Tojasok (Ok tojasok) ->
-      let ujModel = { model | tojasok = tojasok }
-      in (ujModel, Cmd.none)
+      ( { model | tojasok = tojasok, betoltve = True }
+      , Cmd.none
+      )
     UjTojasOldal -> (model, load "/cokk/add")
 
 view : Model -> Html Msg
@@ -67,13 +74,18 @@ view model =
             , br [] []
             , a [href "/cokk/eredmeny"] [text "Mutasd az Eredményeket!"]
             , h3 [] [text "Versenyzők"]
-            , if List.isEmpty model.tojasok
-      then div [] [text "Még nincs jelentkező, lehetnél az első :D"]
-      else ol [] (List.map toListItem model.tojasok)
+            , if model.betoltve
+              then listaView model.tojasok
+              else Spinner.spinner [Spinner.color Text.danger] []
             ]
           ]
-
       ]
+      
+listaView : List Tojas -> Html Msg
+listaView tojasok =
+  if List.isEmpty tojasok
+  then div [] [text "Még nincs jelentkező, lehetnél az első :D"]
+  else ol [] (List.map toListItem tojasok)
 
 toListItem : Tojas -> Html Msg
 toListItem tojas =

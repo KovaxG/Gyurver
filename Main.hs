@@ -5,7 +5,7 @@ module Main where
 import Prelude hiding (log)
 import qualified Data.ByteString as BS
 
-import Component.Database
+import Component.Database as DB
 
 import Events.Cokkolo
 
@@ -22,12 +22,12 @@ log = Console
 main :: IO ()
 main = do
   putStrLn "Gyurver is starting..."
-  db <- newDB "cokkolo2020"
+  db <- DB.getHandle "cokkolo2020"
   host <- maybe "localhost" id <$> safeReadFile "gyurver.settings"
   putStrLn $ "Ok, running on " ++ host
   runServer log (IP host) (Port 8080) (process db)
 
-process :: DB Tojas -> Request -> IO Response
+process :: DBHandle Tojas -> Request -> IO Response
 process db Request{requestType, path, content} = case (requestType, path) of
   (Get, "/") -> do
     info log $ "Requested landing page, sending " ++ landingPagePath
@@ -43,7 +43,7 @@ process db Request{requestType, path, content} = case (requestType, path) of
     sendFile articlesPath
   (Get, "/cokk/list") -> do
     info log $ "Requested cokkolesi lista."
-    tojasok <- readDB db
+    tojasok <- DB.everythingList db
     return
       $ addHeaders [("Content-Type", "application/json")]
       $ makeResponse OK

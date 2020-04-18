@@ -798,11 +798,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.b8.ag === region.co.ag)
+	if (region.b9.ah === region.cp.ah)
 	{
-		return 'on line ' + region.b8.ag;
+		return 'on line ' + region.b9.ah;
 	}
-	return 'on lines ' + region.b8.ag + ' through ' + region.co.ag;
+	return 'on lines ' + region.b9.ah + ' through ' + region.cp.ah;
 }
 
 
@@ -1871,9 +1871,9 @@ var _Platform_worker = F4(function(impl, flagDecoder, debugMetadata, args)
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.dp,
-		impl.dF,
-		impl.dC,
+		impl.dq,
+		impl.dG,
+		impl.dD,
 		function() { return function() {} }
 	);
 });
@@ -2719,8 +2719,8 @@ var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
 		x: func(record.x),
-		ca: record.ca,
-		b4: record.b4
+		cb: record.cb,
+		b5: record.b5
 	}
 });
 
@@ -2989,10 +2989,10 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 
 		var value = result.a;
 		var message = !tag ? value : tag < 3 ? value.a : value.x;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.ca;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.cb;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.b4) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.b5) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3942,11 +3942,11 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.dp,
-		impl.dF,
-		impl.dC,
+		impl.dq,
+		impl.dG,
+		impl.dD,
 		function(sendToApp, initialModel) {
-			var view = impl.dH;
+			var view = impl.dI;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3978,12 +3978,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.dp,
-		impl.dF,
-		impl.dC,
+		impl.dq,
+		impl.dG,
+		impl.dD,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.b7 && impl.b7(sendToApp)
-			var view = impl.dH;
+			var divertHrefToApp = impl.b8 && impl.b8(sendToApp)
+			var view = impl.dI;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -3991,12 +3991,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 			{
 				_VirtualDom_divertHrefToApp = divertHrefToApp;
 				var doc = view(model);
-				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.dd);
+				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.de);
 				var patches = _VirtualDom_diff(currNode, nextNode);
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.dE) && (_VirtualDom_doc.title = title = doc.dE);
+				(title !== doc.dF) && (_VirtualDom_doc.title = title = doc.dF);
 			});
 		}
 	);
@@ -4052,12 +4052,12 @@ function _Browser_makeAnimator(model, draw)
 
 function _Browser_application(impl)
 {
-	var onUrlChange = impl.dt;
-	var onUrlRequest = impl.du;
+	var onUrlChange = impl.du;
+	var onUrlRequest = impl.dv;
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		b7: function(sendToApp)
+		b8: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4073,9 +4073,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
-							&& curr.cN === next.cN
-							&& curr.ct === next.ct
-							&& curr.cJ.a === next.cJ.a
+							&& curr.cO === next.cO
+							&& curr.cu === next.cu
+							&& curr.cK.a === next.cK.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4083,13 +4083,13 @@ function _Browser_application(impl)
 				}
 			});
 		},
-		dp: function(flags)
+		dq: function(flags)
 		{
-			return A3(impl.dp, flags, _Browser_getUrl(), key);
+			return A3(impl.dq, flags, _Browser_getUrl(), key);
 		},
-		dH: impl.dH,
-		dF: impl.dF,
-		dC: impl.dC
+		dI: impl.dI,
+		dG: impl.dG,
+		dD: impl.dD
 	});
 }
 
@@ -4155,17 +4155,17 @@ var _Browser_decodeEvent = F2(function(decoder, event)
 function _Browser_visibilityInfo()
 {
 	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { dm: 'hidden', de: 'visibilitychange' }
+		? { dn: 'hidden', df: 'visibilitychange' }
 		:
 	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { dm: 'mozHidden', de: 'mozvisibilitychange' }
+		? { dn: 'mozHidden', df: 'mozvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { dm: 'msHidden', de: 'msvisibilitychange' }
+		? { dn: 'msHidden', df: 'msvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { dm: 'webkitHidden', de: 'webkitvisibilitychange' }
-		: { dm: 'hidden', de: 'visibilitychange' };
+		? { dn: 'webkitHidden', df: 'webkitvisibilitychange' }
+		: { dn: 'hidden', df: 'visibilitychange' };
 }
 
 
@@ -4246,12 +4246,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		cU: _Browser_getScene(),
-		c6: {
-			c8: _Browser_window.pageXOffset,
-			c9: _Browser_window.pageYOffset,
-			c7: _Browser_doc.documentElement.clientWidth,
-			cs: _Browser_doc.documentElement.clientHeight
+		cV: _Browser_getScene(),
+		c7: {
+			c9: _Browser_window.pageXOffset,
+			da: _Browser_window.pageYOffset,
+			c8: _Browser_doc.documentElement.clientWidth,
+			ct: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4261,8 +4261,8 @@ function _Browser_getScene()
 	var body = _Browser_doc.body;
 	var elem = _Browser_doc.documentElement;
 	return {
-		c7: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		cs: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		c8: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
+		ct: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4285,15 +4285,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			cU: {
-				c7: node.scrollWidth,
-				cs: node.scrollHeight
+			cV: {
+				c8: node.scrollWidth,
+				ct: node.scrollHeight
 			},
-			c6: {
-				c8: node.scrollLeft,
-				c9: node.scrollTop,
-				c7: node.clientWidth,
-				cs: node.clientHeight
+			c7: {
+				c9: node.scrollLeft,
+				da: node.scrollTop,
+				c8: node.clientWidth,
+				ct: node.clientHeight
 			}
 		};
 	});
@@ -4323,18 +4323,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			cU: _Browser_getScene(),
-			c6: {
-				c8: x,
-				c9: y,
-				c7: _Browser_doc.documentElement.clientWidth,
-				cs: _Browser_doc.documentElement.clientHeight
+			cV: _Browser_getScene(),
+			c7: {
+				c9: x,
+				da: y,
+				c8: _Browser_doc.documentElement.clientWidth,
+				ct: _Browser_doc.documentElement.clientHeight
 			},
-			di: {
-				c8: x + rect.left,
-				c9: y + rect.top,
-				c7: rect.width,
-				cs: rect.height
+			dj: {
+				c9: x + rect.left,
+				da: y + rect.top,
+				c8: rect.width,
+				ct: rect.height
 			}
 		};
 	});
@@ -4379,25 +4379,25 @@ var _Http_toTask = F3(function(router, toTask, request)
 	return _Scheduler_binding(function(callback)
 	{
 		function done(response) {
-			callback(toTask(request.dj.a(response)));
+			callback(toTask(request.dk.a(response)));
 		}
 
 		var xhr = new XMLHttpRequest();
 		xhr.addEventListener('error', function() { done($elm$http$Http$NetworkError_); });
 		xhr.addEventListener('timeout', function() { done($elm$http$Http$Timeout_); });
-		xhr.addEventListener('load', function() { done(_Http_toResponse(request.dj.b, xhr)); });
-		$elm$core$Maybe$isJust(request.c4) && _Http_track(router, xhr, request.c4.a);
+		xhr.addEventListener('load', function() { done(_Http_toResponse(request.dk.b, xhr)); });
+		$elm$core$Maybe$isJust(request.c5) && _Http_track(router, xhr, request.c5.a);
 
 		try {
-			xhr.open(request.dr, request.dG, true);
+			xhr.open(request.ds, request.dH, true);
 		} catch (e) {
-			return done($elm$http$Http$BadUrl_(request.dG));
+			return done($elm$http$Http$BadUrl_(request.dH));
 		}
 
 		_Http_configureRequest(xhr, request);
 
-		request.dd.a && xhr.setRequestHeader('Content-Type', request.dd.a);
-		xhr.send(request.dd.b);
+		request.de.a && xhr.setRequestHeader('Content-Type', request.de.a);
+		xhr.send(request.de.b);
 
 		return function() { xhr.c = true; xhr.abort(); };
 	});
@@ -4408,13 +4408,13 @@ var _Http_toTask = F3(function(router, toTask, request)
 
 function _Http_configureRequest(xhr, request)
 {
-	for (var headers = request.cr; headers.b; headers = headers.b) // WHILE_CONS
+	for (var headers = request.cs; headers.b; headers = headers.b) // WHILE_CONS
 	{
 		xhr.setRequestHeader(headers.a.a, headers.a.b);
 	}
-	xhr.timeout = request.dD.a || 0;
-	xhr.responseType = request.dj.d;
-	xhr.withCredentials = request.db;
+	xhr.timeout = request.dE.a || 0;
+	xhr.responseType = request.dk.d;
+	xhr.withCredentials = request.dc;
 }
 
 
@@ -4435,10 +4435,10 @@ function _Http_toResponse(toBody, xhr)
 function _Http_toMetadata(xhr)
 {
 	return {
-		dG: xhr.responseURL,
-		dA: xhr.status,
-		dB: xhr.statusText,
-		cr: _Http_parseHeaders(xhr.getAllResponseHeaders())
+		dH: xhr.responseURL,
+		dB: xhr.status,
+		dC: xhr.statusText,
+		cs: _Http_parseHeaders(xhr.getAllResponseHeaders())
 	};
 }
 
@@ -4533,15 +4533,15 @@ function _Http_track(router, xhr, tracker)
 	xhr.upload.addEventListener('progress', function(event) {
 		if (xhr.c) { return; }
 		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Sending({
-			dy: event.loaded,
-			cW: event.total
+			dz: event.loaded,
+			cX: event.total
 		}))));
 	});
 	xhr.addEventListener('progress', function(event) {
 		if (xhr.c) { return; }
 		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Receiving({
-			dw: event.loaded,
-			cW: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
+			dx: event.loaded,
+			cX: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
 		}))));
 	});
 }var $elm$core$Basics$EQ = 1;
@@ -5048,7 +5048,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {cq: fragment, ct: host, cH: path, cJ: port_, cN: protocol, cO: query};
+		return {cr: fragment, cu: host, cI: path, cK: port_, cO: protocol, cP: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -5327,10 +5327,6 @@ var $elm$core$Task$perform = F2(
 			A2($elm$core$Task$map, toMessage, task));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$CokkList$Tojas = F2(
-	function (nev, szin) {
-		return {cD: nev, cY: szin};
-	});
 var $author$project$CokkList$Tojasok = function (a) {
 	return {$: 0, a: a};
 };
@@ -5926,7 +5922,7 @@ var $elm$http$Http$resolve = F2(
 			case 3:
 				var metadata = response.a;
 				return $elm$core$Result$Err(
-					$elm$http$Http$BadStatus(metadata.dA));
+					$elm$http$Http$BadStatus(metadata.dB));
 			default:
 				var body = response.b;
 				return A2(
@@ -5954,7 +5950,7 @@ var $elm$http$Http$Request = function (a) {
 };
 var $elm$http$Http$State = F2(
 	function (reqs, subs) {
-		return {cQ: reqs, cX: subs};
+		return {cR: reqs, cY: subs};
 	});
 var $elm$http$Http$init = $elm$core$Task$succeed(
 	A2($elm$http$Http$State, $elm$core$Dict$empty, _List_Nil));
@@ -5998,7 +5994,7 @@ var $elm$http$Http$updateReqs = F3(
 					return A2(
 						$elm$core$Task$andThen,
 						function (pid) {
-							var _v4 = req.c4;
+							var _v4 = req.c5;
 							if (_v4.$ === 1) {
 								return A3($elm$http$Http$updateReqs, router, otherCmds, reqs);
 							} else {
@@ -6028,7 +6024,7 @@ var $elm$http$Http$onEffects = F4(
 				return $elm$core$Task$succeed(
 					A2($elm$http$Http$State, reqs, subs));
 			},
-			A3($elm$http$Http$updateReqs, router, cmds, state.cQ));
+			A3($elm$http$Http$updateReqs, router, cmds, state.cR));
 	});
 var $elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
@@ -6071,7 +6067,7 @@ var $elm$http$Http$onSelfMsg = F3(
 				A2(
 					$elm$core$List$filterMap,
 					A3($elm$http$Http$maybeSend, router, tracker, progress),
-					state.cX)));
+					state.cY)));
 	});
 var $elm$http$Http$Cancel = function (a) {
 	return {$: 0, a: a};
@@ -6085,14 +6081,14 @@ var $elm$http$Http$cmdMap = F2(
 			var r = cmd.a;
 			return $elm$http$Http$Request(
 				{
-					db: r.db,
-					dd: r.dd,
-					dj: A2(_Http_mapExpect, func, r.dj),
-					cr: r.cr,
-					dr: r.dr,
-					dD: r.dD,
-					c4: r.c4,
-					dG: r.dG
+					dc: r.dc,
+					de: r.de,
+					dk: A2(_Http_mapExpect, func, r.dk),
+					cs: r.cs,
+					ds: r.ds,
+					dE: r.dE,
+					c5: r.c5,
+					dH: r.dH
 				});
 		}
 	});
@@ -6115,13 +6111,17 @@ var $elm$http$Http$subscription = _Platform_leaf('Http');
 var $elm$http$Http$request = function (r) {
 	return $elm$http$Http$command(
 		$elm$http$Http$Request(
-			{db: false, dd: r.dd, dj: r.dj, cr: r.cr, dr: r.dr, dD: r.dD, c4: r.c4, dG: r.dG}));
+			{dc: false, de: r.de, dk: r.dk, cs: r.cs, ds: r.ds, dE: r.dE, c5: r.c5, dH: r.dH}));
 };
 var $elm$http$Http$get = function (r) {
 	return $elm$http$Http$request(
-		{dd: $elm$http$Http$emptyBody, dj: r.dj, cr: _List_Nil, dr: 'GET', dD: $elm$core$Maybe$Nothing, c4: $elm$core$Maybe$Nothing, dG: r.dG});
+		{de: $elm$http$Http$emptyBody, dk: r.dk, cs: _List_Nil, ds: 'GET', dE: $elm$core$Maybe$Nothing, c5: $elm$core$Maybe$Nothing, dH: r.dH});
 };
 var $elm$json$Json$Decode$list = _Json_decodeList;
+var $author$project$CokkList$Tojas = F2(
+	function (nev, szin) {
+		return {cE: nev, cZ: szin};
+	});
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$CokkList$tojasDecoder = A3(
@@ -6132,18 +6132,13 @@ var $author$project$CokkList$tojasDecoder = A3(
 var $author$project$CokkList$init = function (_v0) {
 	var parancs = $elm$http$Http$get(
 		{
-			dj: A2(
+			dk: A2(
 				$elm$http$Http$expectJson,
 				$author$project$CokkList$Tojasok,
 				$elm$json$Json$Decode$list($author$project$CokkList$tojasDecoder)),
-			dG: '/cokk/list'
+			dH: '/cokk/list'
 		});
-	var kezdeti = {
-		ao: _List_fromArray(
-			[
-				A2($author$project$CokkList$Tojas, 'Gyuri', 'red')
-			])
-	};
+	var kezdeti = {X: false, bH: _List_Nil};
 	return _Utils_Tuple2(kezdeti, parancs);
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
@@ -6159,13 +6154,18 @@ var $author$project$CokkList$update = F2(
 		if (!msg.$) {
 			if (msg.a.$ === 1) {
 				var err = msg.a.a;
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{X: true}),
+					$elm$core$Platform$Cmd$none);
 			} else {
 				var tojasok = msg.a.a;
-				var ujModel = _Utils_update(
-					model,
-					{ao: tojasok});
-				return _Utils_Tuple2(ujModel, $elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{X: true, bH: tojasok}),
+					$elm$core$Platform$Cmd$none);
 			}
 		} else {
 			return _Utils_Tuple2(
@@ -6181,8 +6181,14 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Column = function (a) {
 var $rundis$elm_bootstrap$Bootstrap$Grid$col = F2(
 	function (options, children) {
 		return $rundis$elm_bootstrap$Bootstrap$Grid$Column(
-			{cj: children, b0: options});
+			{ck: children, b1: options});
 	});
+var $rundis$elm_bootstrap$Bootstrap$Spinner$Color = function (a) {
+	return {$: 2, a: a};
+};
+var $rundis$elm_bootstrap$Bootstrap$Spinner$color = function (color_) {
+	return $rundis$elm_bootstrap$Bootstrap$Spinner$Color(color_);
+};
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -6205,6 +6211,11 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$container = F2(
 				attributes),
 			children);
 	});
+var $rundis$elm_bootstrap$Bootstrap$Internal$Role$Danger = 5;
+var $rundis$elm_bootstrap$Bootstrap$Internal$Text$Role = function (a) {
+	return {$: 0, a: a};
+};
+var $rundis$elm_bootstrap$Bootstrap$Text$danger = $rundis$elm_bootstrap$Bootstrap$Internal$Text$Role(5);
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $elm$html$Html$Attributes$href = function (url) {
@@ -6212,13 +6223,6 @@ var $elm$html$Html$Attributes$href = function (url) {
 		$elm$html$Html$Attributes$stringProperty,
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
-};
-var $elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
 };
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
@@ -6241,16 +6245,61 @@ var $author$project$CokkList$leiras = A2(
 			A2($elm$html$Html$br, _List_Nil, _List_Nil),
 			$elm$html$Html$text('Mi a nyeremény? Hát, legyen egy hivatalosan aláírt bizonyitvány, hogy a 2020 Cökkölési verseny nyertese vagy, és hogy neked volt a legkeményebb tojásod. Ezt linkelheted a LinkedInes profilodra. Ha akarod.')
 		]));
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
 var $elm$html$Html$ol = _VirtualDom_node('ol');
+var $elm$html$Html$li = _VirtualDom_node('li');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $author$project$CokkList$toListItem = function (tojas) {
+	var tojasPic = A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'float', 'left'),
+				A2($elm$html$Html$Attributes$style, 'top', '-15px'),
+				A2($elm$html$Html$Attributes$style, 'width', '15px'),
+				A2($elm$html$Html$Attributes$style, 'height', '23px'),
+				A2($elm$html$Html$Attributes$style, 'padding', '2px'),
+				A2($elm$html$Html$Attributes$style, 'background', tojas.cZ),
+				A2($elm$html$Html$Attributes$style, 'border-radius', '50% 50% 50% 50% / 60% 60% 40% 40%')
+			]),
+		_List_Nil);
+	return A2(
+		$elm$html$Html$li,
+		_List_Nil,
+		_List_fromArray(
+			[
+				tojasPic,
+				$elm$html$Html$text(tojas.cE)
+			]));
+};
+var $author$project$CokkList$listaView = function (tojasok) {
+	return $elm$core$List$isEmpty(tojasok) ? A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text('Még nincs jelentkező, lehetnél az első :D')
+			])) : A2(
+		$elm$html$Html$ol,
+		_List_Nil,
+		A2($elm$core$List$map, $author$project$CokkList$toListItem, tojasok));
+};
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$Col = 0;
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$Width = F2(
 	function (screenSize, columnCount) {
-		return {ck: columnCount, cV: screenSize};
+		return {cl: columnCount, cW: screenSize};
 	});
 var $rundis$elm_bootstrap$Bootstrap$General$Internal$XS = 0;
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColAlign = F2(
 	function (align_, options) {
-		var _v0 = align_.cV;
+		var _v0 = align_.cW;
 		switch (_v0) {
 			case 0:
 				return _Utils_update(
@@ -6286,7 +6335,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColAlign = F2(
 	});
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColOffset = F2(
 	function (offset_, options) {
-		var _v0 = offset_.cV;
+		var _v0 = offset_.cW;
 		switch (_v0) {
 			case 0:
 				return _Utils_update(
@@ -6322,7 +6371,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColOffset = F2(
 	});
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColOrder = F2(
 	function (order_, options) {
-		var _v0 = order_.cV;
+		var _v0 = order_.cW;
 		switch (_v0) {
 			case 0:
 				return _Utils_update(
@@ -6358,7 +6407,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColOrder = F2(
 	});
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColPull = F2(
 	function (pull_, options) {
-		var _v0 = pull_.cV;
+		var _v0 = pull_.cW;
 		switch (_v0) {
 			case 0:
 				return _Utils_update(
@@ -6394,7 +6443,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColPull = F2(
 	});
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColPush = F2(
 	function (push_, options) {
-		var _v0 = push_.cV;
+		var _v0 = push_.cW;
 		switch (_v0) {
 			case 0:
 				return _Utils_update(
@@ -6430,7 +6479,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColPush = F2(
 	});
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyColWidth = F2(
 	function (width_, options) {
-		var _v0 = width_.cV;
+		var _v0 = width_.cW;
 		switch (_v0) {
 			case 0:
 				return _Utils_update(
@@ -6567,8 +6616,8 @@ var $elm$core$Maybe$withDefault = F2(
 		}
 	});
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$colWidthClass = function (_v0) {
-	var screenSize = _v0.cV;
-	var columnCount = _v0.ck;
+	var screenSize = _v0.cW;
+	var columnCount = _v0.cl;
 	return $elm$html$Html$Attributes$class(
 		'col' + (A2(
 			$elm$core$Maybe$withDefault,
@@ -6636,8 +6685,8 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$screenSizeToPartialString = fu
 	}
 };
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$offsetClass = function (_v0) {
-	var screenSize = _v0.cV;
-	var offsetCount = _v0.cG;
+	var screenSize = _v0.cW;
+	var offsetCount = _v0.cH;
 	return $elm$html$Html$Attributes$class(
 		'offset' + ($rundis$elm_bootstrap$Bootstrap$Grid$Internal$screenSizeToPartialString(screenSize) + $rundis$elm_bootstrap$Bootstrap$Grid$Internal$offsetCountOption(offsetCount)));
 };
@@ -6685,7 +6734,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$orderColOption = function (siz
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$orderToAttributes = function (orders) {
 	var order_ = function (m) {
 		if (!m.$) {
-			var screenSize = m.a.cV;
+			var screenSize = m.a.cW;
 			var moveCount = m.a.T;
 			return $elm$core$Maybe$Just(
 				$elm$html$Html$Attributes$class(
@@ -6732,7 +6781,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$moveCountOption = function (si
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$pullsToAttributes = function (pulls) {
 	var pull_ = function (m) {
 		if (!m.$) {
-			var screenSize = m.a.cV;
+			var screenSize = m.a.cW;
 			var moveCount = m.a.T;
 			return $elm$core$Maybe$Just(
 				$elm$html$Html$Attributes$class(
@@ -6749,7 +6798,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$pullsToAttributes = function (
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$pushesToAttributes = function (pushes) {
 	var push_ = function (m) {
 		if (!m.$) {
-			var screenSize = m.a.cV;
+			var screenSize = m.a.cW;
 			var moveCount = m.a.T;
 			return $elm$core$Maybe$Just(
 				$elm$html$Html$Attributes$class(
@@ -6774,8 +6823,8 @@ var $rundis$elm_bootstrap$Bootstrap$Internal$Text$textAlignDirOption = function 
 	}
 };
 var $rundis$elm_bootstrap$Bootstrap$Internal$Text$textAlignClass = function (_v0) {
-	var dir = _v0.cm;
-	var size = _v0.cW;
+	var dir = _v0.cn;
+	var size = _v0.cX;
 	return $elm$html$Html$Attributes$class(
 		'text' + (A2(
 			$elm$core$Maybe$withDefault,
@@ -6799,8 +6848,8 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$verticalAlignOption = function
 };
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$vAlignClass = F2(
 	function (prefix, _v0) {
-		var align = _v0.cg;
-		var screenSize = _v0.cV;
+		var align = _v0.ch;
+		var screenSize = _v0.cW;
 		return $elm$html$Html$Attributes$class(
 			_Utils_ap(
 				prefix,
@@ -6893,8 +6942,8 @@ var $elm$html$Html$Keyed$node = $elm$virtual_dom$VirtualDom$keyedNode;
 var $rundis$elm_bootstrap$Bootstrap$Grid$renderCol = function (column) {
 	switch (column.$) {
 		case 0:
-			var options = column.a.b0;
-			var children = column.a.cj;
+			var options = column.a.b1;
+			var children = column.a.ck;
 			return A2(
 				$elm$html$Html$div,
 				$rundis$elm_bootstrap$Bootstrap$Grid$Internal$colAttributes(options),
@@ -6903,8 +6952,8 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$renderCol = function (column) {
 			var e = column.a;
 			return e;
 		default:
-			var options = column.a.b0;
-			var children = column.a.cj;
+			var options = column.a.b1;
+			var children = column.a.ck;
 			return A3(
 				$elm$html$Html$Keyed$node,
 				'div',
@@ -6914,7 +6963,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$renderCol = function (column) {
 };
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyRowHAlign = F2(
 	function (align, options) {
-		var _v0 = align.cV;
+		var _v0 = align.cW;
 		switch (_v0) {
 			case 0:
 				return _Utils_update(
@@ -6950,37 +6999,37 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyRowHAlign = F2(
 	});
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyRowVAlign = F2(
 	function (align_, options) {
-		var _v0 = align_.cV;
+		var _v0 = align_.cW;
 		switch (_v0) {
 			case 0:
 				return _Utils_update(
 					options,
 					{
-						bN: $elm$core$Maybe$Just(align_)
+						bO: $elm$core$Maybe$Just(align_)
 					});
 			case 1:
 				return _Utils_update(
 					options,
 					{
-						bL: $elm$core$Maybe$Just(align_)
+						bM: $elm$core$Maybe$Just(align_)
 					});
 			case 2:
 				return _Utils_update(
 					options,
 					{
-						bK: $elm$core$Maybe$Just(align_)
+						bL: $elm$core$Maybe$Just(align_)
 					});
 			case 3:
 				return _Utils_update(
 					options,
 					{
-						bJ: $elm$core$Maybe$Just(align_)
+						bK: $elm$core$Maybe$Just(align_)
 					});
 			default:
 				return _Utils_update(
 					options,
 					{
-						bM: $elm$core$Maybe$Just(align_)
+						bN: $elm$core$Maybe$Just(align_)
 					});
 		}
 	});
@@ -7002,7 +7051,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyRowOption = F2(
 				return A2($rundis$elm_bootstrap$Bootstrap$Grid$Internal$applyRowHAlign, align, options);
 		}
 	});
-var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$defaultRowOptions = {aH: _List_Nil, aW: $elm$core$Maybe$Nothing, aX: $elm$core$Maybe$Nothing, aY: $elm$core$Maybe$Nothing, aZ: $elm$core$Maybe$Nothing, a_: $elm$core$Maybe$Nothing, bJ: $elm$core$Maybe$Nothing, bK: $elm$core$Maybe$Nothing, bL: $elm$core$Maybe$Nothing, bM: $elm$core$Maybe$Nothing, bN: $elm$core$Maybe$Nothing};
+var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$defaultRowOptions = {aH: _List_Nil, aW: $elm$core$Maybe$Nothing, aX: $elm$core$Maybe$Nothing, aY: $elm$core$Maybe$Nothing, aZ: $elm$core$Maybe$Nothing, a_: $elm$core$Maybe$Nothing, bK: $elm$core$Maybe$Nothing, bL: $elm$core$Maybe$Nothing, bM: $elm$core$Maybe$Nothing, bN: $elm$core$Maybe$Nothing, bO: $elm$core$Maybe$Nothing};
 var $rundis$elm_bootstrap$Bootstrap$General$Internal$horizontalAlignOption = function (align) {
 	switch (align) {
 		case 0:
@@ -7018,8 +7067,8 @@ var $rundis$elm_bootstrap$Bootstrap$General$Internal$horizontalAlignOption = fun
 	}
 };
 var $rundis$elm_bootstrap$Bootstrap$General$Internal$hAlignClass = function (_v0) {
-	var align = _v0.cg;
-	var screenSize = _v0.cV;
+	var align = _v0.ch;
+	var screenSize = _v0.cW;
 	return $elm$html$Html$Attributes$class(
 		'justify-content-' + (A2(
 			$elm$core$Maybe$withDefault,
@@ -7052,7 +7101,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$rowAttributes = function (modi
 				$rundis$elm_bootstrap$Bootstrap$Grid$Internal$vAlignsToAttributes,
 				'align-items-',
 				_List_fromArray(
-					[options.bN, options.bL, options.bK, options.bJ, options.bM])),
+					[options.bO, options.bM, options.bL, options.bK, options.bN])),
 			_Utils_ap(
 				$rundis$elm_bootstrap$Bootstrap$Grid$Internal$hAlignsToAttributes(
 					_List_fromArray(
@@ -7065,6 +7114,141 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$row = F2(
 			$elm$html$Html$div,
 			$rundis$elm_bootstrap$Bootstrap$Grid$Internal$rowAttributes(options),
 			A2($elm$core$List$map, $rundis$elm_bootstrap$Bootstrap$Grid$renderCol, cols));
+	});
+var $rundis$elm_bootstrap$Bootstrap$Spinner$applyModifier = F2(
+	function (modifier, options) {
+		switch (modifier.$) {
+			case 0:
+				var spinnerKind = modifier.a;
+				return _Utils_update(
+					options,
+					{ag: spinnerKind});
+			case 1:
+				var spinnerSize = modifier.a;
+				return _Utils_update(
+					options,
+					{cX: spinnerSize});
+			case 2:
+				var color_ = modifier.a;
+				return _Utils_update(
+					options,
+					{
+						aQ: $elm$core$Maybe$Just(color_)
+					});
+			default:
+				var list = modifier.a;
+				return _Utils_update(
+					options,
+					{aH: list});
+		}
+	});
+var $rundis$elm_bootstrap$Bootstrap$Spinner$Border = 0;
+var $rundis$elm_bootstrap$Bootstrap$Spinner$Normal = 0;
+var $rundis$elm_bootstrap$Bootstrap$Spinner$defaultOptions = {aH: _List_Nil, aQ: $elm$core$Maybe$Nothing, ag: 0, cX: 0};
+var $elm$virtual_dom$VirtualDom$attribute = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_attribute,
+			_VirtualDom_noOnOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlUri(value));
+	});
+var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $rundis$elm_bootstrap$Bootstrap$Spinner$kindClassName = function (kind_) {
+	if (!kind_) {
+		return 'spinner-border';
+	} else {
+		return 'spinner-grow';
+	}
+};
+var $rundis$elm_bootstrap$Bootstrap$Spinner$kindClass = A2($elm$core$Basics$composeL, $elm$html$Html$Attributes$class, $rundis$elm_bootstrap$Bootstrap$Spinner$kindClassName);
+var $rundis$elm_bootstrap$Bootstrap$Spinner$sizeAttributes = F2(
+	function (size_, kind_) {
+		switch (size_) {
+			case 0:
+				return $elm$core$Maybe$Nothing;
+			case 1:
+				return $elm$core$Maybe$Just(
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class(
+							$rundis$elm_bootstrap$Bootstrap$Spinner$kindClassName(kind_) + '-sm')
+						]));
+			default:
+				return $elm$core$Maybe$Just(
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'width', '3rem'),
+							A2($elm$html$Html$Attributes$style, 'height', '3rem')
+						]));
+		}
+	});
+var $rundis$elm_bootstrap$Bootstrap$Internal$Role$toClass = F2(
+	function (prefix, role) {
+		return $elm$html$Html$Attributes$class(
+			prefix + ('-' + function () {
+				switch (role) {
+					case 0:
+						return 'primary';
+					case 1:
+						return 'secondary';
+					case 2:
+						return 'success';
+					case 3:
+						return 'info';
+					case 4:
+						return 'warning';
+					case 5:
+						return 'danger';
+					case 6:
+						return 'light';
+					default:
+						return 'dark';
+				}
+			}()));
+	});
+var $rundis$elm_bootstrap$Bootstrap$Internal$Text$textColorClass = function (color) {
+	if (color.$ === 1) {
+		return $elm$html$Html$Attributes$class('text-white');
+	} else {
+		var role = color.a;
+		return A2($rundis$elm_bootstrap$Bootstrap$Internal$Role$toClass, 'text', role);
+	}
+};
+var $rundis$elm_bootstrap$Bootstrap$Spinner$toAttributes = function (options) {
+	return _Utils_ap(
+		A2(
+			$elm$core$List$filterMap,
+			$elm$core$Basics$identity,
+			_List_fromArray(
+				[
+					$elm$core$Maybe$Just(
+					$rundis$elm_bootstrap$Bootstrap$Spinner$kindClass(options.ag)),
+					A2($elm$core$Maybe$map, $rundis$elm_bootstrap$Bootstrap$Internal$Text$textColorClass, options.aQ)
+				])),
+		_Utils_ap(
+			A2(
+				$elm$core$Maybe$withDefault,
+				_List_Nil,
+				A2($rundis$elm_bootstrap$Bootstrap$Spinner$sizeAttributes, options.cX, options.ag)),
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$attribute, 'role', 'status')
+					]),
+				options.aH)));
+};
+var $rundis$elm_bootstrap$Bootstrap$Spinner$spinner = F2(
+	function (options, children) {
+		var opts = A3($elm$core$List$foldl, $rundis$elm_bootstrap$Bootstrap$Spinner$applyModifier, $rundis$elm_bootstrap$Bootstrap$Spinner$defaultOptions, options);
+		return A2(
+			$elm$html$Html$div,
+			$rundis$elm_bootstrap$Bootstrap$Spinner$toAttributes(opts),
+			children);
 	});
 var $elm$virtual_dom$VirtualDom$node = function (tag) {
 	return _VirtualDom_node(
@@ -7081,32 +7265,6 @@ var $rundis$elm_bootstrap$Bootstrap$CDN$stylesheet = A3(
 			$elm$html$Html$Attributes$href('https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css')
 		]),
 	_List_Nil);
-var $elm$html$Html$li = _VirtualDom_node('li');
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $author$project$CokkList$toListItem = function (tojas) {
-	var tojasPic = A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				A2($elm$html$Html$Attributes$style, 'float', 'left'),
-				A2($elm$html$Html$Attributes$style, 'top', '-15px'),
-				A2($elm$html$Html$Attributes$style, 'width', '15px'),
-				A2($elm$html$Html$Attributes$style, 'height', '23px'),
-				A2($elm$html$Html$Attributes$style, 'padding', '2px'),
-				A2($elm$html$Html$Attributes$style, 'background', tojas.cY),
-				A2($elm$html$Html$Attributes$style, 'border-radius', '50% 50% 50% 50% / 60% 60% 40% 40%')
-			]),
-		_List_Nil);
-	return A2(
-		$elm$html$Html$li,
-		_List_Nil,
-		_List_fromArray(
-			[
-				tojasPic,
-				$elm$html$Html$text(tojas.cD)
-			]));
-};
 var $author$project$CokkList$view = function (model) {
 	return A2(
 		$rundis$elm_bootstrap$Bootstrap$Grid$container,
@@ -7151,22 +7309,19 @@ var $author$project$CokkList$view = function (model) {
 									[
 										$elm$html$Html$text('Versenyzők')
 									])),
-								$elm$core$List$isEmpty(model.ao) ? A2(
-								$elm$html$Html$div,
-								_List_Nil,
+								model.X ? $author$project$CokkList$listaView(model.bH) : A2(
+								$rundis$elm_bootstrap$Bootstrap$Spinner$spinner,
 								_List_fromArray(
 									[
-										$elm$html$Html$text('Még nincs jelentkező, lehetnél az első :D')
-									])) : A2(
-								$elm$html$Html$ol,
-								_List_Nil,
-								A2($elm$core$List$map, $author$project$CokkList$toListItem, model.ao))
+										$rundis$elm_bootstrap$Bootstrap$Spinner$color($rundis$elm_bootstrap$Bootstrap$Text$danger)
+									]),
+								_List_Nil)
 							]))
 					]))
 			]));
 };
 var $author$project$CokkList$main = $elm$browser$Browser$element(
-	{dp: $author$project$CokkList$init, dC: $author$project$CokkList$subscriptions, dF: $author$project$CokkList$update, dH: $author$project$CokkList$view});
+	{dq: $author$project$CokkList$init, dD: $author$project$CokkList$subscriptions, dG: $author$project$CokkList$update, dI: $author$project$CokkList$view});
 _Platform_export({'CokkList':{'init':$author$project$CokkList$main(
 	$elm$json$Json$Decode$succeed(0))(0)}});}(this));
 

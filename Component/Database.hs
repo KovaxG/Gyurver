@@ -1,52 +1,55 @@
 {-# LANGUAGE BangPatterns #-}
-module Component.Database (DB, newDB, readDB, writeDB, appendDB) where
+module Component.Database (DBHandle, getHandle, insert, everythingList, everything, get) where
 
-import Control.Concurrent.MVar
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe (fromMaybe, listToMaybe)
 
-import Utils
+import Component.Semaphore (Semaphore)
+import Component.Semaphore as Sem
+import Utils (safeReadFile, safeWriteFile)
 
--- TODO use safeRead instead of read!
-
-data DB a = DB
-  { semaphore :: MVar ()
+data DBHandle a = DBHandle
+  { semaphore :: Semaphore
   , path :: String
   }
 
-newDB :: String -> IO (DB a)
-newDB filePath = do
-  sem <- newMVar ()
-  let newPath = "Data/" ++ filePath ++ ".db"
+getHandle :: String -> IO (DBHandle a)
+getHandle path = do
+  sem <- Sem.new
+  let newPath = "Data/" ++ path ++ ".db"
   contents <- safeReadFile newPath
-  maybe (makeNewFile newPath) (return . const ()) contents
-  return $ DB
-    { semaphore = sem
-    , path = newPath
-    }
-  where
-    makeNewFile :: String -> IO ()
-    makeNewFile name = writeFile name "[]"
+  maybe (createFile newPath) (return . const ()) contents
+  return $ DBHandle sem newPath
 
+createFile :: String -> IO ()
+createFile name = fmap 
+  (fromMaybe $ error "I can't create a new file, probably you need to create a Data file.")
+  (safeWriteFile name "")
 
-readDB :: (Show a, Read a) => DB a -> IO [a]
-readDB db = do
-  takeMVar (semaphore db)
-  raw <- safeReadFile (path db)
-  putMVar (semaphore db) ()
-  return $ maybe [] read raw
+insert :: (Read a, Show a) => DBHandle a -> a -> IO ()
+insert handle a = do
+  Sem.block (semaphore handle)
+  appendFile (path handle) (show a ++ "\n")
+  Sem.unblock (semaphore handle)
+  
+everythingList :: (Read a, Show a) => DBHandle a -> IO [a]
+everythingList handle = do
+  Sem.block (semaphore handle)
+  !raw <- safeReadFile (path handle)
+  Sem.unblock (semaphore handle)
+  return $ maybe [] (map read . lines) raw
 
-writeDB :: (Show a, Read a) => DB a -> [a] -> IO ()
-writeDB db as = do
-  takeMVar (semaphore db)
-  result <- safeWriteFile (path db) (show as)
-  putMVar (semaphore db) ()
-  maybe (return ()) return result
-
-appendDB :: (Show a, Read a) => DB a -> a -> IO ()
-appendDB db a = do
-  takeMVar (semaphore db)
-  !raw <- safeReadFile (path db)
-  let !oldData = maybe [] read raw
-  let !newData = oldData ++ [a]
-  !result <- safeWriteFile (path db) (show newData)
-  putMVar (semaphore db) ()
-  maybe (return ()) return result
+everything :: (Read a, Show a) => DBHandle a -> IO (Map Int a)
+everything handle = do
+  Sem.block (semaphore handle)
+  !raw <- safeReadFile (path handle)
+  Sem.unblock (semaphore handle)
+  return $ maybe Map.empty (Map.fromList . zip [1 ..] . map read . lines) raw
+  
+get :: (Read a, Show a) => DBHandle a -> Int -> IO (Maybe a)
+get handle id = do
+  Sem.block (semaphore handle)
+  !raw <- safeReadFile (path handle)
+  Sem.unblock (semaphore handle)
+  return $ (listToMaybe . drop (id-1) . take id . map read . lines) =<< raw
