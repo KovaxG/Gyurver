@@ -8,14 +8,14 @@ import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, char, option, 
 import Gyurver.Gyurror
 import Utils
 
-data RequestType = Get | Post | Options deriving (Show)
+data RequestType = Get | Post | Options deriving (Show, Read)
 data Request = Request
   { requestType :: RequestType
   , path :: String
   , query :: Map String String
   , attributes :: Map String String
   , content :: String
-  } deriving (Show)
+  } deriving (Show, Read)
 
 parseRequest :: ByteString -> Either Gyurror Request
 parseRequest =
