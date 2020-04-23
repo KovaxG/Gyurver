@@ -1,6 +1,6 @@
-module Eredmenyek exposing (..)
+module Eredmenyek exposing (Model, Msg, init, update, view)
 
-import Browser
+import Browser exposing (Document)
 import Browser.Navigation exposing (load)
 import Html exposing (..)
 import Html.Events exposing (onClick)
@@ -14,95 +14,69 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Button as Button
 import Bootstrap.Table as Table
 
-main = Browser.sandbox
-  { init = init
-  , update = update
-  , view = view
-  }
+type Model = NoModel
+type Msg = NoMsg
 
-type alias Model = ()
+init : (Model, Cmd Msg)
+init = (NoModel, Cmd.none)
 
-init : Model
-init = ()
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model = (model, Cmd.none)
 
-type Msg = None
-
-update : Msg -> Model -> Model
-update msg model = model
-
-view : Model -> Html Msg
+view : Model -> Document Msg
 view model =
-  Grid.container []
-      [ CDN.stylesheet -- creates an inline style node with the Bootstrap CSS
-      , Grid.row []
-        [ Grid.col []
-          [ h1 [] [text "2020 Cökkölés Eredmények"]
+  { title = "Eredmenyek"
+  , body =
+    [ [ CDN.stylesheet
+      , [ [ h1 [] [text "2020 Cökkölés Eredmények"]
           , h2 [] [text "Nyertes: Törékeny, de erős!"]
           , p [] [text "Idén a legkeményebb tojás biza a \"Törékeny, de erős!\" lett. Kiderült, hogy valójában erős :)"]
-          ]
-          ]
-      , Grid.row []
-        [
-          Grid.col []
-          [ h2 [] [text "Szabályok"]
+          ] |> Grid.col []
+        ] |> Grid.row []
+      , [ [ h2 [] [text "Szabályok"]
           , iframe [src "https://www.youtube.com/embed/V01as85s8NY"] []
-          ]
-        , Grid.col []
-          [ h2 [] [text "Meccsek"]
+          ] |> Grid.col []
+        , [ h2 [] [text "Meccsek"]
           , p [] [text "Ha ezt látod, akkor még nincs meg a videó, de készűl!"]
-          ]
-        ]
-      , Grid.row []
-          [ Grid.col []
-            [ h2 [] [text "Verseny Ágak"]
-            , brackets
-            ]
-          ]
-      , Grid.row []
-          [
-            Grid.col [] [h2 [] [text "Csoportok"]]
-          ]
-      , Grid.row []
-          [ Grid.col []
-            [ h5 [] [text "A Csoport"]
-            , csoportTable [(div [] [tojasPic "red", text "heni"], 2), (div [] [tojasPic "red", text "Hímes a tojás, de erős"], 4), (div [] [tojasPic "red", text "Tojásvadász"], 1)]
-            ]
-          , Grid.col []
-            [ h5 [] [text "B Csoport"]
-            , csoportTable [(div [] [tojasPic "#F6DADA", text "Lusta vagyok szinezni"], 5), (div [] [tojasPic "#F6DADA", text "DoktorStrong"], 3), (div [] [tojasPic "green", text "Legkemenyebb"], 2)]
-            ]
-          ]
-      , Grid.row []
-        [ Grid.col []
-          [ h5 [] [text "C Csoport"]
-            , csoportTable [(div [] [tojasPic "red", text "Perszeusz"], 3), (div [] [tojasPic "black", text "Csirke"], 2), (div [] [tojasPic "red", text "Törékeny de erős!"], 4)]
-          ]
-        , Grid.col []
-            [ h5 [] [text "D Csoport"]
-            , csoportTable [(div [] [tojasPic "yellow", text "Cökkenetes"], 1), (div [] [tojasPic "green", text "Cökkenő számtani nyuladvány"], 3), (div [] [tojasPic "black", text "Faith"], 4)]
-            ]
-        ]
-      , Grid.row []
-          [ Grid.col []
-            [ h5 [] [text "E Csoport"]
-            , csoportTable [(div [] [tojasPic "#F6DADA", text "Purdé"], 3), (div [] [tojasPic "purple", text "Füles"], 5), (div [] [tojasPic "orange", text "Zeltman Kingsford Császár"], 2)]
-            ]
-          , Grid.col []
-            [ h5 [] [text "F Csoport"]
-            , csoportTable [(div [] [tojasPic "#F6DADA", text "Mona Lisa"], 2), (div [] [tojasPic "purple", text "CFR"], 2), (div [] [tojasPic "green", text "Kicsi Zöld"], 3)]
-            ]
-          ]
-       , Grid.row []
-          [ Grid.col []
-            [ h5 [] [text "G Csoport"]
+          ] |> Grid.col []
+        ] |> Grid.row []
+      , [ [ h2 [] [text "Verseny Ágak"]
+          , brackets
+          ] |> Grid.col []
+        ] |> Grid.row []
+      , [ Grid.col [] [h2 [] [text "Csoportok"]]
+        ] |>  Grid.row []
+      , [ [ h5 [] [text "A Csoport"]
+          , csoportTable [(div [] [tojasPic "red", text "heni"], 2), (div [] [tojasPic "red", text "Hímes a tojás, de erős"], 4), (div [] [tojasPic "red", text "Tojásvadász"], 1)]
+          ] |> Grid.col []
+        , [ h5 [] [text "B Csoport"]
+          , csoportTable [(div [] [tojasPic "#F6DADA", text "Lusta vagyok szinezni"], 5), (div [] [tojasPic "#F6DADA", text "DoktorStrong"], 3), (div [] [tojasPic "green", text "Legkemenyebb"], 2)]
+          ] |> Grid.col []
+        ] |> Grid.row []
+      , [ [ h5 [] [text "C Csoport"]
+          , csoportTable [(div [] [tojasPic "red", text "Perszeusz"], 3), (div [] [tojasPic "black", text "Csirke"], 2), (div [] [tojasPic "red", text "Törékeny de erős!"], 4)]
+          ] |> Grid.col []
+        , [ h5 [] [text "D Csoport"]
+          , csoportTable [(div [] [tojasPic "yellow", text "Cökkenetes"], 1), (div [] [tojasPic "green", text "Cökkenő számtani nyuladvány"], 3), (div [] [tojasPic "black", text "Faith"], 4)]
+          ] |> Grid.col []
+        ] |> Grid.row []
+      , [ [ h5 [] [text "E Csoport"]
+          , csoportTable [(div [] [tojasPic "#F6DADA", text "Purdé"], 3), (div [] [tojasPic "purple", text "Füles"], 5), (div [] [tojasPic "orange", text "Zeltman Kingsford Császár"], 2)]
+          ] |>  Grid.col []
+        , [ h5 [] [text "F Csoport"]
+          , csoportTable [(div [] [tojasPic "#F6DADA", text "Mona Lisa"], 2), (div [] [tojasPic "purple", text "CFR"], 2), (div [] [tojasPic "green", text "Kicsi Zöld"], 3)]
+          ] |> Grid.col []
+        ] |> Grid.row []
+        , [ [ h5 [] [text "G Csoport"]
             , csoportTable [(div [] [tojasPic "black", text "Kőtojás"], 1), (div [] [tojasPic "orange", text "Sanya"], 2)]
-            ]
-          , Grid.col []
-            [ h5 [] [text "H Csoport"]
+            ] |> Grid.col []
+          , [ h5 [] [text "H Csoport"]
             , csoportTable [(div [] [tojasPic "#F6DADA", text "Keményke"], 0), (div [] [tojasPic "red", text "Nyuszi"], 2)]
-            ]
-          ]
-      ]
+            ] |> Grid.col []
+          ] |> Grid.row []
+      ] |> Grid.container []
+    ]
+  }
 
 csoportTable : List (Html Msg, Int) -> Html Msg
 csoportTable rows =
@@ -116,7 +90,6 @@ csoportTable rows =
     , tbody =
         Table.tbody []
           (rows |> List.map (\(k, v) -> Table.tr [] [Table.td [] [ k ], Table.td [] [text <| String.fromInt v]]))
-
     }
 
 tojasPic : String -> Html Msg
@@ -152,7 +125,6 @@ brackets =
             , Table.tr [] [Table.td [] sanya, Table.td [Table.cellAttr (rowspan 2)] sanya ]
             , Table.tr [] [Table.td [] nyusz ]
             ]
-
       }
 
 himes = [tojasPic "red", text "Hímes a tojás, de erős"]

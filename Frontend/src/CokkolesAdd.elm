@@ -1,4 +1,4 @@
-module Main exposing (..)
+module CokkolesAdd exposing (..)
 
 import Browser
 import Browser.Navigation exposing (load)

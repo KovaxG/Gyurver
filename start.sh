@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Elm stuff
-pushd Frontend/Cokkolo
+pushd Frontend
 pwd | echo
-elm make src/CokkList.elm --output ../../Content/egglist.html --optimize
-elm make src/Eredmenyek.elm --output ../../Content/eredmenyek.html --optimize
+elm make src/Main.elm --output ../Content/main.html

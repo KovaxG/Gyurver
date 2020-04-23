@@ -32,8 +32,8 @@ process :: DBHandle Tojas -> DBHandle Request -> Request -> IO Response
 process tojasDB weirdRequestDB request@Request{requestType, path, content} = 
   case (requestType, path) of
     (Get, "/") -> do
-      info log $ "Requested landing page, sending " ++ landingPagePath
-      sendFile landingPagePath
+      info log $ "Requested landing page, sending " ++ mainPath
+      sendFile mainPath
     (Get, "/cv") -> do
       info log $ "Requested CV."
       sendFile cvPath
@@ -86,6 +86,7 @@ faviconPath = "Content/favicon.ico"
 articlesPath = "Content/articles.html"
 eggListPath = "Content/egglist.html"
 resultsPath = "Content/eredmenyek.html"
+mainPath = "Content/main.html"
 
 badRequest :: IO Response
 badRequest =

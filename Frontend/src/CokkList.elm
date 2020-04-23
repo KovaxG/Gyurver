@@ -1,6 +1,6 @@
-module CokkList exposing (..)
+module CokkList exposing (Model, Msg, init, update, view)
 
-import Browser
+import Browser exposing (Document)
 import Browser.Navigation exposing (load)
 import Html exposing (Html, button, div, text, h1, h3, p, ol, li, br, a)
 import Html.Events exposing (onClick)
@@ -15,28 +15,22 @@ import Bootstrap.Button as Button
 import Bootstrap.Spinner as Spinner
 import Bootstrap.Text as Text
 
-main = Browser.element
-  { init = init
-  , update = update
-  , view = view
-  , subscriptions = subscriptions
-  }
-
-subscriptions : Model -> Sub Msg
-subscriptions _ = Sub.none
-
-type alias Tojas =
-  { nev : String
-  , szin : String
-  }
-
 type alias Model =
   { tojasok : List Tojas
   , betoltve : Bool
   }
-
-init : () -> (Model, Cmd Msg)
-init _ =
+  
+type alias Tojas =
+  { nev : String
+  , szin : String
+  }
+  
+type Msg
+  = Tojasok (Result Error (List Tojas))
+  | UjTojasOldal
+  
+init : (Model, Cmd Msg)
+init =
   let
     kezdeti = { tojasok = [], betoltve = False }
     parancs = get
@@ -45,14 +39,10 @@ init _ =
       }
   in (kezdeti, parancs)
 
-type Msg
-  = Tojasok (Result Error (List Tojas))
-  | UjTojasOldal
-
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    Tojasok (Err err) -> 
+    Tojasok (Err err) ->
       ( { model | betoltve = True }
       , Cmd.none
       )
@@ -62,25 +52,26 @@ update msg model =
       )
     UjTojasOldal -> (model, load "/cokk/add")
 
-view : Model -> Html Msg
+view : Model -> Document Msg
 view model =
-  Grid.container []
-      [ CDN.stylesheet -- creates an inline style node with the Bootstrap CSS
-      , Grid.row []
-          [ Grid.col []
-            [ h1 [] [text "2020 Húsvéti játékok"]
-            , leiras
-            , text "A felíratkozásnak már vége, a nap folyamán itt lesz egy link ahol majd meg lehet nézni az eredményeket. Sok sikert mindenkinek :)"
-            , br [] []
-            , a [href "/cokk/eredmeny"] [text "Mutasd az Eredményeket!"]
-            , h3 [] [text "Versenyzők"]
-            , if model.betoltve
-              then listaView model.tojasok
-              else Spinner.spinner [Spinner.color Text.danger] []
-            ]
-          ]
-      ]
-      
+  { title = "Cokk List"
+  , body = 
+    [ [ CDN.stylesheet
+      , [ [ h1 [] [text "2020 Húsvéti játékok"]
+          , leiras
+          , text "A felíratkozásnak már vége, a nap folyamán itt lesz egy link ahol majd meg lehet nézni az eredményeket. Sok sikert mindenkinek :)"
+          , br [] []
+          , a [href "/cokk/eredmeny"] [text "Mutasd az Eredményeket!"]
+          , h3 [] [text "Versenyzők"]
+          , if model.betoltve
+            then listaView model.tojasok
+            else Spinner.spinner [Spinner.color Text.danger] []
+          ] |> Grid.col []
+        ] |> Grid.row []
+      ] |> Grid.container []
+    ]
+  }
+
 listaView : List Tojas -> Html Msg
 listaView tojasok =
   if List.isEmpty tojasok
