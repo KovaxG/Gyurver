@@ -42,7 +42,7 @@ process tojasDB weirdRequestDB request@Request{requestType, path, content} =
       sendFile faviconPath
     (Get, "/articles") -> do
       info log $ "Requested articles page."
-      sendFile articlesPath
+      sendFile mainPath
     (Get, "/cokk/list") -> do
       info log $ "Requested cokkolesi lista."
       tojasok <- DB.everythingList tojasDB
@@ -80,12 +80,8 @@ process tojasDB weirdRequestDB request@Request{requestType, path, content} =
       DB.insert weirdRequestDB request
       badRequest
 
-landingPagePath = "Content/landing.html"
 cvPath = "Content/pdfs/cv.pdf"
 faviconPath = "Content/favicon.ico"
-articlesPath = "Content/articles.html"
-eggListPath = "Content/egglist.html"
-resultsPath = "Content/eredmenyek.html"
 mainPath = "Content/main.html"
 
 badRequest :: IO Response

@@ -10,6 +10,7 @@ import Debug
 import Landing
 import CokkList
 import Eredmenyek
+import Articles
 
 main : Program () Model Msg
 main = application
@@ -30,6 +31,7 @@ type Content
   = Landing Landing.Model
   | CokkList CokkList.Model
   | Eredmenyek Eredmenyek.Model
+  | Articles Articles.Model
   | Invalid Model Msg
   | Loading
   | Test String
@@ -40,6 +42,7 @@ type Msg
   | LandingMsg Landing.Msg
   | CokkListMsg CokkList.Msg
   | EredmenyekMsg Eredmenyek.Msg
+  | ArticlesMsg Articles.Msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model = Sub.none
@@ -70,6 +73,12 @@ update msg model =
           Eredmenyek.update eredmenyekMsg eredmenyek
           |> liftModelCmd Eredmenyek EredmenyekMsg model
         _ -> invalidState
+    ArticlesMsg articlesMsg ->
+      case model.content of
+        Articles articles ->
+          Articles.update articlesMsg articles
+          |> liftModelCmd Articles ArticlesMsg model
+        _ -> invalidState
     UrlRequest request -> 
       case request of
         External path -> ({ model | content = Loading }, Nav.load path)
@@ -85,6 +94,9 @@ update msg model =
         "/cokk/eredmeny" -> 
           Eredmenyek.init
           |> liftModelCmd Eredmenyek EredmenyekMsg  model
+        "/articles" ->
+          Articles.init
+          |> liftModelCmd Articles ArticlesMsg  model
         _ -> ({ model | content = Loading }, Cmd.none)
 
 selectPage : Model -> String -> (Model, Cmd Msg)
@@ -96,6 +108,7 @@ selectPage model path =
     "/" -> pushUrl (loading, Cmd.none) 
     "/cokk" -> pushUrl (loading, Cmd.none) 
     "/cokk/eredmeny" -> pushUrl (loading, Cmd.none)
+    "/articles" -> pushUrl (loading, Cmd.none)
     _ -> (loading, Nav.load path)
     
 view : Model -> Document Msg
@@ -110,6 +123,9 @@ view model =
     Eredmenyek eredmenyek ->
       Eredmenyek.view eredmenyek
       |> liftDocument EredmenyekMsg
+    Articles articles ->
+      Articles.view articles
+      |> liftDocument ArticlesMsg
     Invalid md ms -> 
       { title = "Error"
       , body = 
