@@ -52,10 +52,10 @@ process tojasDB weirdRequestDB request@Request{requestType, path, content} =
         $ tojasokToJson tojasok
     (Get, "/cokk/eredmeny") -> do
       info log $ "Requested results."
-      sendFile resultsPath
+      sendFile mainPath
     (Get, "/cokk") -> do
       info log $ "Requested add egg page."
-      sendFile eggListPath
+      sendFile mainPath
     (Get, path)
       | isResourceReq path -> do
         info log $ "Requesting resource [" ++ path ++ "]."

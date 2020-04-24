@@ -5339,32 +5339,52 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$application = _Browser_application;
-var $author$project$Main$Landing = function (a) {
-	return {$: 'Landing', a: a};
-};
-var $author$project$Main$LandingMsg = function (a) {
-	return {$: 'LandingMsg', a: a};
-};
-var $author$project$Landing$Model = function (a) {
-	return {$: 'Model', a: a};
-};
+var $author$project$Main$Loading = {$: 'Loading'};
+var $elm$browser$Browser$Navigation$load = _Browser_load;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Landing$init = _Utils_Tuple2(
-	$author$project$Landing$Model('What'),
-	$elm$core$Platform$Cmd$none);
-var $elm$core$Platform$Cmd$map = _Platform_map;
-var $author$project$Main$liftModelCmd = F3(
-	function (fm, fc, _v0) {
+var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
+var $author$project$Main$pushNewUrl = F3(
+	function (key, path, _v0) {
 		var model = _v0.a;
 		var cmd = _v0.b;
 		return _Utils_Tuple2(
-			fm(model),
-			A2($elm$core$Platform$Cmd$map, fc, cmd));
+			model,
+			$elm$core$Platform$Cmd$batch(
+				_List_fromArray(
+					[
+						A2($elm$browser$Browser$Navigation$pushUrl, key, path),
+						cmd
+					])));
+	});
+var $author$project$Main$selectPage = F2(
+	function (model, path) {
+		var pushUrl = A2($author$project$Main$pushNewUrl, model.key, path);
+		var loading = _Utils_update(
+			model,
+			{content: $author$project$Main$Loading});
+		switch (path) {
+			case '/':
+				return pushUrl(
+					_Utils_Tuple2(loading, $elm$core$Platform$Cmd$none));
+			case '/cokk':
+				return pushUrl(
+					_Utils_Tuple2(loading, $elm$core$Platform$Cmd$none));
+			case '/cokk/eredmeny':
+				return pushUrl(
+					_Utils_Tuple2(loading, $elm$core$Platform$Cmd$none));
+			default:
+				return _Utils_Tuple2(
+					loading,
+					$elm$browser$Browser$Navigation$load(path));
+		}
 	});
 var $author$project$Main$init = F3(
 	function (flags, url, key) {
-		return A3($author$project$Main$liftModelCmd, $author$project$Main$Landing, $author$project$Main$LandingMsg, $author$project$Landing$init);
+		return A2(
+			$author$project$Main$selectPage,
+			{content: $author$project$Main$Loading, key: key},
+			url.path);
 	});
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
@@ -5387,8 +5407,12 @@ var $author$project$Main$Invalid = F2(
 	function (a, b) {
 		return {$: 'Invalid', a: a, b: b};
 	});
-var $author$project$Main$Loading = {$: 'Loading'};
-var $elm$browser$Browser$Navigation$load = _Browser_load;
+var $author$project$Main$Landing = function (a) {
+	return {$: 'Landing', a: a};
+};
+var $author$project$Main$LandingMsg = function (a) {
+	return {$: 'LandingMsg', a: a};
+};
 var $author$project$CokkList$Tojasok = function (a) {
 	return {$: 'Tojasok', a: a};
 };
@@ -6205,22 +6229,25 @@ var $author$project$CokkList$init = function () {
 }();
 var $author$project$Eredmenyek$NoModel = {$: 'NoModel'};
 var $author$project$Eredmenyek$init = _Utils_Tuple2($author$project$Eredmenyek$NoModel, $elm$core$Platform$Cmd$none);
-var $author$project$Main$selectPage = function (path) {
-	switch (path) {
-		case '/cokk':
-			return A3($author$project$Main$liftModelCmd, $author$project$Main$CokkList, $author$project$Main$CokkListMsg, $author$project$CokkList$init);
-		case '/cokk/eredmeny':
-			return A3($author$project$Main$liftModelCmd, $author$project$Main$Eredmenyek, $author$project$Main$EredmenyekMsg, $author$project$Eredmenyek$init);
-		case '/cv':
-			return _Utils_Tuple2(
-				$author$project$Main$Loading,
-				$elm$browser$Browser$Navigation$load(path));
-		default:
-			return _Utils_Tuple2(
-				$author$project$Main$Loading,
-				$elm$browser$Browser$Navigation$load(path));
-	}
+var $author$project$Landing$Model = function (a) {
+	return {$: 'Model', a: a};
 };
+var $author$project$Landing$init = _Utils_Tuple2(
+	$author$project$Landing$Model('What'),
+	$elm$core$Platform$Cmd$none);
+var $elm$core$Platform$Cmd$map = _Platform_map;
+var $author$project$Main$liftModelCmd = F4(
+	function (fm, fc, model, _v0) {
+		var m = _v0.a;
+		var cmd = _v0.b;
+		return _Utils_Tuple2(
+			_Utils_update(
+				model,
+				{
+					content: fm(m)
+				}),
+			A2($elm$core$Platform$Cmd$map, fc, cmd));
+	});
 var $author$project$CokkList$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'Tojasok') {
@@ -6258,64 +6285,86 @@ var $author$project$Landing$update = F2(
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
+		var invalidState = _Utils_Tuple2(
+			_Utils_update(
+				model,
+				{
+					content: A2($author$project$Main$Invalid, model, msg)
+				}),
+			$elm$core$Platform$Cmd$none);
 		switch (msg.$) {
 			case 'LandingMsg':
 				var welcomeMsg = msg.a;
-				if (model.$ === 'Landing') {
-					var welcome = model.a;
-					return A3(
+				var _v1 = model.content;
+				if (_v1.$ === 'Landing') {
+					var welcome = _v1.a;
+					return A4(
 						$author$project$Main$liftModelCmd,
 						$author$project$Main$Landing,
 						$author$project$Main$LandingMsg,
+						model,
 						A2($author$project$Landing$update, welcomeMsg, welcome));
 				} else {
-					return _Utils_Tuple2(
-						A2($author$project$Main$Invalid, model, msg),
-						$elm$core$Platform$Cmd$none);
+					return invalidState;
 				}
 			case 'CokkListMsg':
 				var cokkListMsg = msg.a;
-				if (model.$ === 'CokkList') {
-					var cokkList = model.a;
-					return A3(
+				var _v2 = model.content;
+				if (_v2.$ === 'CokkList') {
+					var cokkList = _v2.a;
+					return A4(
 						$author$project$Main$liftModelCmd,
 						$author$project$Main$CokkList,
 						$author$project$Main$CokkListMsg,
+						model,
 						A2($author$project$CokkList$update, cokkListMsg, cokkList));
 				} else {
-					return _Utils_Tuple2(
-						A2($author$project$Main$Invalid, model, msg),
-						$elm$core$Platform$Cmd$none);
+					return invalidState;
 				}
 			case 'EredmenyekMsg':
 				var eredmenyekMsg = msg.a;
-				if (model.$ === 'Eredmenyek') {
-					var eredmenyek = model.a;
-					return A3(
+				var _v3 = model.content;
+				if (_v3.$ === 'Eredmenyek') {
+					var eredmenyek = _v3.a;
+					return A4(
 						$author$project$Main$liftModelCmd,
 						$author$project$Main$Eredmenyek,
 						$author$project$Main$EredmenyekMsg,
+						model,
 						A2($author$project$Eredmenyek$update, eredmenyekMsg, eredmenyek));
 				} else {
-					return _Utils_Tuple2(
-						A2($author$project$Main$Invalid, model, msg),
-						$elm$core$Platform$Cmd$none);
+					return invalidState;
 				}
 			case 'UrlRequest':
 				var request = msg.a;
 				if (request.$ === 'External') {
 					var path = request.a;
 					return _Utils_Tuple2(
-						$author$project$Main$Loading,
+						_Utils_update(
+							model,
+							{content: $author$project$Main$Loading}),
 						$elm$browser$Browser$Navigation$load(path));
 				} else {
 					var url = request.a;
-					return $author$project$Main$selectPage(url.path);
+					return A2($author$project$Main$selectPage, model, url.path);
 				}
 			default:
-				return _Utils_Tuple2(
-					A2($author$project$Main$Invalid, model, msg),
-					$elm$core$Platform$Cmd$none);
+				var url = msg.a;
+				var _v5 = url.path;
+				switch (_v5) {
+					case '/':
+						return A4($author$project$Main$liftModelCmd, $author$project$Main$Landing, $author$project$Main$LandingMsg, model, $author$project$Landing$init);
+					case '/cokk':
+						return A4($author$project$Main$liftModelCmd, $author$project$Main$CokkList, $author$project$Main$CokkListMsg, model, $author$project$CokkList$init);
+					case '/cokk/eredmeny':
+						return A4($author$project$Main$liftModelCmd, $author$project$Main$Eredmenyek, $author$project$Main$EredmenyekMsg, model, $author$project$Eredmenyek$init);
+					default:
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{content: $author$project$Main$Loading}),
+							$elm$core$Platform$Cmd$none);
+				}
 		}
 	});
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
@@ -8919,28 +8968,29 @@ var $author$project$Landing$view = function (_v0) {
 	};
 };
 var $author$project$Main$view = function (model) {
-	switch (model.$) {
+	var _v0 = model.content;
+	switch (_v0.$) {
 		case 'Landing':
-			var welcome = model.a;
+			var welcome = _v0.a;
 			return A2(
 				$author$project$Main$liftDocument,
 				$author$project$Main$LandingMsg,
 				$author$project$Landing$view(welcome));
 		case 'CokkList':
-			var cokkList = model.a;
+			var cokkList = _v0.a;
 			return A2(
 				$author$project$Main$liftDocument,
 				$author$project$Main$CokkListMsg,
 				$author$project$CokkList$view(cokkList));
 		case 'Eredmenyek':
-			var eredmenyek = model.a;
+			var eredmenyek = _v0.a;
 			return A2(
 				$author$project$Main$liftDocument,
 				$author$project$Main$EredmenyekMsg,
 				$author$project$Eredmenyek$view(eredmenyek));
 		case 'Invalid':
-			var md = model.a;
-			var ms = model.b;
+			var md = _v0.a;
+			var ms = _v0.b;
 			return {
 				body: _List_fromArray(
 					[
@@ -8949,13 +8999,22 @@ var $author$project$Main$view = function (model) {
 					]),
 				title: 'Error'
 			};
-		default:
+		case 'Loading':
 			return {
 				body: _List_fromArray(
 					[
 						$elm$html$Html$text('Loading...')
 					]),
 				title: 'Loading'
+			};
+		default:
+			var msg = _v0.a;
+			return {
+				body: _List_fromArray(
+					[
+						$elm$html$Html$text(msg)
+					]),
+				title: 'Test'
 			};
 	}
 };
