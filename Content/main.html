@@ -6414,6 +6414,7 @@ var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$core$Debug$toString = _Debug_toString;
 var $elm$html$Html$a = _VirtualDom_node('a');
+var $elm$html$Html$br = _VirtualDom_node('br');
 var $rundis$elm_bootstrap$Bootstrap$Grid$Column = function (a) {
 	return {$: 'Column', a: a};
 };
@@ -7277,6 +7278,7 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$row = F2(
 			$rundis$elm_bootstrap$Bootstrap$Grid$Internal$rowAttributes(options),
 			A2($elm$core$List$map, $rundis$elm_bootstrap$Bootstrap$Grid$renderCol, cols));
 	});
+var $elm$html$Html$strong = _VirtualDom_node('strong');
 var $elm$virtual_dom$VirtualDom$node = function (tag) {
 	return _VirtualDom_node(
 		_VirtualDom_noScript(tag));
@@ -7296,12 +7298,12 @@ var $author$project$Articles$view = function (model) {
 	return {
 		body: _List_fromArray(
 			[
+				$rundis$elm_bootstrap$Bootstrap$CDN$stylesheet,
 				A2(
 				$rundis$elm_bootstrap$Bootstrap$Grid$container,
 				_List_Nil,
 				_List_fromArray(
 					[
-						$rundis$elm_bootstrap$Bootstrap$CDN$stylesheet,
 						A2(
 						$rundis$elm_bootstrap$Bootstrap$Grid$row,
 						_List_Nil,
@@ -7318,6 +7320,25 @@ var $author$project$Articles$view = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$text('Articles!')
+											]))
+									]))
+							])),
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$row,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$rundis$elm_bootstrap$Bootstrap$Grid$col,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$h2,
+										_List_Nil,
+										_List_fromArray(
+											[
+												$elm$html$Html$text('🇺🇸 A taxonomy and platform for anomaly detection')
 											])),
 										A2(
 										$elm$html$Html$p,
@@ -7325,13 +7346,37 @@ var $author$project$Articles$view = function (model) {
 										_List_fromArray(
 											[
 												A2(
-												$elm$html$Html$h2,
+												$elm$html$Html$strong,
 												_List_Nil,
 												_List_fromArray(
 													[
-														$elm$html$Html$text('A taxonomy and platform for anomaly detection')
+														$elm$html$Html$text('Authors: ')
 													])),
-												$elm$html$Html$text('Here is the link: '),
+												$elm$html$Html$text('Gheorghe Sebestyen, Anca Hangan, Czakó Zoltán, Kovács György')
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Read: ')
+													])),
+												A2(
+												$elm$html$Html$a,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$href('https://www.researchgate.net/publication/326707960_A_taxonomy_and_platform_for_anomaly_detection#fullTextFileContent')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('🔗 Research Gate')
+													])),
+												$elm$html$Html$text(', '),
 												A2(
 												$elm$html$Html$a,
 												_List_fromArray(
@@ -7340,9 +7385,8 @@ var $author$project$Articles$view = function (model) {
 													]),
 												_List_fromArray(
 													[
-														$elm$html$Html$text('PDF')
-													])),
-												$elm$html$Html$text('.')
+														$elm$html$Html$text('🗎 Download')
+													]))
 											])),
 										A2(
 										$elm$html$Html$p,
@@ -7350,13 +7394,70 @@ var $author$project$Articles$view = function (model) {
 										_List_fromArray(
 											[
 												A2(
-												$elm$html$Html$h2,
+												$elm$html$Html$strong,
 												_List_Nil,
 												_List_fromArray(
 													[
-														$elm$html$Html$text('Platform for Anomaly Detection in Time-Series')
+														$elm$html$Html$text('Abstract: ')
 													])),
-												$elm$html$Html$text('Here is the link: '),
+												$elm$html$Html$text('There are hundreds of anomaly detection methods developed for different purposes and using a wide range of theoretical backgrounds, from system theory and signal processing towards artificial intelligence techniques. Therefore, it is very difficult for a specialist in a given domain (e.g. finance, industrial engineering, networking, environment monitoring, etc.) to select an anomaly detection method that fits best for a given application. The goal of this paper is to propose a taxonomy for anomaly detection methods and also to present a platform that allows a developer to find and tune a given anomaly detection method that is optimal for an application. The platform provides the basic functionalities needed to acquire, process and visualize multidimensional data collected from different sources, as well as the means to test and compare different anomaly detection techniques.')
+											]))
+									]))
+							])),
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$row,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$rundis$elm_bootstrap$Bootstrap$Grid$col,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$h2,
+										_List_Nil,
+										_List_fromArray(
+											[
+												$elm$html$Html$text('🇺🇸 Platform for Anomaly Detection in Time-Series')
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Authors: ')
+													])),
+												$elm$html$Html$text('Gheorghe Sebestyen, Anca Hangan, Kovács György, Czakó Zoltán')
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Read: ')
+													])),
+												A2(
+												$elm$html$Html$a,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$href('https://www.researchgate.net/publication/334045070_Platform_for_Anomaly_Detection_in_Time-Series')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('🔗 Research Gate')
+													])),
+												$elm$html$Html$text(', '),
 												A2(
 												$elm$html$Html$a,
 												_List_fromArray(
@@ -7365,9 +7466,8 @@ var $author$project$Articles$view = function (model) {
 													]),
 												_List_fromArray(
 													[
-														$elm$html$Html$text('PDF')
-													])),
-												$elm$html$Html$text('.')
+														$elm$html$Html$text('🗎 PDF')
+													]))
 											])),
 										A2(
 										$elm$html$Html$p,
@@ -7375,13 +7475,70 @@ var $author$project$Articles$view = function (model) {
 										_List_fromArray(
 											[
 												A2(
-												$elm$html$Html$h2,
+												$elm$html$Html$strong,
 												_List_Nil,
 												_List_fromArray(
 													[
-														$elm$html$Html$text('Evaluation metrics for anomaly detection algorithms in time-series')
+														$elm$html$Html$text('Abstract: ')
 													])),
-												$elm$html$Html$text('Here is the link: '),
+												$elm$html$Html$text('This paper presents a platform that integrates a number of functionalities necessary in the process of anomaly detection, from preprocessing towards various anomaly detection techniques and visualization methods. The purpose of this tool is to allow a developer to test, select and fine tune different algorithms that best fit anomaly detection in a given domain. To demonstrate the utility of the platform, we present a series of experiments done with different methods for anomaly detection on time-series and evaluate their results.')
+											]))
+									]))
+							])),
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$row,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$rundis$elm_bootstrap$Bootstrap$Grid$col,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$h2,
+										_List_Nil,
+										_List_fromArray(
+											[
+												$elm$html$Html$text('🇺🇸 Evaluation metrics for anomaly detection algorithms in time-series')
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Authors: ')
+													])),
+												$elm$html$Html$text('Kovács György, Gheorghe Sebestyen, Anca Hangan')
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Read: ')
+													])),
+												A2(
+												$elm$html$Html$a,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$href('https://www.researchgate.net/publication/338788481_Evaluation_metrics_for_anomaly_detection_algorithms_in_time-series')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('🔗 Research Gate')
+													])),
+												$elm$html$Html$text(', '),
 												A2(
 												$elm$html$Html$a,
 												_List_fromArray(
@@ -7390,9 +7547,180 @@ var $author$project$Articles$view = function (model) {
 													]),
 												_List_fromArray(
 													[
-														$elm$html$Html$text('PDF')
+														$elm$html$Html$text('🗎 PDF')
+													]))
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Abstract: ')
 													])),
-												$elm$html$Html$text('.')
+												$elm$html$Html$text('Time-series are ordered sequences of discrete-time data. Due to their temporal dimension, anomaly detection techniques used in time-series have to take into consideration time correlations and other time related particularities. Generally, in order to evaluate the quality of an anomaly detection technique, the confusion matrix and its derived metrics such as precision and recall are used. These metrics, however, do not take this temporal dimension into consideration. In this paper, we propose three metrics that can be used to evaluate the quality of a classification, while accounting for the temporal dimension found in time-series data.')
+											]))
+									]))
+							])),
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$row,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$rundis$elm_bootstrap$Bootstrap$Grid$col,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$h2,
+										_List_Nil,
+										_List_fromArray(
+											[
+												$elm$html$Html$text('🇷🇴 Monad Transformers')
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Author: ')
+													])),
+												$elm$html$Html$text('Kovács György')
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Read: ')
+													])),
+												A2(
+												$elm$html$Html$a,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$href('https://www.todaysoftmag.ro/article/2732/monad-transformers')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('🔗 Today Software Magazine')
+													])),
+												A2($elm$html$Html$br, _List_Nil, _List_Nil),
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Watch: ')
+													])),
+												A2(
+												$elm$html$Html$a,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$href('https://youtu.be/3DmxZuSpft4')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('📼 Youtube')
+													]))
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Abstract: ')
+													])),
+												$elm$html$Html$text('Cu toate că pare un concept foarte complicat, Monad Transformer se bazează pe concepte de bază: în mod specific, functorul și monada. Aceste concepte sunt esențiale pentru orice programator funcțional. Având cunoștințele necesare, nu este dificil de înțeles ce este un Monad Transformer și în ce situații s-ar putea folosi.')
+											]))
+									]))
+							])),
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$row,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$rundis$elm_bootstrap$Bootstrap$Grid$col,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$h2,
+										_List_Nil,
+										_List_fromArray(
+											[
+												$elm$html$Html$text('🇷🇴 La fel, dar diferit')
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Author: ')
+													])),
+												$elm$html$Html$text('Kovács György')
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Read: ')
+													])),
+												A2(
+												$elm$html$Html$a,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$href('https://www.todaysoftmag.ro/article/2939/la-fel-dar-diferit')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('🔗 Today Software Magazine')
+													]))
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$strong,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Abstract: ')
+													])),
+												$elm$html$Html$text('A programa funcțional este a programa. Consensul programatorilor, mai ales al celor care folosesc programarea funcțională, este că programarea funcțională este viitorul. Ei ne zic că este mai ușor de înțeles codul, pentru că nu trebuie să ținem cont de starea sistemului. Codul e mai succint, pentru că refolosim zeci și poate sute de funcții predefinite care au fost scrise deja și ne permit să ne concentrăm direct pe implementare.')
 											]))
 									]))
 							]))
@@ -7401,7 +7729,6 @@ var $author$project$Articles$view = function (model) {
 		title: 'Articles'
 	};
 };
-var $elm$html$Html$br = _VirtualDom_node('br');
 var $rundis$elm_bootstrap$Bootstrap$Spinner$Color = function (a) {
 	return {$: 'Color', a: a};
 };
