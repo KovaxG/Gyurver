@@ -6,6 +6,7 @@ import Prelude hiding (log)
 import qualified Data.ByteString as BS
 
 import Component.Database as DB
+import Component.Vids (Video, videosToJson)
 
 import Events.Cokkolo
 
@@ -24,12 +25,23 @@ main = do
   putStrLn "Gyurver is starting..."
   tojasDB <- DB.getHandle "cokkolo2020"
   weirdRequestDB <- DB.getHandle "weird_requests"
+  vidsDB <- DB.getHandle "vids"
   host <- maybe "localhost" id <$> safeReadFile "gyurver.settings"
   putStrLn $ "Ok, running on " ++ host
-  runServer log (IP host) (Port 8080) (process tojasDB weirdRequestDB)
+  runServer log 
+            (IP host) 
+            (Port 8080) 
+            (process tojasDB weirdRequestDB vidsDB)
 
-process :: DBHandle Tojas -> DBHandle Request -> Request -> IO Response
-process tojasDB weirdRequestDB request@Request{requestType, path, content} = 
+process :: DBHandle Tojas 
+        -> DBHandle Request 
+        -> DBHandle Video 
+        -> Request 
+        -> IO Response
+process tojasDB 
+        weirdRequestDB 
+        vidsDB 
+        request@Request{requestType, path, content} = 
   case (requestType, path) of
     (Get, "/") -> do
       info log $ "Requested landing page, sending " ++ mainPath
@@ -44,12 +56,19 @@ process tojasDB weirdRequestDB request@Request{requestType, path, content} =
       info log $ "Requested articles page."
       sendFile mainPath
     (Get, "/cokk/list") -> do
-      info log $ "Requested cokkolesi lista."
+      info log $ "[API] Requested cokkolesi lista."
       tojasok <- DB.everythingList tojasDB
       return
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
         $ tojasokToJson tojasok
+    (Get, "/vids/list") -> do
+      info log $ "[API] Requested video list."
+      videos <- DB.everythingList vidsDB
+      return
+        $ addHeaders [("Content-Type", "application/json")]
+        $ makeResponse OK
+        $ videosToJson videos
     (Get, "/cokk/eredmeny") -> do
       info log $ "Requested results."
       sendFile mainPath
