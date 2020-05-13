@@ -75,6 +75,9 @@ process tojasDB
     (Get, "/cokk") -> do
       info log $ "Requested add egg page."
       sendFile mainPath
+    (Get, "/vids/add") -> do
+      info log $ "Requested video add page."
+      sendFile mainPath
     (Get, path)
       | isResourceReq path -> do
         info log $ "Requesting resource [" ++ path ++ "]."
