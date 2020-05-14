@@ -8,6 +8,8 @@ import qualified Data.ByteString as BS
 import Component.Database as DB
 import Component.Vids (Video, videosToJson)
 
+import Data.Function
+
 import Events.Cokkolo
 
 import Gyurver.Html
@@ -88,29 +90,42 @@ process tojasDB
             sendFile filePath
           Nothing -> do
             info log $ "No such resource."
-            badRequest
+            return badRequest
       | otherwise -> do
         info log $ "Adding [GET " ++ path ++ "] to weird request DB."
         DB.insert weirdRequestDB request
-        badRequest
+        return badRequest
+    (Post, "/api/vids/add") -> do
+      info log $ "[API] Adding new video to list."
+      return $ makeResponse OK "Soon"
     (Post, path) -> do
       info log $ "Adding [POST " ++ path ++ "] to weird request DB."
       DB.insert weirdRequestDB request
-      badRequest
+      return badRequest
+    (Options, "/api/vids/add") -> do
+      info log $ "Someone asked if you can post to /api/vids/add, sure."
+      return allowHeaders
     (Options, path) -> do
       info log $ "Adding [OPTIONS " ++ path ++ "] to weird request DB."
       DB.insert weirdRequestDB request
-      badRequest
+      return badRequest
 
 cvPath = "Content/pdfs/cv.pdf"
 faviconPath = "Content/favicon.ico"
 mainPath = "Content/main.html"
 
-badRequest :: IO Response
+allowHeaders :: Response
+allowHeaders =
+  "Wanna try posting stuff? Go ahead."
+  & makeResponse OK
+  & addHeaders [("Access-Control-Allow-Headers", "OPTIONS, POST")]
+
+badRequest :: Response
 badRequest =
-  return
-  $ makeResponse BadRequest
-  $ Document [title [] [text "Gyurver"]] [h1 [] [text "Bad Request"]]
+  makeResponse BadRequest
+  $ Document 
+    [title [] [text "Gyurver"]] 
+    [h1 [] [text "Your request was bad, and you should feel bad. Nah, just messing with you, have a nice day, but your requests still suck tho."]]
 
 sendFile :: String -> IO Response
 sendFile path = do
