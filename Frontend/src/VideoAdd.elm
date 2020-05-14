@@ -96,7 +96,7 @@ update msg model = case msg of
   SaveData -> 
     ( { model | status = Waiting }
     , Http.post
-      { url = "http://totallysafelink.xyz/vids"
+      { url = "http://totallysafelink.xyz/api/vids/add"
       , body = Http.jsonBody (encodeModel model)
       , expect = Http.expectJson toMessage Decode.string
       }
