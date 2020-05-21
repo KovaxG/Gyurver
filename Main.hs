@@ -30,20 +30,20 @@ main = do
   vidsDB <- DB.getHandle "vids"
   host <- maybe "localhost" id <$> safeReadFile "gyurver.settings"
   putStrLn $ "Ok, running on " ++ host
-  runServer log 
-            (IP host) 
-            (Port 8080) 
+  runServer log
+            (IP host)
+            (Port 8080)
             (process tojasDB weirdRequestDB vidsDB)
 
-process :: DBHandle Tojas 
-        -> DBHandle Request 
-        -> DBHandle Video 
-        -> Request 
+process :: DBHandle Tojas
+        -> DBHandle Request
+        -> DBHandle Video
+        -> Request
         -> IO Response
-process tojasDB 
-        weirdRequestDB 
-        vidsDB 
-        request@Request{requestType, path, content} = 
+process tojasDB
+        weirdRequestDB
+        vidsDB
+        request@Request{requestType, path, content} =
   case (requestType, path) of
     (Get, "/") -> do
       info log $ "Requested landing page, sending " ++ mainPath
@@ -64,6 +64,9 @@ process tojasDB
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
         $ tojasokToJson tojasok
+    (Get, "/vids") -> do
+      info log $ "Requested video list."
+      sendFile mainPath
     (Get, "/vids/list") -> do
       info log $ "[API] Requested video list."
       videos <- DB.everythingList vidsDB
@@ -123,8 +126,8 @@ allowHeaders =
 badRequest :: Response
 badRequest =
   makeResponse BadRequest
-  $ Document 
-    [title [] [text "Gyurver"]] 
+  $ Document
+    [title [] [text "Gyurver"]]
     [h1 [] [text "Your request was bad, and you should feel bad. Nah, just messing with you, have a nice day, but your requests still suck tho."]]
 
 sendFile :: String -> IO Response

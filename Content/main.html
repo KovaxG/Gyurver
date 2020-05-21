@@ -5589,6 +5589,9 @@ var $author$project$Main$selectPage = F2(
 			case '/articles':
 				return pushUrl(
 					_Utils_Tuple2(loading, $elm$core$Platform$Cmd$none));
+			case '/vids':
+				return pushUrl(
+					_Utils_Tuple2(loading, $elm$core$Platform$Cmd$none));
 			case '/vids/add':
 				return pushUrl(
 					_Utils_Tuple2(loading, $elm$core$Platform$Cmd$none));
@@ -5643,6 +5646,12 @@ var $author$project$Main$VideoAdd = function (a) {
 };
 var $author$project$Main$VideoAddMsg = function (a) {
 	return {$: 'VideoAddMsg', a: a};
+};
+var $author$project$Main$VideoList = function (a) {
+	return {$: 'VideoList', a: a};
+};
+var $author$project$Main$VideoListMsg = function (a) {
+	return {$: 'VideoListMsg', a: a};
 };
 var $author$project$Articles$NoModel = {$: 'NoModel'};
 var $author$project$Articles$init = _Utils_Tuple2($author$project$Articles$NoModel, $elm$core$Platform$Cmd$none);
@@ -6462,12 +6471,7 @@ var $author$project$CokkList$init = function () {
 }();
 var $author$project$Eredmenyek$NoModel = {$: 'NoModel'};
 var $author$project$Eredmenyek$init = _Utils_Tuple2($author$project$Eredmenyek$NoModel, $elm$core$Platform$Cmd$none);
-var $author$project$Landing$Model = function (a) {
-	return {$: 'Model', a: a};
-};
-var $author$project$Landing$init = _Utils_Tuple2(
-	$author$project$Landing$Model('What'),
-	$elm$core$Platform$Cmd$none);
+var $author$project$Landing$init = _Utils_Tuple2(_Utils_Tuple0, $elm$core$Platform$Cmd$none);
 var $author$project$VideoAdd$Editing = {$: 'Editing'};
 var $elm$time$Time$May = {$: 'May'};
 var $author$project$VideoAdd$WatchDateChanged = function (a) {
@@ -7870,6 +7874,30 @@ var $author$project$VideoAdd$init = _Utils_Tuple2(
 		$elm$core$Task$perform,
 		A2($elm$core$Basics$composeL, $author$project$VideoAdd$WatchDateChanged, $justinmimbs$date$Date$toIsoString),
 		$justinmimbs$date$Date$today));
+var $author$project$Vids$testVids = _List_fromArray(
+	[
+		{
+		channel: 'JSConf',
+		comment: 'Gyakran hallottam az event loopról, s kb tudom hogy mi az, de sosem néztem utána. Szerintem ebben a videóban egész jól elmagyarázzák, s van jó animáció is.',
+		date: A3($justinmimbs$date$Date$fromCalendarDate, 2014, $elm$time$Time$Oct, 9),
+		link: 'https://www.youtube.com/embed/8aGhZQkoFbQ',
+		tags: _List_fromArray(
+			['JavaScript', 'Event Loop']),
+		title: 'What the heck is the event loop anyway? | Philip Roberts | JSConf EU',
+		watchDate: A3($justinmimbs$date$Date$fromCalendarDate, 2020, $elm$time$Time$Apr, 18)
+	},
+		{
+		channel: 'JetBrainsTV',
+		comment: '...',
+		date: A3($justinmimbs$date$Date$fromCalendarDate, 2018, $elm$time$Time$Oct, 15),
+		link: 'https://www.youtube.com/embed/RFrKffrKCeU',
+		tags: _List_fromArray(
+			['Database']),
+		title: 'I used Elm in production and it cost me my job Annaia Berry',
+		watchDate: A3($justinmimbs$date$Date$fromCalendarDate, 2020, $elm$time$Time$Apr, 24)
+	}
+	]);
+var $author$project$Vids$init = _Utils_Tuple2($author$project$Vids$testVids, $elm$core$Platform$Cmd$none);
 var $elm$core$Platform$Cmd$map = _Platform_map;
 var $author$project$Main$liftModelCmd = F4(
 	function (fm, fc, model, _v0) {
@@ -7917,10 +7945,7 @@ var $author$project$Eredmenyek$update = F2(
 	});
 var $author$project$Landing$update = F2(
 	function (_v0, _v1) {
-		var ch = _v0.a;
-		return _Utils_Tuple2(
-			$author$project$Landing$Model(ch),
-			$elm$core$Platform$Cmd$none);
+		return _Utils_Tuple2(_Utils_Tuple0, $elm$core$Platform$Cmd$none);
 	});
 var $author$project$VideoAdd$Received = function (a) {
 	return {$: 'Received', a: a};
@@ -8089,6 +8114,10 @@ var $author$project$VideoAdd$update = F2(
 						}));
 		}
 	});
+var $author$project$Vids$update = F2(
+	function (_v0, model) {
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var invalidState = _Utils_Tuple2(
@@ -8169,6 +8198,20 @@ var $author$project$Main$update = F2(
 				} else {
 					return invalidState;
 				}
+			case 'VideoListMsg':
+				var videoListMsg = msg.a;
+				var _v6 = model.content;
+				if (_v6.$ === 'VideoList') {
+					var videoList = _v6.a;
+					return A4(
+						$author$project$Main$liftModelCmd,
+						$author$project$Main$VideoList,
+						$author$project$Main$VideoListMsg,
+						model,
+						A2($author$project$Vids$update, videoListMsg, videoList));
+				} else {
+					return invalidState;
+				}
 			case 'UrlRequest':
 				var request = msg.a;
 				if (request.$ === 'External') {
@@ -8184,8 +8227,8 @@ var $author$project$Main$update = F2(
 				}
 			default:
 				var url = msg.a;
-				var _v7 = url.path;
-				switch (_v7) {
+				var _v8 = url.path;
+				switch (_v8) {
 					case '/':
 						return A4($author$project$Main$liftModelCmd, $author$project$Main$Landing, $author$project$Main$LandingMsg, model, $author$project$Landing$init);
 					case '/cokk':
@@ -8194,6 +8237,8 @@ var $author$project$Main$update = F2(
 						return A4($author$project$Main$liftModelCmd, $author$project$Main$Eredmenyek, $author$project$Main$EredmenyekMsg, model, $author$project$Eredmenyek$init);
 					case '/articles':
 						return A4($author$project$Main$liftModelCmd, $author$project$Main$Articles, $author$project$Main$ArticlesMsg, model, $author$project$Articles$init);
+					case '/vids':
+						return A4($author$project$Main$liftModelCmd, $author$project$Main$VideoList, $author$project$Main$VideoListMsg, model, $author$project$Vids$init);
 					case '/vids/add':
 						return A4($author$project$Main$liftModelCmd, $author$project$Main$VideoAdd, $author$project$Main$VideoAddMsg, model, $author$project$VideoAdd$init);
 					default:
@@ -11160,7 +11205,6 @@ var $author$project$Eredmenyek$view = function (model) {
 	};
 };
 var $author$project$Landing$view = function (_v0) {
-	var str = _v0.a;
 	return {
 		body: _List_fromArray(
 			[
@@ -11225,13 +11269,18 @@ var $author$project$Landing$view = function (_v0) {
 						_List_Nil,
 						_List_fromArray(
 							[
+								$elm$html$Html$text('📼 I also have a list of videos I like, feel free to '),
 								A2(
 								$elm$html$Html$a,
-								_List_Nil,
 								_List_fromArray(
 									[
-										$elm$html$Html$text('📼 I also have a list of videos I like, feel free to check them out')
-									]))
+										$elm$html$Html$Attributes$href('/vids')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('check them out')
+									])),
+								$elm$html$Html$text('.')
 							])),
 						A2(
 						$elm$html$Html$p,
@@ -11948,6 +11997,212 @@ var $author$project$VideoAdd$view = function (model) {
 		title: 'Welcome'
 	};
 };
+var $rundis$elm_bootstrap$Bootstrap$Badge$Primary = {$: 'Primary'};
+var $rundis$elm_bootstrap$Bootstrap$Badge$Roled = function (a) {
+	return {$: 'Roled', a: a};
+};
+var $rundis$elm_bootstrap$Bootstrap$Badge$roleOption = function (role) {
+	switch (role.$) {
+		case 'Primary':
+			return 'badge-primary';
+		case 'Secondary':
+			return 'badge-secondary';
+		case 'Success':
+			return 'badge-success';
+		case 'Info':
+			return 'badge-info';
+		case 'Warning':
+			return 'badge-warning';
+		case 'Danger':
+			return 'badge-danger';
+		case 'Light':
+			return 'badge-light';
+		default:
+			return 'badge-dark';
+	}
+};
+var $rundis$elm_bootstrap$Bootstrap$Badge$badgeClass = function (option) {
+	return $elm$html$Html$Attributes$class(
+		function () {
+			if (option.$ === 'Pill') {
+				return 'badge-pill';
+			} else {
+				var role = option.a;
+				return $rundis$elm_bootstrap$Bootstrap$Badge$roleOption(role);
+			}
+		}());
+};
+var $rundis$elm_bootstrap$Bootstrap$Badge$badgeAttributes = function (options) {
+	return A2(
+		$elm$core$List$cons,
+		$elm$html$Html$Attributes$class('badge'),
+		A2($elm$core$List$map, $rundis$elm_bootstrap$Bootstrap$Badge$badgeClass, options));
+};
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $rundis$elm_bootstrap$Bootstrap$Badge$badgeInternal = F3(
+	function (options, attributes, children) {
+		return A2(
+			$elm$html$Html$span,
+			_Utils_ap(
+				$rundis$elm_bootstrap$Bootstrap$Badge$badgeAttributes(options),
+				attributes),
+			children);
+	});
+var $rundis$elm_bootstrap$Bootstrap$Badge$badgePrimary = $rundis$elm_bootstrap$Bootstrap$Badge$badgeInternal(
+	_List_fromArray(
+		[
+			$rundis$elm_bootstrap$Bootstrap$Badge$Roled($rundis$elm_bootstrap$Bootstrap$Badge$Primary)
+		]));
+var $rundis$elm_bootstrap$Bootstrap$Utilities$Spacing$ml1 = $elm$html$Html$Attributes$class('ml-1');
+var $author$project$Vids$videoToHtml = function (vid) {
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				$rundis$elm_bootstrap$Bootstrap$Grid$row,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$h3,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text(vid.title)
+									]))
+							]))
+					])),
+				A2(
+				$rundis$elm_bootstrap$Bootstrap$Grid$row,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$iframe,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$src(vid.link)
+									]),
+								_List_Nil)
+							])),
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$strong,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Channel ')
+									])),
+								$elm$html$Html$text(vid.channel),
+								A2($elm$html$Html$br, _List_Nil, _List_Nil),
+								A2(
+								$elm$html$Html$strong,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Date ')
+									])),
+								$elm$html$Html$text(
+								$justinmimbs$date$Date$toIsoString(vid.date)),
+								A2($elm$html$Html$br, _List_Nil, _List_Nil),
+								A2(
+								$elm$html$Html$strong,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Watch Date ')
+									])),
+								$elm$html$Html$text(
+								$justinmimbs$date$Date$toIsoString(vid.watchDate)),
+								A2($elm$html$Html$br, _List_Nil, _List_Nil),
+								A2(
+								$elm$html$Html$div,
+								_List_Nil,
+								A2(
+									$elm$core$List$cons,
+									A2(
+										$elm$html$Html$strong,
+										_List_Nil,
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Tags ')
+											])),
+									A2(
+										$elm$core$List$map,
+										function (tag) {
+											return A2(
+												$rundis$elm_bootstrap$Bootstrap$Badge$badgePrimary,
+												_List_fromArray(
+													[$rundis$elm_bootstrap$Bootstrap$Utilities$Spacing$ml1]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text(tag)
+													]));
+										},
+										vid.tags)))
+							]))
+					])),
+				A2(
+				$rundis$elm_bootstrap$Bootstrap$Grid$row,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$rundis$elm_bootstrap$Bootstrap$Grid$col,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$strong,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Comment ')
+									])),
+								$elm$html$Html$text(vid.comment)
+							]))
+					])),
+				A2($elm$html$Html$br, _List_Nil, _List_Nil)
+			]));
+};
+var $author$project$Vids$view = function (videos) {
+	return {
+		body: _List_fromArray(
+			[
+				$rundis$elm_bootstrap$Bootstrap$CDN$stylesheet,
+				A2(
+				$rundis$elm_bootstrap$Bootstrap$Grid$container,
+				_List_Nil,
+				A2(
+					$elm$core$List$cons,
+					A2(
+						$elm$html$Html$h1,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Videos')
+							])),
+					A2($elm$core$List$map, $author$project$Vids$videoToHtml, videos)))
+			]),
+		title: 'Videos'
+	};
+};
 var $author$project$Main$view = function (model) {
 	var _v0 = model.content;
 	switch (_v0.$) {
@@ -11981,6 +12236,12 @@ var $author$project$Main$view = function (model) {
 				$author$project$Main$liftDocument,
 				$author$project$Main$VideoAddMsg,
 				$author$project$VideoAdd$view(videoAdd));
+		case 'VideoList':
+			var videoList = _v0.a;
+			return A2(
+				$author$project$Main$liftDocument,
+				$author$project$Main$VideoListMsg,
+				$author$project$Vids$view(videoList));
 		case 'Invalid':
 			var md = _v0.a;
 			var ms = _v0.b;
