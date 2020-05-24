@@ -32,3 +32,8 @@ safeWriteFile path content = do
 
 safeRead :: Read a => String -> Maybe a
 safeRead = fmap fst . listToMaybe . reads
+
+maybeToEither :: e -> Maybe a -> Either e a
+maybeToEither e ma = case ma of
+  Just a -> Right a
+  Nothing -> Left e

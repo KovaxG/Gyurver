@@ -14,7 +14,7 @@ data DBHandle a = DBHandle
   , path :: String
   }
 
-getHandle :: String -> IO (DBHandle a)
+getHandle :: (Read a, Show a) => String -> IO (DBHandle a)
 getHandle path = do
   sem <- Sem.new
   let newPath = "Data/" ++ path ++ ".db"

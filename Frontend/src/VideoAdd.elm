@@ -17,6 +17,9 @@ import Http as Http exposing (Error(..))
 import Date as Date exposing (Date)
 import Task
 import Time exposing (Month(..))
+import Maybe.Extra as Maybe
+
+import Settings
 
 type Status 
   = Editing 
@@ -34,14 +37,34 @@ type alias Model =
   , status : Status
   }
   
+type alias VideoAddRequest =
+  { url : String
+  , title : String
+  , author : String
+  , date : Date
+  , comment : String
+  , watchDate : Maybe Date
+  , tags : List String
+  }
+  
+toRequest : Model -> Maybe VideoAddRequest
+toRequest model =
+  VideoAddRequest
+  |> flip Maybe.map (nonEmpty model.url)
+  |> Maybe.andMap (nonEmpty model.title)
+  |> Maybe.andMap (nonEmpty model.author)
+  |> Maybe.andMap (Result.toMaybe <| Date.fromIsoString model.date)
+  |> Maybe.andMap (Just model.comment)
+  |> Maybe.andMap (Just <| Result.toMaybe <| Date.fromIsoString model.watchDate)
+  |> Maybe.andMap (Just <| List.map String.trim <| String.split "," model.tags)
+  
+nonEmpty : String -> Maybe String
+nonEmpty s = if String.isEmpty s then Nothing else Just s
+  
 isInvalid : Model -> Bool
-isInvalid model =
-  String.isEmpty model.url
-  || String.isEmpty model.title
-  || String.isEmpty model.author
-  || String.isEmpty model.watchDate
-  || String.isEmpty model.tags
-  || model.status /= Editing
+isInvalid model = case toRequest model of
+  Just _ -> model.status /= Editing
+  Nothing -> False
 
 type Msg 
   = UrlChanged String
@@ -94,13 +117,17 @@ update msg model = case msg of
   Success -> ({ model | status = Received "OK" }, Cmd.none)
   Response message -> ({ model | status = Received message }, Cmd.none)
   SaveData -> 
-    ( { model | status = Waiting }
-    , Http.post
-      { url = "http://totallysafelink.xyz/api/vids/add"
-      , body = Http.jsonBody (encodeModel model)
-      , expect = Http.expectJson toMessage Decode.string
-      }
-    )
+    case toRequest model of
+      Just request ->
+        ( { model | status = Waiting }
+        , Http.post
+          { url = Settings.path ++ "/api/vids"
+          , body = Http.jsonBody (encodeRequest request)
+          , expect = Http.expectString toMessage
+          }
+        )
+      Nothing ->
+        ({ model | status = Received "Invalid Form. Can not send." }, Cmd.none)
   
 view : Model -> Document Msg
 view model = 
@@ -187,14 +214,25 @@ commentInput model = Textarea.textarea
   , Textarea.value model.comment
   ]
 
-encodeModel : Model -> Value
-encodeModel model = 
+encodeRequest : VideoAddRequest -> Value
+encodeRequest var = 
   Json.object
-    [ ("url", Json.string model.url)
-    , ("title", Json.string model.title)
-    , ("author", Json.string model.author)
-    , ("date", Json.string model.date)
-    , ("comment", Json.string model.comment)
-    , ("watchDate", Json.string model.watchDate)
-    , ("tags", Json.string model.tags)
+    [ ("url", Json.string var.url)
+    , ("title", Json.string var.title)
+    , ("author", Json.string var.author)
+    , ("date", encodeDate var.date)
+    , ("comment", Json.string var.comment)
+    , ("watchDate", Maybe.withDefault Json.null <| Maybe.map encodeDate var.watchDate)
+    , ("tags", Json.list Json.string var.tags)
     ]
+
+encodeDate : Date -> Value
+encodeDate date =
+  Json.object
+    [ ("year", Json.int <| Date.year date)
+    , ("month", Json.int <| Date.monthNumber date)
+    , ("day", Json.int <| Date.day date)
+    ]
+    
+flip : (a -> b -> c) -> b -> a -> c
+flip f b a = f a b

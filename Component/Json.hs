@@ -1,7 +1,7 @@
 module Component.Json where
 
 import Data.Bifunctor
-import Data.List (intersperse)
+import Data.List (intersperse, sortOn)
 import Text.Parsec
 
 import Utils
@@ -84,7 +84,7 @@ parseJson = first show . parse json ""
       attrs <- sepBy jsonAttr (spaces >> char ',' >> spaces)
       spaces
       char '}'
-      return $ JsonObject attrs
+      return $ JsonObject $ sortOn fst attrs
     jsonAttr = do
       fieldName <- stringCharacters
       spaces

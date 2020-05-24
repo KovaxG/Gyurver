@@ -6,7 +6,9 @@ import Prelude hiding (log)
 import qualified Data.ByteString as BS
 
 import Component.Database as DB
-import Component.Vids (Video, videosToJson)
+import Component.Json as Json
+import Component.Vids (Video)
+import qualified Component.Vids as Vids 
 
 import Data.Function
 
@@ -73,7 +75,7 @@ process tojasDB
       return
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
-        $ videosToJson videos
+        $ Vids.videosToJson videos
     (Get, "/cokk/eredmeny") -> do
       info log $ "Requested results."
       sendFile mainPath
@@ -98,14 +100,23 @@ process tojasDB
         info log $ "Adding [GET " ++ path ++ "] to weird request DB."
         DB.insert weirdRequestDB request
         return badRequest
-    (Post, "/api/vids/add") -> do
+        
+    (Post, "/api/vids") -> do
       info log $ "[API] Adding new video to list."
-      return $ makeResponse OK "Soon"
+      let video = ((maybeToEither "Json to Video error" . Vids.jsonToVideo) =<< Json.parseJson content) :: Either String Video
+      either 
+        (\errorMsg -> return $ makeResponse BadRequest errorMsg) 
+        (\video -> do
+          insert vidsDB video
+          return $ makeResponse OK "Success"
+        ) 
+        video
     (Post, path) -> do
       info log $ "Adding [POST " ++ path ++ "] to weird request DB."
       DB.insert weirdRequestDB request
       return badRequest
-    (Options, "/api/vids/add") -> do
+      
+    (Options, "/api/vids") -> do
       info log $ "Someone asked if you can post to /api/vids/add, sure."
       return allowHeaders
     (Options, path) -> do
@@ -121,7 +132,10 @@ allowHeaders :: Response
 allowHeaders =
   "Wanna try posting stuff? Go ahead."
   & makeResponse OK
-  & addHeaders [("Access-Control-Allow-Headers", "OPTIONS, POST")]
+  & addHeaders 
+    [ ("Access-Control-Allow-Headers", "OPTIONS, POST")
+    , ("Access-Control-Allow-Origin",  "*") -- Added to allow requests from localhost
+    ]
 
 badRequest :: Response
 badRequest =

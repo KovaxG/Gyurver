@@ -1,7 +1,7 @@
 module Vids exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
-import Html exposing (Html, text, h1, h2, h3, p, a, br, strong, div, iframe)
+import Html exposing (Html, text, h1, h3, br, strong, div, iframe)
 import Html.Attributes exposing (src)
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
@@ -18,7 +18,7 @@ type alias Video =
   , channel : String
   , date : Date
   , comment : String
-  , watchDate : Date
+  , watchDate : Maybe Date
   , tags : List String
   }
 
@@ -53,7 +53,10 @@ videoToHtml vid =
       , text (Date.toIsoString vid.date)
       , br [] []
       , strong [] [text "Watch Date "]
-      , text (Date.toIsoString vid.watchDate)
+      , vid.watchDate
+        |> Maybe.map Date.toIsoString
+        |> Maybe.withDefault "¯\\_(ツ)_/¯"
+        |> text
       , br [] []
       , div []
         ( strong [] [text "Tags "]
@@ -77,7 +80,7 @@ testVids =
     , channel = "JSConf"
     , date = Date.fromCalendarDate 2014 Oct 9
     , comment = "Gyakran hallottam az event loopról, s kb tudom hogy mi az, de sosem néztem utána. Szerintem ebben a videóban egész jól elmagyarázzák, s van jó animáció is."
-    , watchDate = Date.fromCalendarDate 2020 Apr 18
+    , watchDate = Just <| Date.fromCalendarDate 2020 Apr 18
     , tags = ["JavaScript","Event Loop"]
     }
   , { link = "https://www.youtube.com/embed/RFrKffrKCeU"
@@ -85,7 +88,7 @@ testVids =
     , channel = "JetBrainsTV"
     , date = Date.fromCalendarDate 2018 Oct 15
     , comment = "..."
-    , watchDate = Date.fromCalendarDate 2020 Apr 24
+    , watchDate = Nothing --Date.fromCalendarDate 2020 Apr 24
     , tags = ["Database"]
     }
   ]

@@ -10,3 +10,4 @@ dateToJson (Date y m d) = JsonObject
   , ("month", JsonNumber (fromIntegral m))
   , ("day", JsonNumber (fromIntegral d))
   ]
+
