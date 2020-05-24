@@ -69,7 +69,7 @@ process tojasDB
     (Get, "/vids") -> do
       info log $ "Requested video list."
       sendFile mainPath
-    (Get, "/vids/list") -> do
+    (Get, "/api/vids") -> do
       info log $ "[API] Requested video list."
       videos <- DB.everythingList vidsDB
       return

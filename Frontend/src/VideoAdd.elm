@@ -20,6 +20,7 @@ import Time exposing (Month(..))
 import Maybe.Extra as Maybe
 
 import Settings
+import Video exposing (Video)
 
 type Status 
   = Editing 
@@ -37,19 +38,9 @@ type alias Model =
   , status : Status
   }
   
-type alias VideoAddRequest =
-  { url : String
-  , title : String
-  , author : String
-  , date : Date
-  , comment : String
-  , watchDate : Maybe Date
-  , tags : List String
-  }
-  
-toRequest : Model -> Maybe VideoAddRequest
+toRequest : Model -> Maybe Video
 toRequest model =
-  VideoAddRequest
+  Video
   |> flip Maybe.map (nonEmpty model.url)
   |> Maybe.andMap (nonEmpty model.title)
   |> Maybe.andMap (nonEmpty model.author)
@@ -122,7 +113,7 @@ update msg model = case msg of
         ( { model | status = Waiting }
         , Http.post
           { url = Settings.path ++ "/api/vids"
-          , body = Http.jsonBody (encodeRequest request)
+          , body = Http.jsonBody (Video.encode request)
           , expect = Http.expectString toMessage
           }
         )
@@ -213,26 +204,6 @@ commentInput model = Textarea.textarea
   [ Textarea.onInput CommentChanged
   , Textarea.value model.comment
   ]
-
-encodeRequest : VideoAddRequest -> Value
-encodeRequest var = 
-  Json.object
-    [ ("url", Json.string var.url)
-    , ("title", Json.string var.title)
-    , ("author", Json.string var.author)
-    , ("date", encodeDate var.date)
-    , ("comment", Json.string var.comment)
-    , ("watchDate", Maybe.withDefault Json.null <| Maybe.map encodeDate var.watchDate)
-    , ("tags", Json.list Json.string var.tags)
-    ]
-
-encodeDate : Date -> Value
-encodeDate date =
-  Json.object
-    [ ("year", Json.int <| Date.year date)
-    , ("month", Json.int <| Date.monthNumber date)
-    , ("day", Json.int <| Date.day date)
-    ]
     
 flip : (a -> b -> c) -> b -> a -> c
 flip f b a = f a b
