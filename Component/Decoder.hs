@@ -1,5 +1,5 @@
 module Component.Decoder (
-  Decoder, int, double, bool, string, list, maybe, field, success, failure
+  Decoder(..), int, double, bool, string, list, maybe, field, success, failure
 ) where
 
 import Prelude hiding (maybe)

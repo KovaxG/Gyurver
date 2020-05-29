@@ -10,6 +10,9 @@ import Data.Maybe
 toRight :: l -> Maybe r -> Either l r
 toRight l = maybe (Left l) Right
 
+toJust :: Either l r -> Maybe r
+toJust = either (const Nothing) Just 
+
 mapLeft :: (a -> b) -> Either a r -> Either b r
 mapLeft f = bimap f id
 
