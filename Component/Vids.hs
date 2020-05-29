@@ -31,8 +31,8 @@ videosToJson = show . JsonArray . map toJson
       , ("tags", JsonArray (map JsonString (tags vid)))
       ]
 
-jsonToVideo :: Json -> Maybe Video
-jsonToVideo = toJust . Decoder.run videoDecoder
+jsonToVideo :: Json -> Either String Video
+jsonToVideo = Decoder.run videoDecoder
 
 videoDecoder :: Decoder Video
 videoDecoder =

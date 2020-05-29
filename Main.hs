@@ -103,7 +103,7 @@ process tojasDB
         
     (Post, "/api/vids") -> do
       info log $ "[API] Adding new video to list."
-      let video = ((maybeToEither "Json to Video error" . Vids.jsonToVideo) =<< Json.parseJson content) :: Either String Video
+      let video = (Vids.jsonToVideo =<< Json.parseJson content) :: Either String Video
       either 
         (\errorMsg -> return $ makeResponse BadRequest errorMsg) 
         (\video -> do
