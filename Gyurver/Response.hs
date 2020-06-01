@@ -18,12 +18,14 @@ import Gyurver.Html (Document)
 data Status
   = OK
   | BadRequest
+  | Unauthorized
 
 instance Show Status where
   show status =
     case status of
       OK -> "200 OK"
       BadRequest -> "400 Bad Request"
+      Unauthorized -> "401 Unauthorized"
 
 data Response = Response
   { status  :: Status

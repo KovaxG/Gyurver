@@ -1,4 +1,4 @@
-module Component.Date where
+module Types.Date where
 
 import Component.Json
 import Component.Decoder (Decoder)
@@ -14,7 +14,7 @@ dateToJson (Date y m d) = JsonObject
   ]
 
 dateDecoder :: Decoder Date
-dateDecoder = 
+dateDecoder =
   Date <$> Decoder.field "year" Decoder.int
        <*> Decoder.field "month" Decoder.int
        <*> Decoder.field "day" Decoder.int

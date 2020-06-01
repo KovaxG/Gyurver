@@ -20,14 +20,14 @@ import Time exposing (Month(..))
 import Maybe.Extra as Maybe
 
 import Settings
-import Video exposing (Video)
+import Types.NewVideoRequest as NewVideoRequest exposing (NewVideoRequest)
 
-type Status 
-  = Editing 
-  | Waiting 
+type Status
+  = Editing
+  | Waiting
   | Received String
 
-type alias Model = 
+type alias Model =
   { url : String
   , title : String
   , author : String
@@ -36,11 +36,13 @@ type alias Model =
   , watchDate : String
   , tags : String
   , status : Status
+  , password : String
   }
-  
-toRequest : Model -> Maybe Video
+
+
+toRequest : Model -> Maybe NewVideoRequest
 toRequest model =
-  Video
+  NewVideoRequest
   |> flip Maybe.map (nonEmpty model.url)
   |> Maybe.andMap (nonEmpty model.title)
   |> Maybe.andMap (nonEmpty model.author)
@@ -48,16 +50,17 @@ toRequest model =
   |> Maybe.andMap (Just model.comment)
   |> Maybe.andMap (Just <| Result.toMaybe <| Date.fromIsoString model.watchDate)
   |> Maybe.andMap (Just <| List.map String.trim <| String.split "," model.tags)
-  
+  |> Maybe.andMap (Just model.password)
+
 nonEmpty : String -> Maybe String
 nonEmpty s = if String.isEmpty s then Nothing else Just s
-  
+
 isInvalid : Model -> Bool
 isInvalid model = case toRequest model of
-  Just _ -> model.status /= Editing
+  Just _ -> model.status == Waiting
   Nothing -> False
 
-type Msg 
+type Msg
   = UrlChanged String
   | TitleChanged String
   | AuthorChanged String
@@ -65,13 +68,14 @@ type Msg
   | CommentChanged String
   | WatchDateChanged String
   | TagsChanged String
+  | PasswordChanged String
   | SaveData
   | Success
   | Response String
-  
+
 toMessage : Result Error String -> Msg
-toMessage result = 
-  Response <| 
+toMessage result =
+  Response <|
     case result of
       Ok msg -> msg
       Err error ->
@@ -83,7 +87,7 @@ toMessage result =
           BadBody str -> "Bad Body: " ++ str
 
 init : (Model, Cmd Msg)
-init = 
+init =
   ( { url = ""
     , title = ""
     , author = ""
@@ -92,6 +96,7 @@ init =
     , watchDate = Date.toIsoString <| Date.fromCalendarDate 2020 May 13
     , tags = ""
     , status = Editing
+    , password = ""
     }
   , Task.perform (WatchDateChanged << Date.toIsoString) Date.today
   )
@@ -105,25 +110,26 @@ update msg model = case msg of
   CommentChanged comment -> ({ model | comment = comment }, Cmd.none)
   WatchDateChanged watchDate -> ({ model | watchDate = watchDate }, Cmd.none)
   TagsChanged tags -> ({ model | tags = tags }, Cmd.none)
+  PasswordChanged pass -> ({ model | password = pass }, Cmd.none)
   Success -> ({ model | status = Received "OK" }, Cmd.none)
   Response message -> ({ model | status = Received message }, Cmd.none)
-  SaveData -> 
+  SaveData ->
     case toRequest model of
       Just request ->
         ( { model | status = Waiting }
         , Http.post
           { url = Settings.path ++ "/api/vids"
-          , body = Http.jsonBody (Video.encode request)
+          , body = Http.jsonBody (NewVideoRequest.encode request)
           , expect = Http.expectString toMessage
           }
         )
       Nothing ->
         ({ model | status = Received "Invalid Form. Can not send." }, Cmd.none)
-  
+
 view : Model -> Document Msg
-view model = 
+view model =
   { title = "Welcome"
-  , body = 
+  , body =
     [ [ CDN.stylesheet
       , h1 [] [text "📼 New Video"]
       , text "URL"
@@ -140,43 +146,45 @@ view model =
       , dateInput model.watchDate WatchDateChanged
       , text "Tags"
       , textInput model.tags TagsChanged
-      , Button.button 
+      , text "Password"
+      , passwordInput model
+      , Button.button
         [ Button.primary
         , Button.attrs [ Spacing.m2 ]
         , Button.disabled (isInvalid model)
         , Button.onClick SaveData
-        ] 
+        ]
         [ if model.status == Waiting
-          then Spinner.spinner 
-                [ Spinner.small, Spinner.attrs [ Spacing.mr1 ]  ] 
+          then Spinner.spinner
+                [ Spinner.small, Spinner.attrs [ Spacing.mr1 ]  ]
                 []
-          else text "" 
-        , text "Save" 
+          else text ""
+        , text "Save"
         ]
       , br [] []
       , case model.status of
           Received msg -> text msg
           _ -> text ""
       ] |> Grid.container []
-    ] 
+    ]
   }
-  
+
 urlInput : Model -> Html Msg
-urlInput model = Input.url 
-  [ Input.value model.url 
+urlInput model = Input.url
+  [ Input.value model.url
   , Input.placeholder "http://youtube.com/stuff"
   , Input.onInput UrlChanged
-  , if String.isEmpty model.url 
-    then Input.danger 
+  , if String.isEmpty model.url
+    then Input.danger
     else Input.id ""
   ]
-  
+
 textInput : String -> (String -> Msg) -> Html Msg
 textInput value msg = Input.text
   [ Input.value value
   , Input.onInput msg
-  , if String.isEmpty value 
-    then Input.danger 
+  , if String.isEmpty value
+    then Input.danger
     else Input.id ""
   ]
 
@@ -185,25 +193,31 @@ authorInput model = Input.text
   [ Input.value model.author
   , Input.placeholder "creator or youtube channel goes here"
   , Input.onInput AuthorChanged
-  , if String.isEmpty model.author 
-    then Input.danger 
+  , if String.isEmpty model.author
+    then Input.danger
     else Input.id ""
   ]
-  
+
 dateInput : String -> (String -> Msg) -> Html Msg
 dateInput value msg = Input.date
   [ Input.onInput msg
   , Input.value value
-  , if String.isEmpty value 
-    then Input.danger 
+  , if String.isEmpty value
+    then Input.danger
     else Input.id ""
   ]
-  
+
 commentInput : Model -> Html Msg
 commentInput model = Textarea.textarea
   [ Textarea.onInput CommentChanged
   , Textarea.value model.comment
   ]
-    
+
+passwordInput : Model -> Html Msg
+passwordInput model = Input.password
+  [ Input.onInput PasswordChanged
+  , Input.value model.password
+  ]
+
 flip : (a -> b -> c) -> b -> a -> c
 flip f b a = f a b

@@ -1,5 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Settings(Settings(..), parse, defaultSettings) where
+module Types.Settings(Settings(..), parse, defaultSettings) where
 
 import qualified Data.Bifunctor as Bifunctor
 import Text.Parsec ((<|>))

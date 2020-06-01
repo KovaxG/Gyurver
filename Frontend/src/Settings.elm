@@ -1,10 +1,10 @@
 module Settings exposing (path)
 
 debug : Bool
-debug = False
+debug = True
 
 path : String
-path = 
-  if debug 
+path =
+  if debug
   then "http://localhost:8080"
   else "http://totallysafelink.xyz"

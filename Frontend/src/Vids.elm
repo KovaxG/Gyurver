@@ -13,26 +13,26 @@ import Http exposing (Error)
 import Settings
 import Json.Decode as Decode exposing (Decoder)
 
-import Video exposing (Video)
+import Types.Video as Video exposing (Video)
 
 type alias Model = List Video
 
 type Msg = SetVideos (List Video)
 
 init : (Model, Cmd Msg)
-init = 
+init =
   ( [] -- TODO maybe add a loading state?
-  , Http.get 
+  , Http.get
     { url = Settings.path ++ "/api/vids"
     , expect = Http.expectJson toMessage (Decode.list Video.decode)
     }
   )
-  
+
 toMessage : Result Error (List Video) -> Msg
 toMessage result = case result of
   Ok vids -> SetVideos vids
   Err _ -> SetVideos []
-  
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
   SetVideos vids -> (vids, Cmd.none)

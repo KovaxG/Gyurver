@@ -1,8 +1,10 @@
-module Video exposing (Video, decode, encode)
+module Types.Video exposing (Video, decode, encode)
 
 import Date as Date exposing (Date)
 import Json.Encode as Encode exposing (Value)
 import Json.Decode as Decode exposing (Decoder)
+
+import Types.Date as Date
 
 type alias Video =
   { url : String
@@ -13,7 +15,7 @@ type alias Video =
   , watchDate : Maybe Date
   , tags : List String
   }
-  
+
 decode : Decoder Video
 decode =
   Decode.map7
@@ -21,39 +23,19 @@ decode =
     (Decode.field "url" Decode.string)
     (Decode.field "title" Decode.string)
     (Decode.field "author" Decode.string)
-    (Decode.field "date" decodeDate)
+    (Decode.field "date" Date.decode)
     (Decode.field "comment" Decode.string)
-    (Decode.field "watchDate" (Decode.maybe decodeDate))
+    (Decode.field "watchDate" (Decode.maybe Date.decode))
     (Decode.field "tags" (Decode.list Decode.string))
-    
-decodeDate : Decoder Date
-decodeDate =
-  Decode.map3
-    (\y m d -> 
-      Date.fromCalendarDate y 
-                            (Date.numberToMonth m) 
-                            d
-    )
-    (Decode.field "year" Decode.int)
-    (Decode.field "month" Decode.int)
-    (Decode.field "day" Decode.int)
-    
+
 encode : Video -> Value
-encode var = 
+encode var =
   Encode.object
     [ ("url", Encode.string var.url)
     , ("title", Encode.string var.title)
     , ("author", Encode.string var.author)
-    , ("date", encodeDate var.date)
+    , ("date", Date.encode var.date)
     , ("comment", Encode.string var.comment)
-    , ("watchDate", Maybe.withDefault Encode.null <| Maybe.map encodeDate var.watchDate)
+    , ("watchDate", Maybe.withDefault Encode.null <| Maybe.map Date.encode var.watchDate)
     , ("tags", Encode.list Encode.string var.tags)
-    ]
-
-encodeDate : Date -> Value
-encodeDate date =
-  Encode.object
-    [ ("year", Encode.int <| Date.year date)
-    , ("month", Encode.int <| Date.monthNumber date)
-    , ("day", Encode.int <| Date.day date)
     ]

@@ -5,10 +5,9 @@ module Main where
 import Prelude hiding (log)
 import qualified Data.ByteString as BS
 
+import Component.Decoder (Decoder(..))
 import Component.Database as DB
 import Component.Json as Json
-import Component.Vids (Video)
-import qualified Component.Vids as Vids
 
 import Data.Function
 
@@ -20,7 +19,12 @@ import Gyurver.Response
 import Gyurver.Server
 import Gyurver.Logger as Logger
 import Gyurver.Logger
-import Settings
+
+import Types.Video (Video)
+import qualified Types.Video as Video
+import Types.VideoAddRequest
+import Types.Settings as Settings
+
 import Utils
 
 log :: Logger
@@ -36,7 +40,7 @@ main = do
   runServer log
             (IP $ hostAddress settings)
             (Port 8080)
-            (process tojasDB weirdRequestDB vidsDB)
+            (process tojasDB weirdRequestDB vidsDB settings)
 
 readSettings :: Logger -> IO Settings
 readSettings log = do
@@ -65,11 +69,13 @@ readSettings log = do
 process :: DBHandle Tojas
         -> DBHandle Request
         -> DBHandle Video
+        -> Settings
         -> Request
         -> IO Response
 process tojasDB
         weirdRequestDB
         vidsDB
+        settings
         request@Request{requestType, path, content} =
   case (requestType, path) of
     (Get, "/") -> do
@@ -100,7 +106,7 @@ process tojasDB
       return
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
-        $ Vids.videosToJson videos
+        $ Video.videosToJson videos
     (Get, "/cokk/eredmeny") -> do
       info log $ "Requested results."
       sendFile mainPath
@@ -128,14 +134,19 @@ process tojasDB
 
     (Post, "/api/vids") -> do
       info log $ "[API] Adding new video to list."
-      let video = (Vids.jsonToVideo =<< Json.parseJson content) :: Either String Video
+      let request = (run videoRequestDecoder =<< Json.parseJson content) :: Either String VideoAddRequest
       either
         (\errorMsg -> return $ makeResponse BadRequest errorMsg)
-        (\video -> do
-          insert vidsDB video
-          return $ makeResponse OK "Success"
+        (\request ->
+          case videoRequestToVideo settings request of
+            Just video -> do
+              insert vidsDB video
+              return $ makeResponse OK "Success"
+            Nothing -> do
+              info log "Bad Password"
+              return $ makeResponse Unauthorized "Bad Password"
         )
-        video
+        request
     (Post, path) -> do
       info log $ "Adding [POST " ++ path ++ "] to weird request DB."
       DB.insert weirdRequestDB request

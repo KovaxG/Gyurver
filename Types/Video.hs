@@ -1,11 +1,8 @@
 {-# LANGUAGE BangPatterns #-}
-module Component.Vids (Video, videosToJson, jsonToVideo) where
+module Types.Video (Video(..), videosToJson) where
 
-import Component.Date
 import Component.Json
-import Component.Decoder (Decoder)
-import qualified Component.Decoder as Decoder
-import Utils (toJust)
+import Types.Date
 
 data Video =  Video
   { link :: String
@@ -31,15 +28,4 @@ videosToJson = show . JsonArray . map toJson
       , ("tags", JsonArray (map JsonString (tags vid)))
       ]
 
-jsonToVideo :: Json -> Either String Video
-jsonToVideo = Decoder.run videoDecoder
 
-videoDecoder :: Decoder Video
-videoDecoder =
-  Video <$> Decoder.field "url" Decoder.string  
-        <*> Decoder.field "title" Decoder.string
-        <*> Decoder.field "author" Decoder.string
-        <*> Decoder.field "date" dateDecoder
-        <*> Decoder.field "comment" Decoder.string
-        <*> Decoder.field "watchDate" (Decoder.maybe dateDecoder)
-        <*> Decoder.field "tags" (Decoder.list Decoder.string)
