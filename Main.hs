@@ -8,7 +8,7 @@ import qualified Data.ByteString as BS
 import Component.Database as DB
 import Component.Json as Json
 import Component.Vids (Video)
-import qualified Component.Vids as Vids 
+import qualified Component.Vids as Vids
 
 import Data.Function
 
@@ -18,7 +18,9 @@ import Gyurver.Html
 import Gyurver.Request
 import Gyurver.Response
 import Gyurver.Server
+import Gyurver.Logger as Logger
 import Gyurver.Logger
+import Settings
 import Utils
 
 log :: Logger
@@ -30,12 +32,35 @@ main = do
   tojasDB <- DB.getHandle "cokkolo2020"
   weirdRequestDB <- DB.getHandle "weird_requests"
   vidsDB <- DB.getHandle "vids"
-  host <- maybe "localhost" id <$> safeReadFile "gyurver.settings"
-  putStrLn $ "Ok, running on " ++ host
+  settings <- readSettings log
   runServer log
-            (IP host)
+            (IP $ hostAddress settings)
             (Port 8080)
             (process tojasDB weirdRequestDB vidsDB)
+
+readSettings :: Logger -> IO Settings
+readSettings log = do
+  contentsMaybe <- safeReadFile "gyurver.settings"
+  maybe fileNotFound fileFound contentsMaybe
+  where
+    fileNotFound :: IO Settings
+    fileNotFound = do
+      Logger.error log "Could not read settings file, using default settings."
+      return defaultSettings
+
+    fileFound :: String -> IO Settings
+    fileFound contents = do
+      either settingsParseFailed settingsLoaded (Settings.parse contents)
+
+    settingsParseFailed :: String -> IO Settings
+    settingsParseFailed msg = do
+      Logger.error log "Found settings file, but failed to parse it, using default settings."
+      return defaultSettings
+
+    settingsLoaded :: Settings -> IO Settings
+    settingsLoaded settings = do
+      info log $ "Loaded settings, ip is " ++ show (hostAddress settings)
+      return settings
 
 process :: DBHandle Tojas
         -> DBHandle Request
@@ -100,22 +125,22 @@ process tojasDB
         info log $ "Adding [GET " ++ path ++ "] to weird request DB."
         DB.insert weirdRequestDB request
         return badRequest
-        
+
     (Post, "/api/vids") -> do
       info log $ "[API] Adding new video to list."
       let video = (Vids.jsonToVideo =<< Json.parseJson content) :: Either String Video
-      either 
-        (\errorMsg -> return $ makeResponse BadRequest errorMsg) 
+      either
+        (\errorMsg -> return $ makeResponse BadRequest errorMsg)
         (\video -> do
           insert vidsDB video
           return $ makeResponse OK "Success"
-        ) 
+        )
         video
     (Post, path) -> do
       info log $ "Adding [POST " ++ path ++ "] to weird request DB."
       DB.insert weirdRequestDB request
       return badRequest
-      
+
     (Options, "/api/vids") -> do
       info log $ "Someone asked if you can post to /api/vids/add, sure."
       return allowHeaders
@@ -132,7 +157,7 @@ allowHeaders :: Response
 allowHeaders =
   "Wanna try posting stuff? Go ahead."
   & makeResponse OK
-  & addHeaders 
+  & addHeaders
     [ ("Access-Control-Allow-Headers", "OPTIONS, POST")
     , ("Access-Control-Allow-Origin",  "*") -- Added to allow requests from localhost
     ]
