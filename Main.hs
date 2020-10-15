@@ -37,9 +37,10 @@ main = do
   weirdRequestDB <- DB.getHandle "weird_requests"
   vidsDB <- DB.getHandle "vids"
   settings <- readSettings log
+  print settings
   runServer log
-            (IP $ hostAddress settings)
-            (Port 8080)
+            (settings & hostAddress)
+            (settings & port)
             (process tojasDB weirdRequestDB vidsDB settings)
 
 readSettings :: Logger -> IO Settings

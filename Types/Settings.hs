@@ -6,14 +6,17 @@ import Text.Parsec ((<|>))
 import qualified Text.Parsec as Parsec
 
 import qualified Utils
+import Gyurver.Server
 
 data Settings = Settings
-  { hostAddress :: String
+  { hostAddress :: IP
+  , port :: Port
   , password :: String
   } deriving (Show)
 
 defaultSettings = Settings
-  { hostAddress = "localhost"
+  { hostAddress = IP "localhost"
+  , port = Port 8080
   , password = "nincs jelszo"
   }
 
@@ -23,9 +26,13 @@ parse = Bifunctor.first show . Parsec.parse settings "Parsing Settings"
     settings = do
       Parsec.string "host_address"
       Parsec.spaces
-      hostAddress <- Parsec.many1 (Parsec.alphaNum <|> Parsec.char '.')
+      hostAddress <- IP <$> Parsec.many1 (Parsec.alphaNum <|> Parsec.char '.')
+      Parsec.newline
+      Parsec.string "port"
+      Parsec.spaces
+      port <- Port . read <$> Parsec.many1 Parsec.digit
       Parsec.newline
       Parsec.string "password"
       Parsec.spaces
-      password <- Parsec.many1 (Parsec.noneOf "\n")
-      return Settings { hostAddress, password }
+      password <- Parsec.many1 Parsec.alphaNum
+      return Settings { hostAddress, port, password }

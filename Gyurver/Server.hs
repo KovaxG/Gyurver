@@ -12,8 +12,8 @@ import qualified Gyurver.Logger as Log
 import Utils
 
 type RequestProcessor = Request -> IO Response
-data IP = IP String
-data Port = Port Int
+data IP = IP String deriving (Show)
+data Port = Port Int deriving (Show)
 
 runServer:: Logger -> IP -> Port -> RequestProcessor -> IO ()
 runServer log (IP address) (Port port) processRequest =
