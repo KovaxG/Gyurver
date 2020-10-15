@@ -7,17 +7,20 @@ import qualified Text.Parsec as Parsec
 
 import qualified Utils
 import Gyurver.Server
+import Types.Common (Mode(..))
 
 data Settings = Settings
   { hostAddress :: IP
   , port :: Port
   , password :: String
+  , mode :: Mode
   } deriving (Show)
 
 defaultSettings = Settings
   { hostAddress = IP "localhost"
   , port = Port 8080
   , password = "nincs jelszo"
+  , mode = Dev
   }
 
 parse :: String -> Either String Settings
@@ -35,4 +38,12 @@ parse = Bifunctor.first show . Parsec.parse settings "Parsing Settings"
       Parsec.string "password"
       Parsec.spaces
       password <- Parsec.many1 Parsec.alphaNum
-      return Settings { hostAddress, port, password }
+      Parsec.newline
+      Parsec.string "mode"
+      Parsec.spaces
+      mode <- mode
+      return Settings { hostAddress, port, password, mode }
+
+    mode = Parsec.try dev <|> Parsec.try prod
+    dev = Parsec.string "dev" >> return Dev
+    prod = Parsec.string "prod" >> return Prod

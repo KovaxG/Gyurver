@@ -15,6 +15,7 @@ Example:
 host_address 0.0.0.0
 port 80
 password very_safe_password
+mode prod
 ```
 
 The settings are loaded in the following object:
@@ -23,6 +24,7 @@ data Settings = Settings
   { hostAddress :: IP
   , port :: Port
   , password :: String
+  , mode :: Mode
   } deriving (Show)
 ```
 
@@ -32,13 +34,10 @@ defaultSettings = Settings
   { hostAddress = IP "localhost"
   , port = Port 8080
   , password = "nincs jelszo"
+  , mode = Dev
   }
 ```
 ## Endpoints
-
-### Resources
-- `/cv` CV as a PDF
-- `/favicon.ico` Get the favicon
 
 ### Pages
 - `/` Landing Page
@@ -47,7 +46,10 @@ defaultSettings = Settings
 - `/cokk` The contestants of the 2020 cokkoles
 - `/cokk/eredmeny` The results of the 2020 Cokkoles contest
 
+### Resources
+- `/cv` CV as a PDF
+- `/favicon.ico` Get the favicon
+
 ### JSON
 - `/cokk/list` list of contestants of the 2020 Cokkoles
 - `/api/vids` list of videos
-

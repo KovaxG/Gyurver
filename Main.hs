@@ -20,6 +20,7 @@ import Gyurver.Server
 import Gyurver.Logger as Logger
 import Gyurver.Logger
 
+import Types.Common (Mode)
 import Types.Video (Video)
 import qualified Types.Video as Video
 import Types.VideoAddRequest
@@ -161,9 +162,10 @@ process tojasDB
       DB.insert weirdRequestDB request
       return badRequest
 
-cvPath = "Content/pdfs/cv.pdf"
-faviconPath = "Content/favicon.ico"
-mainPath = "Content/main.html"
+contentPath = "Content"
+cvPath = contentPath </> "pdfs" </> "cv.pdf"
+faviconPath = contentPath </> "favicon.ico"
+mainPath = contentPath </> "main.html"
 
 allowHeaders :: Response
 allowHeaders =
@@ -213,3 +215,6 @@ fileName =
   . tail
   . dropWhile (/= '.')
   . reverse
+
+(</>) :: String -> String -> String
+a </> b = a ++ "/" ++ b
