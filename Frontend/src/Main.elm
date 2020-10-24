@@ -6,6 +6,7 @@ import Browser.Navigation as Nav
 import Html exposing (text)
 import Url exposing (Url)
 import Debug
+import Dict exposing (Dict)
 
 import Landing
 import CokkList
@@ -13,6 +14,7 @@ import Eredmenyek
 import Articles
 import VideoAdd
 import Vids as VideoList
+import Browser.Navigation exposing (pushUrl)
 
 main : Program () Model Msg
 main = application
@@ -54,8 +56,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model = Sub.none
 
 init : () -> Url -> Key -> (Model, Cmd Msg)
-init flags url key =
-  selectPage { content = Loading, key = key } url.path
+init flags url key = selectPage { content = Loading, key = key } url.path
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -84,59 +85,45 @@ update msg model =
         Internal url -> selectPage model url.path
 
     (UrlChange url, _) ->
-      case url.path of
-        "/" -> Landing.init |> liftModelCmd Landing LandingMsg model
-        "/cokk" -> CokkList.init |> liftModelCmd CokkList CokkListMsg model
-        "/cokk/eredmeny" -> Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model
-        "/articles" -> Articles.init |> liftModelCmd Articles ArticlesMsg  model
-        "/vids" -> VideoList.init |> liftModelCmd VideoList VideoListMsg model
-        "/vids/add" -> VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model
-        _ -> ({ model | content = Loading }, Cmd.none)
+      validLinks model
+      |> Dict.get url.path
+      |> Maybe.withDefault ({ model | content = Loading }, Cmd.none)
 
     (_, _) -> ({ model | content = Invalid model msg }, Cmd.none)
 
+validLinks : Model -> Dict String (Model, Cmd Msg)
+validLinks model = Dict.fromList
+  [ ("/", Landing.init |> liftModelCmd Landing LandingMsg model)
+  , ("/cokk", CokkList.init |> liftModelCmd CokkList CokkListMsg model)
+  , ("/cokk/eredmeny", Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
+  , ("/articles", Articles.init |> liftModelCmd Articles ArticlesMsg  model)
+  , ("/vids", VideoList.init |> liftModelCmd VideoList VideoListMsg model)
+  , ("/vids/add", VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
+  ]
+
 selectPage : Model -> String -> (Model, Cmd Msg)
 selectPage model path =
-  let
-    loading = { model | content = Loading }
-    pushUrl = pushNewUrl model.key path
-  in case path of
-    "/" -> pushUrl (loading, Cmd.none)
-    "/cokk" -> pushUrl (loading, Cmd.none)
-    "/cokk/eredmeny" -> pushUrl (loading, Cmd.none)
-    "/articles" -> pushUrl (loading, Cmd.none)
-    "/vids" -> pushUrl (loading, Cmd.none)
-    "/vids/add" -> pushUrl (loading, Cmd.none)
-    _ -> (loading, Nav.load path)
+  let loading = { model | content = Loading }
+  in
+    if Dict.member path (validLinks model)
+    then pushNewUrl model.key path (loading, Cmd.none)
+    else (loading, Nav.load path)
 
 view : Model -> Document Msg
 view model =
   case model.content of
-    Landing welcome ->
-      Landing.view welcome
-      |> liftDocument LandingMsg
-    CokkList cokkList ->
-      CokkList.view cokkList
-      |> liftDocument CokkListMsg
-    Eredmenyek eredmenyek ->
-      Eredmenyek.view eredmenyek
-      |> liftDocument EredmenyekMsg
-    Articles articles ->
-      Articles.view articles
-      |> liftDocument ArticlesMsg
-    VideoAdd videoAdd ->
-      VideoAdd.view videoAdd
-      |> liftDocument VideoAddMsg
-    VideoList videoList ->
-      VideoList.view videoList
-      |> liftDocument VideoListMsg
-    Invalid md ms ->
-      { title = "Error"
-      , body =
-        [text <| Debug.toString md ++ " - " ++ Debug.toString ms]
-      }
+    Landing welcome -> Landing.view welcome |> liftDocument LandingMsg
+    CokkList cokkList -> CokkList.view cokkList |> liftDocument CokkListMsg
+    Eredmenyek eredmenyek -> Eredmenyek.view eredmenyek |> liftDocument EredmenyekMsg
+    Articles articles -> Articles.view articles |> liftDocument ArticlesMsg
+    VideoAdd videoAdd -> VideoAdd.view videoAdd |> liftDocument VideoAddMsg
+    VideoList videoList -> VideoList.view videoList |> liftDocument VideoListMsg
     Loading -> { title = "Loading", body = [text "Loading..."]}
     Test msg -> { title = "Test", body = [text msg] }
+    Invalid md ms ->
+      { title = "Error"
+      , body = [text <| Debug.toString md ++ " - " ++ Debug.toString ms]
+      }
 
 liftDocument : (a -> b) -> Document a -> Document b
 liftDocument f da =
