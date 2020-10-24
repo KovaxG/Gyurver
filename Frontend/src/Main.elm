@@ -59,69 +59,41 @@ init flags url key =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  let invalidState = ({ model | content = Invalid model msg }, Cmd.none)
-  in case msg of
-    LandingMsg welcomeMsg ->
-      case model.content of
-        Landing welcome ->
-          Landing.update welcomeMsg welcome
-          |> liftModelCmd Landing LandingMsg model
-        _ ->  invalidState
-    CokkListMsg cokkListMsg ->
-      case model.content of
-        CokkList cokkList ->
-          CokkList.update cokkListMsg cokkList
-          |> liftModelCmd CokkList CokkListMsg model
-        _ ->  invalidState
-    EredmenyekMsg eredmenyekMsg ->
-      case model.content of
-        Eredmenyek eredmenyek ->
-          Eredmenyek.update eredmenyekMsg eredmenyek
-          |> liftModelCmd Eredmenyek EredmenyekMsg model
-        _ -> invalidState
-    ArticlesMsg articlesMsg ->
-      case model.content of
-        Articles articles ->
-          Articles.update articlesMsg articles
-          |> liftModelCmd Articles ArticlesMsg model
-        _ -> invalidState
-    VideoAddMsg videoAddMsg ->
-      case model.content of
-        VideoAdd videoAdd ->
-          VideoAdd.update videoAddMsg videoAdd
-          |> liftModelCmd VideoAdd VideoAddMsg model
-        _ -> invalidState
-    VideoListMsg videoListMsg ->
-      case model.content of
-        VideoList videoList ->
-          VideoList.update videoListMsg videoList
-          |> liftModelCmd VideoList VideoListMsg model
-        _ -> invalidState
-    UrlRequest request ->
+  case (msg, model.content) of
+    (LandingMsg welcomeMsg, Landing welcome) ->
+      Landing.update welcomeMsg welcome |> liftModelCmd Landing LandingMsg model
+
+    (CokkListMsg cokkListMsg, CokkList cokkList) ->
+      CokkList.update cokkListMsg cokkList |> liftModelCmd CokkList CokkListMsg model
+
+    (EredmenyekMsg eredmenyekMsg, Eredmenyek eredmenyek) ->
+      Eredmenyek.update eredmenyekMsg eredmenyek |> liftModelCmd Eredmenyek EredmenyekMsg model
+
+    (ArticlesMsg articlesMsg, Articles articles) ->
+      Articles.update articlesMsg articles |> liftModelCmd Articles ArticlesMsg model
+
+    (VideoAddMsg videoAddMsg, VideoAdd videoAdd) ->
+      VideoAdd.update videoAddMsg videoAdd |> liftModelCmd VideoAdd VideoAddMsg model
+
+    (VideoListMsg videoListMsg, VideoList videoList) ->
+      VideoList.update videoListMsg videoList |> liftModelCmd VideoList VideoListMsg model
+
+    (UrlRequest request, _) ->
       case request of
         External path -> ({ model | content = Loading }, Nav.load path)
         Internal url -> selectPage model url.path
-    UrlChange url ->
+
+    (UrlChange url, _) ->
       case url.path of
-        "/" ->
-          Landing.init
-          |> liftModelCmd Landing LandingMsg model
-        "/cokk" ->
-          CokkList.init
-          |> liftModelCmd CokkList CokkListMsg model
-        "/cokk/eredmeny" ->
-          Eredmenyek.init
-          |> liftModelCmd Eredmenyek EredmenyekMsg  model
-        "/articles" ->
-          Articles.init
-          |> liftModelCmd Articles ArticlesMsg  model
-        "/vids" ->
-          VideoList.init
-          |> liftModelCmd VideoList VideoListMsg model
-        "/vids/add" ->
-          VideoAdd.init
-          |> liftModelCmd VideoAdd VideoAddMsg model
+        "/" -> Landing.init |> liftModelCmd Landing LandingMsg model
+        "/cokk" -> CokkList.init |> liftModelCmd CokkList CokkListMsg model
+        "/cokk/eredmeny" -> Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model
+        "/articles" -> Articles.init |> liftModelCmd Articles ArticlesMsg  model
+        "/vids" -> VideoList.init |> liftModelCmd VideoList VideoListMsg model
+        "/vids/add" -> VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model
         _ -> ({ model | content = Loading }, Cmd.none)
+
+    (_, _) -> ({ model | content = Invalid model msg }, Cmd.none)
 
 selectPage : Model -> String -> (Model, Cmd Msg)
 selectPage model path =
