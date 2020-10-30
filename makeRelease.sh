@@ -12,12 +12,12 @@ popd
 
 # Move favicon
 cp Content/favicon.ico Release/Content/favicon.ico
-cp -r Content/pdfs Release/Content/pdfs 
+cp -r Content/pdfs Release/Content/pdfs
 
 
 # Elm stuff
 pushd Frontend
-elm make src/Main.elm --output ../Release/Content/main.html
+elm make src/Main.elm --output ../Release/Content/index.html
 popd
 
 # Haskell stuff

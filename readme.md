@@ -3,8 +3,9 @@
 You will need to pull the following dependencies in order to compile the project:
 - `network-simple`
 - `random`
+- `parsec`
 
-`cabal install <element>`
+`cabal install <element> --lib`
 
 ## Configuration file
 

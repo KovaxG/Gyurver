@@ -46,7 +46,7 @@ main = do
 
 readSettings :: Logger -> IO Settings
 readSettings log = do
-  contentsMaybe <- safeReadFile "gyurver.settings"
+  contentsMaybe <- safeReadTextFile "gyurver.settings"
   maybe fileNotFound fileFound contentsMaybe
   where
     fileNotFound :: IO Settings
@@ -165,7 +165,7 @@ process tojasDB
 contentPath = "Content"
 cvPath = contentPath </> "pdfs" </> "cv.pdf"
 faviconPath = contentPath </> "favicon.ico"
-mainPath = contentPath </> "main.html"
+mainPath = contentPath </> "index.html"
 
 allowHeaders :: Response
 allowHeaders =

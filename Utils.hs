@@ -2,16 +2,12 @@ module Utils where
 
 import Control.Exception
 import Data.Bifunctor
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString as ByteString
 import Data.Maybe
 
 ($>) :: Functor f => f a -> b -> f b
 ($>) = flip (<$)
-
-toRight :: l -> Maybe r -> Either l r
-toRight l = maybe (Left l) Right
-
-toJust :: Either l r -> Maybe r
-toJust = either (const Nothing) Just 
 
 mapLeft :: (a -> b) -> Either a r -> Either b r
 mapLeft f = bimap f id
@@ -19,24 +15,26 @@ mapLeft f = bimap f id
 startsWith :: String -> String -> Bool
 startsWith ss s = (not $ length ss > length s) && (and $ zipWith (==) ss s)
 
-safeReadFile :: String -> IO (Maybe String)
-safeReadFile path = do
-  a <- try (readFile path) :: IO (Either IOException String)
-  return $ case a of
-    Right bla -> Just bla
-    Left _ -> Nothing
+safeReadTextFile :: String -> IO (Maybe String)
+safeReadTextFile path = do
+  contents <- try (readFile path) :: IO (Either IOException String)
+  return $ eitherToMaybe contents
 
-safeWriteFile :: String -> String -> IO (Maybe ())
-safeWriteFile path content = do
-  a <- try (writeFile path content) :: IO (Either IOException ())
-  return $ case a of
-    Right bla -> Just bla
-    Left _ -> Nothing
+safeWriteTextFile :: String -> String -> IO (Maybe ())
+safeWriteTextFile path content = do
+  result <- try (writeFile path content) :: IO (Either IOException ())
+  return $ eitherToMaybe result
+
+safeReadBinaryFile :: String -> IO (Maybe ByteString)
+safeReadBinaryFile path = do
+  contents <- try (ByteString.readFile path) :: IO (Either IOException ByteString)
+  return $ eitherToMaybe contents
 
 safeRead :: Read a => String -> Maybe a
 safeRead = fmap fst . listToMaybe . reads
 
 maybeToEither :: e -> Maybe a -> Either e a
-maybeToEither e ma = case ma of
-  Just a -> Right a
-  Nothing -> Left e
+maybeToEither e = maybe (Left e) Right
+
+eitherToMaybe :: Either e a -> Maybe a
+eitherToMaybe = either (const Nothing) Just

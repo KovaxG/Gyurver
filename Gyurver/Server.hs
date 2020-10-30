@@ -25,7 +25,7 @@ processConnection log processRequest (connectionSocket, remoteAddr) = do
   where
     getMessage :: IO (Either Gyurror Request)
     getMessage = do
-      raw <- toRight FailedReceive <$> recv connectionSocket 1024
+      raw <- maybeToEither FailedReceive <$> recv connectionSocket 1024
       return $ raw >>= parseRequest
 
     handleFailure :: Gyurror -> IO ()
