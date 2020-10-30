@@ -19,6 +19,7 @@ data Status
   = OK
   | BadRequest
   | Unauthorized
+  | InternalServerError
 
 instance Show Status where
   show status =
@@ -26,6 +27,7 @@ instance Show Status where
       OK -> "200 OK"
       BadRequest -> "400 Bad Request"
       Unauthorized -> "401 Unauthorized"
+      InternalServerError -> "500 Internal Server Error"
 
 data Response = Response
   { status  :: Status

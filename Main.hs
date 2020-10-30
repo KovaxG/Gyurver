@@ -184,8 +184,9 @@ badRequest =
     [h1 [] [text "Your request was bad, and you should feel bad. Nah, just messing with you, have a nice day, but your requests still suck tho."]]
 
 sendFile :: String -> IO Response
-sendFile path = do
-  readFile path >>= return . makeResponse OK
+sendFile path =
+  safeReadBinaryFile path
+  & fmap (maybe (makeResponse InternalServerError "Could not read file!") (makeResponse OK))
 
 isResourceReq :: String -> Bool
 isResourceReq = startsWith "/res/"
