@@ -8,8 +8,8 @@ import Bootstrap.Button as Button
 import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Spinner as Spinner
-import Html exposing (Html, text, button, h1, p, a, br)
-import Html.Attributes exposing (href)
+import Html exposing (Html, text, button, h1, p, a, br, iframe, div)
+import Html.Attributes exposing (href, src)
 import Html.Events exposing (onClick)
 import Json.Encode as Json exposing (Value)
 import Json.Decode as Decode
@@ -131,40 +131,43 @@ view model =
   { title = "Welcome"
   , body =
     [ [ CDN.stylesheet
-      , h1 [] [text "📼 New Video"]
-      , text "URL"
-      , urlInput model
-      , text "Title"
-      , textInput model.title TitleChanged
-      , text "Author / Channel"
-      , textInput model.author AuthorChanged
-      , text "Date of the Video"
-      , dateInput model.date DateChanged
-      , text "Comment"
-      , commentInput model
-      , text "Watch Date"
-      , dateInput model.watchDate WatchDateChanged
-      , text "Tags"
-      , textInput model.tags TagsChanged
-      , text "Password"
-      , passwordInput model
-      , Button.button
-        [ Button.primary
-        , Button.attrs [ Spacing.m2 ]
-        , Button.disabled (isInvalid model)
-        , Button.onClick SaveData
-        ]
-        [ if model.status == Waiting
-          then Spinner.spinner
-                [ Spinner.small, Spinner.attrs [ Spacing.mr1 ]  ]
-                []
-          else text ""
-        , text "Save"
-        ]
-      , br [] []
-      , case model.status of
-          Received msg -> text msg
-          _ -> text ""
+      , [ [ h1 [] [text "📼 New Video"]
+        , text "URL"
+        , urlInput model
+        , text "Title"
+        , textInput model.title TitleChanged
+        , text "Author / Channel"
+        , textInput model.author AuthorChanged
+        , text "Date of the Video"
+        , dateInput model.date DateChanged
+        , text "Comment"
+        , commentInput model
+        , text "Watch Date"
+        , dateInput model.watchDate WatchDateChanged
+        , text "Tags"
+        , textInput model.tags TagsChanged
+        , text "Password"
+        , passwordInput model
+        , Button.button
+          [ Button.primary
+          , Button.attrs [ Spacing.m2 ]
+          , Button.disabled (isInvalid model)
+          , Button.onClick SaveData
+          ]
+          [ if model.status == Waiting
+            then Spinner.spinner
+                  [ Spinner.small, Spinner.attrs [ Spacing.mr1 ]  ]
+                  []
+            else text ""
+          , text "Save"
+          ]
+        , br [] []
+        , case model.status of
+            Received msg -> text msg
+            _ -> text ""
+      ] |> Grid.col [],
+      [div [] [text "Preview", br [] [], iframe [src model.url] []]] |> Grid.col []
+      ] |> Grid.row []
       ] |> Grid.container []
     ]
   }
