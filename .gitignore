@@ -6,6 +6,7 @@
 elm-stuff/
 Frontend/index.html
 Content/main.html
+Content/index.html
 
 # Gyurver
 *.db
