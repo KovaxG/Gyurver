@@ -1,7 +1,7 @@
 module Settings exposing (path)
 
 debug : Bool
-debug = True
+debug = False
 
 path : String
 path =

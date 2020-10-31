@@ -39,7 +39,7 @@ data Response = Response
 toByteString :: Response -> ByteString
 toByteString Response{content, status, headers} =
   BS.unlines
-    [ BS.pack $ "HTTP/1.1 " <> show status
+    [ BS.pack $ "HTTP/1.1 " ++ show status
     , BS.pack $ concatMap showHeader headers
     , content
     ]
