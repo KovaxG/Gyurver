@@ -7,9 +7,9 @@ module Gyurver.Response
   , toByteString
   , makeResponse
   , addHeaders
+  , success
   ) where
 
-import Data.Monoid
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 
@@ -54,6 +54,9 @@ makeResponse status content = Response
   , headers = []
   , content = toBytes content
   }
+
+success :: Response
+success = makeResponse OK ""
 
 class CanSend a where
   toBytes :: a -> ByteString

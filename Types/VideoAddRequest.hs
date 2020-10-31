@@ -2,8 +2,8 @@ module Types.VideoAddRequest (VideoAddRequest, videoRequestToVideo, videoRequest
 
 import Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
-import Component.Json
-import Types.Date
+import Data.Function ((&))
+import Types.Date (dateDecoder, Date)
 import Types.Video (Video)
 import qualified Types.Video as Video
 import Types.Settings (Settings)
@@ -21,18 +21,18 @@ data VideoAddRequest =  VideoAddRequest
   , password :: String
   } deriving (Show)
 
-videoRequestToVideo :: Settings -> VideoAddRequest -> Maybe Video
-videoRequestToVideo settings var =
-  if Settings.password settings == password var
-  then Just $
-    Video.Video (link var)
-                (title var)
-                (channel var)
-                (date var)
-                (comment var)
-                (watchDate var)
-                (tags var)
-  else Nothing
+videoRequestToVideo :: Settings -> VideoAddRequest -> Either String Video
+videoRequestToVideo settings request =
+  if (settings & Settings.password)  == (request & password)
+  then Right $ Video.Video
+    (request & link)
+    (request & title)
+    (request & channel)
+    (request & date)
+    (request & comment)
+    (request & watchDate)
+    (request & tags)
+  else Left("Incorrect Password: \"" ++ (request & password) ++ "\"")
 
 videoRequestDecoder :: Decoder VideoAddRequest
 videoRequestDecoder =
