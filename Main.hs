@@ -35,7 +35,6 @@ main = do
   Logger.info log "Gyurver is starting..."
 
   tojasDB <- DB.getHandle "cokkolo2020"
-  weirdRequestDB <- DB.getHandle "weird_requests"
   vidsDB <- DB.getHandle "vids"
 
   settings <- readSettings log
@@ -43,7 +42,7 @@ main = do
   runServer log
             (settings & hostAddress)
             (settings & port)
-            (process tojasDB weirdRequestDB vidsDB settings)
+            (process tojasDB vidsDB settings)
 
 readSettings :: Logger -> IO Settings
 readSettings log =
@@ -69,13 +68,11 @@ readSettings log =
       return settings
 
 process :: DBHandle Tojas
-        -> DBHandle Request
         -> DBHandle Video
         -> Settings
         -> Request
         -> IO Response
 process tojasDB
-        weirdRequestDB
         vidsDB
         settings
         request@Request{requestType, path, content} =
@@ -137,11 +134,10 @@ process tojasDB
             Logger.info log $ "Sending " ++ filePath ++"... Let's hope it exists..."
             sendFile filePath
           Nothing -> do
-            Logger.info log $ "No such resource."
+            Logger.warn log $ "No such resource: " ++ path
             return badRequest
       | otherwise -> do
-        Logger.info log $ "Adding [GET " ++ path ++ "] to weird request DB."
-        DB.insert weirdRequestDB request
+        Logger.warn log $ "Weird GET request: " ++ path
         return badRequest
 
     (Post, "/api/vids") -> do
@@ -160,18 +156,12 @@ process tojasDB
         )
         request
 
-    (Post, path) -> do
-      Logger.info log $ "Adding [POST " ++ path ++ "] to weird request DB."
-      DB.insert weirdRequestDB request
-      return badRequest
-
     (Options, "/api/vids") -> do
       Logger.info log $ "Someone asked if you can post to /api/vids/add, sure."
       return allowHeaders
 
-    (Options, path) -> do
-      Logger.info log $ "Adding [OPTIONS " ++ path ++ "] to weird request DB."
-      DB.insert weirdRequestDB request
+    (reqType, path) -> do
+      Logger.warn log $ "Weird " ++ show reqType ++ " request: " ++ path
       return badRequest
 
 contentPath :: String
