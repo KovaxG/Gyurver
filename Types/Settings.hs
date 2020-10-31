@@ -5,7 +5,6 @@ import qualified Data.Bifunctor as Bifunctor
 import Text.Parsec ((<|>))
 import qualified Text.Parsec as Parsec
 
-import qualified Utils
 import Gyurver.Server
 import Types.Common (Mode(..))
 

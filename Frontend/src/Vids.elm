@@ -1,8 +1,9 @@
 module Vids exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
-import Html exposing (Html, text, h1, h3, br, strong, div, iframe)
-import Html.Attributes exposing (src)
+import Html exposing (Html, text, h1, h3, br, strong, div, iframe, input)
+import Html.Attributes exposing (src, placeholder, value)
+import Html.Events exposing (onInput)
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Badge as Badge
@@ -15,13 +16,18 @@ import Json.Decode as Decode exposing (Decoder)
 
 import Types.Video as Video exposing (Video)
 
-type alias Model = List Video
+type alias Model =
+  { videos : List Video
+  , titleFilter : String
+  }
 
-type Msg = SetVideos (List Video)
+type Msg
+  = SetVideos (List Video)
+  | TitleFilterChanged String
 
 init : (Model, Cmd Msg)
 init =
-  ( [] -- TODO maybe add a loading state?
+  ( { videos = [], titleFilter = "" }  -- TODO maybe add a loading state?
   , Http.get
     { url = Settings.path ++ "/api/vids"
     , expect = Http.expectJson toMessage (Decode.list Video.decode)
@@ -35,17 +41,32 @@ toMessage result = case result of
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
-  SetVideos vids -> (vids, Cmd.none)
+  SetVideos vids -> ({ model | videos = vids }, Cmd.none)
+  TitleFilterChanged s -> ({ model | titleFilter = s }, Cmd.none)
 
 view : Model -> Document Msg
-view videos =
-  { title = "Videos"
-  , body =
-    [ CDN.stylesheet
-    , Grid.container []
-      (h1 [] [text "Videos"] :: List.map videoToHtml videos)
+view model =
+  let filtered = List.filter (\vid -> String.contains model.titleFilter vid.title) model.videos
+  in
+    { title = "Videos"
+    , body =
+      [ CDN.stylesheet
+      , Grid.container []
+        (h1 [] [text "Videos"] :: searchSection model :: List.map videoToHtml filtered)
+      ]
+    }
+
+searchSection : Model -> Html Msg
+searchSection model =
+  div
+    []
+    [ text "Search by Title: "
+    , input
+      [ placeholder "..."
+      , value model.titleFilter
+      , onInput TitleFilterChanged
+      ] []
     ]
-  }
 
 videoToHtml : Video -> Html Msg
 videoToHtml vid =

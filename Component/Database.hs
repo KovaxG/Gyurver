@@ -6,7 +6,7 @@ import qualified Data.Map as Map
 import Data.Maybe (fromMaybe, listToMaybe)
 
 import Component.Semaphore (Semaphore)
-import Component.Semaphore as Sem
+import qualified Component.Semaphore as Sem
 import Utils (safeReadTextFile, safeWriteTextFile)
 
 data DBHandle a = DBHandle

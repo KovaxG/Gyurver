@@ -75,7 +75,7 @@ process :: DBHandle Tojas
 process tojasDB
         vidsDB
         settings
-        request@Request{requestType, path, content} =
+        Request{requestType, path, content} =
   case (requestType, path) of
     (Get, "/") -> do
       Logger.info log $ "Requested landing page, sending " ++ mainPath
