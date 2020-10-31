@@ -11,6 +11,7 @@ Content/index.html
 # Gyurver
 *.db
 *.settings
+*.gyurlog
 
 # Release
 Release/

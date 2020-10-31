@@ -28,18 +28,18 @@ import Types.Settings as Settings
 import Utils
 
 log :: Logger
-log = Console
+log = File
 
 main :: IO ()
 main = do
-  putStrLn "Gyurver is starting..."
+  Logger.info log "Gyurver is starting..."
 
   tojasDB <- DB.getHandle "cokkolo2020"
   weirdRequestDB <- DB.getHandle "weird_requests"
   vidsDB <- DB.getHandle "vids"
 
   settings <- readSettings log
-  print settings
+  Logger.info log (show settings)
   runServer log
             (settings & hostAddress)
             (settings & port)
@@ -51,13 +51,11 @@ readSettings log =
   where
     fileNotFound :: IO Settings
     fileNotFound = do
-      Logger.error log "Could not read settings file, using default settings."
+      Logger.warn log "Could not read settings file, using default settings."
       return defaultSettings
 
     fileFound :: String -> IO Settings
-    fileFound contents =
-      Settings.parse contents
-      & either settingsParseFailed settingsLoaded
+    fileFound contents = contents & Settings.parse & either settingsParseFailed settingsLoaded
 
     settingsParseFailed :: String -> IO Settings
     settingsParseFailed msg = do
@@ -176,9 +174,16 @@ process tojasDB
       DB.insert weirdRequestDB request
       return badRequest
 
+contentPath :: String
 contentPath = "Content"
+
+cvPath :: String
 cvPath = contentPath </> "pdfs" </> "cv.pdf"
+
+faviconPath :: String
 faviconPath = contentPath </> "favicon.ico"
+
+mainPath :: String
 mainPath = contentPath </> "index.html"
 
 allowHeaders :: Response
