@@ -54,7 +54,7 @@ update msg model = case msg of
 
 view : Model -> Document Msg
 view model =
-  let searchTermMatches vid = String.contains model.titleFilter vid.title
+  let searchTermMatches vid = String.contains (String.toLower model.titleFilter) (String.toLower vid.title)
       noSelectedTags = List.isEmpty model.tagFilter
       oneTagIsSelectedFromVid vid = List.any (\t -> List.member t model.tagFilter) vid.tags
       filtered = List.filter (\vid -> searchTermMatches vid && (noSelectedTags || oneTagIsSelectedFromVid vid)) model.videos
