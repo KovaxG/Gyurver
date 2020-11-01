@@ -10,7 +10,7 @@ import Bootstrap.ListGroup as ListGroup
 
 type Model = NoModel
 type Msg = NoMsg
-  
+
 init : (Model, Cmd Msg)
 init = (NoModel, Cmd.none)
 
@@ -20,10 +20,10 @@ update msg model = (model, Cmd.none)
 view : Model -> Document Msg
 view model =
   { title = "Articles"
-  , body = 
+  , body =
     [ CDN.stylesheet
-    , [ [ [ h1 [] [text "Articles!"] 
-          ] |> Grid.col [] 
+    , [ [ [ h1 [] [text "Articles!"]
+          ] |> Grid.col []
         ] |> Grid.row []
       , [ [ h2 [] [text "🇺🇸 A taxonomy and platform for anomaly detection"]
           , p [] [ strong [] [text "Authors: "]
@@ -32,7 +32,7 @@ view model =
           , p [] [ strong [] [text "Read: "]
                  , a [href "https://www.researchgate.net/publication/326707960_A_taxonomy_and_platform_for_anomaly_detection#fullTextFileContent"] [text "🔗 Research Gate"]
                  , text ", "
-                 , a [href "/res/anomaly_detection_taxonomy.pdf"] [text "🗎 Download"]
+                 , a [href "/res/anomaly_detection_taxonomy.pdf"] [text "📑 PDF"]
                  ]
           , p [] [ strong [] [text "Abstract: "]
                  , text "There are hundreds of anomaly detection methods developed for different purposes and using a wide range of theoretical backgrounds, from system theory and signal processing towards artificial intelligence techniques. Therefore, it is very difficult for a specialist in a given domain (e.g. finance, industrial engineering, networking, environment monitoring, etc.) to select an anomaly detection method that fits best for a given application. The goal of this paper is to propose a taxonomy for anomaly detection methods and also to present a platform that allows a developer to find and tune a given anomaly detection method that is optimal for an application. The platform provides the basic functionalities needed to acquire, process and visualize multidimensional data collected from different sources, as well as the means to test and compare different anomaly detection techniques."]
@@ -45,8 +45,8 @@ view model =
           , p [] [strong [] [text "Read: "]
                   , a [href "https://www.researchgate.net/publication/334045070_Platform_for_Anomaly_Detection_in_Time-Series"] [text "🔗 Research Gate"]
                   , text ", "
-                 , a [href "/res/anomaly_detection_platform.pdf"] [text "🗎 PDF"]
-                 
+                 , a [href "/res/anomaly_detection_platform.pdf"] [text "📑 PDF"]
+
                  ]
           , p [] [ strong [] [text "Abstract: "]
                  , text "This paper presents a platform that integrates a number of functionalities necessary in the process of anomaly detection, from preprocessing towards various anomaly detection techniques and visualization methods. The purpose of this tool is to allow a developer to test, select and fine tune different algorithms that best fit anomaly detection in a given domain. To demonstrate the utility of the platform, we present a series of experiments done with different methods for anomaly detection on time-series and evaluate their results."]
@@ -59,7 +59,7 @@ view model =
           , p [] [ strong [] [text "Read: "]
                  , a [href "https://www.researchgate.net/publication/338788481_Evaluation_metrics_for_anomaly_detection_algorithms_in_time-series"] [text "🔗 Research Gate"]
                  , text ", "
-                 , a [href "/res/anomaly_detection_metrics.pdf"] [text "🗎 PDF"]
+                 , a [href "/res/anomaly_detection_metrics.pdf"] [text "📑 PDF"]
                  ]
           , p [] [ strong [] [text "Abstract: "]
                  , text "Time-series are ordered sequences of discrete-time data. Due to their temporal dimension, anomaly detection techniques used in time-series have to take into consideration time correlations and other time related particularities. Generally, in order to evaluate the quality of an anomaly detection technique, the confusion matrix and its derived metrics such as precision and recall are used. These metrics, however, do not take this temporal dimension into consideration. In this paper, we propose three metrics that can be used to evaluate the quality of a classification, while accounting for the temporal dimension found in time-series data."]

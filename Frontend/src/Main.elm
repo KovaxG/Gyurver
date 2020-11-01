@@ -12,6 +12,7 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Navbar as Navbar
 import Html exposing (Html)
 import Html.Attributes exposing (href)
+import Bootstrap.Utilities.Spacing as Spacing
 
 import Landing
 import CokkList
@@ -20,6 +21,7 @@ import Articles
 import VideoAdd
 import Vids as VideoList
 import Browser.Navigation exposing (pushUrl)
+import Settings
 
 main : Program () Model Msg
 main = application
@@ -147,6 +149,7 @@ navbar model =
     , Navbar.itemLink [ href "/vids" ] [ text "📼 Videos"]
     , Navbar.itemLink [ href "/cokk" ] [ text "🥚 Cokkolo"]
     ]
+  |> Navbar.customItems [Navbar.textItem [ ] [ text <| "v" ++ Settings.version]]
   |> Navbar.view model.navbar
 
 
