@@ -147,7 +147,7 @@ navbar model =
   |> Navbar.items
     [ Navbar.itemLink [ href "/articles" ] [ text "📑 Articles"]
     , Navbar.itemLink [ href "/vids" ] [ text "📼 Videos"]
-    , Navbar.itemLink [ href "/cokk" ] [ text "🥚 Cokkolo"]
+    , Navbar.itemLink [ href "/cokk" ] [ text "🥚 Cökkölő"]
     ]
   |> Navbar.customItems [Navbar.textItem [ ] [ text <| "v" ++ Settings.version]]
   |> Navbar.view model.navbar
