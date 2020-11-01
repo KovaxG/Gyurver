@@ -20,21 +20,11 @@ view _ =
   { title = "Welcome"
   , body =
     [ [ CDN.stylesheet
-      , h1 [] [text "Welcome to Gyurver!"]
       , p [] [ text "Welcome to my site!" ]
       , p [] [ text "🗎 Check out my "
              , a [href "/cv"] [text "CV"]
              , text "."
              ]
-      , p [] [ text "🗎 I also write some "
-             , a [href "/articles"] [text "articles"]
-             , text ", check them out."
-             ]
-      , p [] [ text "📼 I also have a list of videos I like, feel free to "
-             , a [href "/vids"] [text "check them out"]
-             , text "."
-             ]
-      , p [] [ a [href "/cokk"] [text "🥚 Cokkoleses verseny 2020"]]
       ] |> Grid.container []
     ]
   }

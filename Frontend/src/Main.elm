@@ -8,6 +8,11 @@ import Url exposing (Url)
 import Debug
 import Dict exposing (Dict)
 
+import Bootstrap.Grid as Grid
+import Bootstrap.Navbar as Navbar
+import Html exposing (Html)
+import Html.Attributes exposing (href)
+
 import Landing
 import CokkList
 import Eredmenyek
@@ -29,6 +34,7 @@ main = application
 type alias Model =
   { content : Content
   , key : Key
+  , navbar : Navbar.State
   }
 
 type Content
@@ -43,7 +49,8 @@ type Content
   | Test String
 
 type Msg
-  = UrlRequest UrlRequest
+  = NavbarMsg Navbar.State
+  | UrlRequest UrlRequest
   | UrlChange Url
   | LandingMsg Landing.Msg
   | CokkListMsg CokkList.Msg
@@ -56,7 +63,10 @@ subscriptions : Model -> Sub Msg
 subscriptions model = Sub.none
 
 init : () -> Url -> Key -> (Model, Cmd Msg)
-init flags url key = selectPage { content = Loading, key = key } url.path
+init flags url key =
+  let (navbarInitialState, navbarCmd) = Navbar.initialState NavbarMsg
+      (initialModel, initialCmd) = selectPage { content = Loading, key = key, navbar = navbarInitialState } url.path
+  in (initialModel, Cmd.batch [initialCmd, navbarCmd])
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -89,6 +99,8 @@ update msg model =
       |> Dict.get url.path
       |> Maybe.withDefault ({ model | content = Loading }, Cmd.none)
 
+    (NavbarMsg newState, _) -> ({ model | navbar = newState }, Cmd.none)
+
     (_, _) -> ({ model | content = Invalid model msg }, Cmd.none)
 
 validLinks : Model -> Dict String (Model, Cmd Msg)
@@ -112,12 +124,12 @@ selectPage model path =
 view : Model -> Document Msg
 view model =
   case model.content of
-    Landing welcome -> Landing.view welcome |> liftDocument LandingMsg
-    CokkList cokkList -> CokkList.view cokkList |> liftDocument CokkListMsg
-    Eredmenyek eredmenyek -> Eredmenyek.view eredmenyek |> liftDocument EredmenyekMsg
-    Articles articles -> Articles.view articles |> liftDocument ArticlesMsg
-    VideoAdd videoAdd -> VideoAdd.view videoAdd |> liftDocument VideoAddMsg
-    VideoList videoList -> VideoList.view videoList |> liftDocument VideoListMsg
+    Landing welcome -> Landing.view welcome |> liftDocument model LandingMsg
+    CokkList cokkList -> CokkList.view cokkList |> liftDocument model CokkListMsg
+    Eredmenyek eredmenyek -> Eredmenyek.view eredmenyek |> liftDocument model EredmenyekMsg
+    Articles articles -> Articles.view articles |> liftDocument model ArticlesMsg
+    VideoAdd videoAdd -> VideoAdd.view videoAdd |> liftDocument model VideoAddMsg
+    VideoList videoList -> VideoList.view videoList |> liftDocument model VideoListMsg
     Loading -> { title = "Loading", body = [text "Loading..."]}
     Test msg -> { title = "Test", body = [text msg] }
     Invalid md ms ->
@@ -125,10 +137,23 @@ view model =
       , body = [text <| Debug.toString md ++ " - " ++ Debug.toString ms]
       }
 
-liftDocument : (a -> b) -> Document a -> Document b
-liftDocument f da =
+navbar : Model -> Html Msg
+navbar model =
+  Navbar.config NavbarMsg
+  |> Navbar.withAnimation
+  |> Navbar.brand [ href "/" ] [ text "Gyurver"]
+  |> Navbar.items
+    [ Navbar.itemLink [ href "/articles" ] [ text "📑 Articles"]
+    , Navbar.itemLink [ href "/vids" ] [ text "📼 Videos"]
+    , Navbar.itemLink [ href "/cokk" ] [ text "🥚 Cokkolo"]
+    ]
+  |> Navbar.view model.navbar
+
+
+liftDocument : Model -> (a -> Msg) -> Document a -> Document Msg
+liftDocument model f da =
   { title = da.title
-  , body = List.map (Html.map f) da.body
+  , body = Grid.container [] [navbar model] :: List.map (Html.map f) da.body
   }
 
 liftModelCmd : (a -> Content) -> (b -> d) -> Model -> (a, Cmd b) -> (Model, Cmd d)
