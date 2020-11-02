@@ -126,11 +126,11 @@ process tojasDB
       sendFile mainPath
 
     (Get, path)
-      | isResourceReq path -> do
+      | startsWith "/res/" path -> do
         Logger.info log $ "Requesting resource [" ++ path ++ "]."
         case resourceType path of
           Just ft -> do
-            let filePath = "Content/" ++ show ft ++ "s/" ++ fileName path ++ "." ++ show ft
+            let filePath = contentPath </> (show ft ++ "s") </> fileName path ++ "." ++ show ft
             Logger.info log $ "Sending " ++ filePath ++"... Let's hope it exists..."
             sendFile filePath
           Nothing -> do
@@ -196,9 +196,6 @@ sendFile :: String -> IO Response
 sendFile path =
   safeReadBinaryFile path
   & fmap (maybe (makeResponse InternalServerError "Could not read file!") (makeResponse OK))
-
-isResourceReq :: String -> Bool
-isResourceReq = startsWith "/res/"
 
 data FileType = PDF
 

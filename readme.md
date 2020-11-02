@@ -44,13 +44,18 @@ defaultSettings = Settings
 - `/` Landing Page
 - `/articles` Get a html list of articles with links
 - `/vids` Get a list of embedded videos
+- `/vids/add` Add new video page
 - `/cokk` The contestants of the 2020 cokkoles
 - `/cokk/eredmeny` The results of the 2020 Cokkoles contest
 
 ### Resources
-- `/cv` CV as a PDF
 - `/favicon.ico` Get the favicon
+- `/cv` alternative route for CV
+- `/res/cv.pdf` Get the CV
+- `/res/anomaly_detection_taxonomy.pdf` Taxonomy article
+- `/res/anomaly_detection_platform.pdf` Anomaly detection article
+- `/res/anomaly_detection_metrics.pdf` Anomaly detection metrics article
 
 ### JSON
 - `/cokk/list` list of contestants of the 2020 Cokkoles
-- `/api/vids` list of videos
+- `/api/vids` list of videos endpoint (Get, Post, Options)
