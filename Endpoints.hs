@@ -1,9 +1,20 @@
-module Endpoints where
+module Endpoints (Endpoint(..), Resource(..), parseEndpoint, parseResource) where
 
 import           Text.Parsec (ParsecT, Stream, (<|>))
 import qualified Text.Parsec as Parsec
 
-import Utils (fromRight, ($>))
+import Utils (fromRight, eitherToMaybe, ($>))
+
+data Resource = Resource String String
+
+parseResource :: String -> Maybe Resource
+parseResource = eitherToMaybe . Parsec.parse rule "Parsing Resource"
+  where
+    rule = do
+      name <- Parsec.many1 (Parsec.alphaNum <|> Parsec.char '_')
+      Parsec.char '.'
+      term <- Parsec.many1 (Parsec.alphaNum)
+      return $ Resource name term
 
 data Endpoint
   = GetLandingPage

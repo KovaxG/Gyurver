@@ -127,9 +127,9 @@ process tojasDB
 
     GetResource resource -> do
       Logger.info log $ "Requesting resource [" ++ resource ++ "]."
-      case resourceType resource of
-        Just ft -> do
-          let filePath = contentPath </> (show ft ++ "s") </> fileName path ++ "." ++ show ft
+      case parseResource resource of
+        Just (Resource _ term) -> do
+          let filePath = contentPath </> (term ++ "s") </> resource
           Logger.info log $ "Sending " ++ filePath ++"... Let's hope it exists..."
           sendFile filePath
         Nothing -> do
@@ -192,23 +192,6 @@ sendFile :: String -> IO Response
 sendFile path =
   safeReadBinaryFile path
   & fmap (maybe (makeResponse InternalServerError "Could not read file!") (makeResponse OK))
-
-data FileType = PDF
-
-instance Show FileType where
-  show ft = case ft of
-    PDF -> "pdf"
-
-parseFileType :: String -> Maybe FileType
-parseFileType s = case s of
-  "pdf" -> Just PDF
-  _ -> Nothing
-
-resourceType :: String -> Maybe FileType
-resourceType = parseFileType . reverse . takeWhile (/= '.') . reverse
-
-fileName :: String -> String
-fileName = drop 5 . reverse . tail . dropWhile (/= '.') . reverse
 
 (</>) :: String -> String -> String
 a </> b = a ++ "/" ++ b
