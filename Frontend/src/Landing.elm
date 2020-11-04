@@ -24,7 +24,7 @@ view _ =
     [ [ CDN.stylesheet
       , p [] [ text <| "Welcome to my site!" ]
       , p [] [ text "📑 Check out my "
-             , a [href "/cv"] [text "CV"]
+             , a [href Settings.cv] [text "CV"]
              , text "."
              ]
       ] |> Grid.container []

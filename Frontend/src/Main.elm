@@ -107,12 +107,12 @@ update msg model =
 
 validLinks : Model -> Dict String (Model, Cmd Msg)
 validLinks model = Dict.fromList
-  [ ("/", Landing.init |> liftModelCmd Landing LandingMsg model)
-  , ("/cokk", CokkList.init |> liftModelCmd CokkList CokkListMsg model)
-  , ("/cokk/eredmeny", Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
-  , ("/articles", Articles.init |> liftModelCmd Articles ArticlesMsg  model)
-  , ("/vids", VideoList.init |> liftModelCmd VideoList VideoListMsg model)
-  , ("/vids/add", VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
+  [ (Settings.landingPage, Landing.init |> liftModelCmd Landing LandingMsg model)
+  , (Settings.cokkPage, CokkList.init |> liftModelCmd CokkList CokkListMsg model)
+  , (Settings.cokkResultsPage, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
+  , (Settings.articlesPage, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
+  , (Settings.videosPage, VideoList.init |> liftModelCmd VideoList VideoListMsg model)
+  , (Settings.videoAddPage, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
   ]
 
 selectPage : Model -> String -> (Model, Cmd Msg)
@@ -143,11 +143,11 @@ navbar : Model -> Html Msg
 navbar model =
   Navbar.config NavbarMsg
   |> Navbar.withAnimation
-  |> Navbar.brand [ href "/" ] [ text "Gyurver"]
+  |> Navbar.brand [ href Settings.landingPage ] [ text "Gyurver"]
   |> Navbar.items
-    [ Navbar.itemLink [ href "/articles" ] [ text "📑 Articles"]
-    , Navbar.itemLink [ href "/vids" ] [ text "📼 Videos"]
-    , Navbar.itemLink [ href "/cokk" ] [ text "🥚 Cökkölő"]
+    [ Navbar.itemLink [ href Settings.articlesPage ] [ text "📑 Articles"]
+    , Navbar.itemLink [ href Settings.videosPage ] [ text "📼 Videos"]
+    , Navbar.itemLink [ href Settings.cokkPage ] [ text "🥚 Cökkölő"]
     ]
   |> Navbar.customItems [Navbar.textItem [ ] [ text <| "v" ++ Settings.version]]
   |> Navbar.view model.navbar

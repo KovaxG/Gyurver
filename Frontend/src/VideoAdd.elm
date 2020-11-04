@@ -118,7 +118,7 @@ update msg model = case msg of
       Just request ->
         ( { model | status = Waiting }
         , Http.post
-          { url = Settings.path ++ "/api/vids"
+          { url = Settings.path ++ Settings.videosJson
           , body = Http.jsonBody (NewVideoRequest.encode request)
           , expect = Http.expectString toMessage
           }

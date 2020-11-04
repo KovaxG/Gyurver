@@ -14,27 +14,27 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Button as Button
 import Bootstrap.Spinner as Spinner
 import Bootstrap.Text as Text
+import Settings
 
 type alias Model =
   { tojasok : List Tojas
   , betoltve : Bool
   }
-  
+
 type alias Tojas =
   { nev : String
   , szin : String
   }
-  
-type Msg
-  = Tojasok (Result Error (List Tojas))
-  | UjTojasOldal
-  
+
+type Msg = Tojasok (Result Error (List Tojas))
+
+
 init : (Model, Cmd Msg)
 init =
   let
     kezdeti = { tojasok = [], betoltve = False }
     parancs = get
-      { url = "/cokk/list"
+      { url = Settings.cokkJson
       , expect = expectJson Tojasok (Decoder.list tojasDecoder)
       }
   in (kezdeti, parancs)
@@ -50,18 +50,17 @@ update msg model =
       ( { model | tojasok = tojasok, betoltve = True }
       , Cmd.none
       )
-    UjTojasOldal -> (model, load "/cokk/add")
 
 view : Model -> Document Msg
 view model =
   { title = "Cokk List"
-  , body = 
+  , body =
     [ [ CDN.stylesheet
       , [ [ h1 [] [text "2020 Húsvéti játékok"]
           , leiras
           , text "A felíratkozásnak már vége, a nap folyamán itt lesz egy link ahol majd meg lehet nézni az eredményeket. Sok sikert mindenkinek :)"
           , br [] []
-          , a [href "/cokk/eredmeny"] [text "Mutasd az Eredményeket!"]
+          , a [href Settings.cokkResultsPage] [text "Mutasd az Eredményeket!"]
           , h3 [] [text "Versenyzők"]
           , if model.betoltve
             then listaView model.tojasok

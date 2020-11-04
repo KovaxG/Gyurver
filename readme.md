@@ -43,10 +43,10 @@ defaultSettings = Settings
 ### Pages
 - `/` Landing Page
 - `/articles` Get a html list of articles with links
-- `/vids` Get a list of embedded videos
-- `/vids/add` Add new video page
+- `/videos` Get a list of embedded videos
+- `/videos/add` Add new video page
 - `/cokk` The contestants of the 2020 cokkoles
-- `/cokk/eredmeny` The results of the 2020 Cokkoles contest
+- `/cokk/results` The results of the 2020 Cokkoles contest
 
 ### Resources
 - `/favicon.ico` Get the favicon
@@ -57,5 +57,5 @@ defaultSettings = Settings
 - `/res/anomaly_detection_metrics.pdf` Anomaly detection metrics article
 
 ### JSON
-- `/cokk/list` list of contestants of the 2020 Cokkoles
+- `/api/cokk` list of contestants of the 2020 Cokkoles
 - `/api/vids` list of videos endpoint (Get, Post, Options)

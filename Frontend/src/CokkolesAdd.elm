@@ -8,6 +8,8 @@ import Html.Attributes exposing (placeholder, value, style)
 import Http exposing (post, stringBody, expectWhatever, Error)
 import Debug
 
+-- DEAD CODE
+
 main = Browser.element
   { init = init
   , update = update

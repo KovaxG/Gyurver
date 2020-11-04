@@ -35,7 +35,7 @@ init : (Model, Cmd Msg)
 init =
   ( { videos = [], titleFilter = "", tagFilter = [] }  -- TODO maybe add a loading state?
   , Http.get
-    { url = Settings.path ++ "/api/vids"
+    { url = Settings.path ++ Settings.videosJson
     , expect = Http.expectJson toMessage (Decode.list Video.decode)
     }
   )

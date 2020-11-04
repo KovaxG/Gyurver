@@ -45,16 +45,43 @@ tests =
   [ test "landing page" $ parseEndpoint "GET /" === GetLandingPage
   , test "CV" $ parseEndpoint "GET /cv" === GetCV
   , test "favicon" $ parseEndpoint "GET /favicon.ico" === GetFavicon
-  , test "articles page" $ parseEndpoint "GET /articles" === GetArticlesPage
-  , test "cokk API" $ parseEndpoint "GET /cokk/list" === GetCokkJSON
-  , test "videos page" $ parseEndpoint "GET /vids" === GetVideosPage
-  , test "videos API" $ parseEndpoint "GET /api/vids" === GetVideosJSON
-  , test "cokk results page" $ parseEndpoint "GET /cokk/eredmeny" === GetCokkResultsPage
+
+  , test "articles page EN" $ parseEndpoint "GET /articles" === GetArticlesPage
+  , test "articles page HU" $ parseEndpoint "GET /cikkek" === GetArticlesPage
+  , test "articles page RO" $ parseEndpoint "GET /articole" === GetArticlesPage
+
+
   , test "cokk page" $ parseEndpoint "GET /cokk" === GetCokkPage
-  , test "video add page" $ parseEndpoint "GET /vids/add" === GetVideosAddPage
-  , test "requesting pdf resource" $ parseEndpoint "GET /res/test.pdf" === GetResource "test.pdf"
-  , test "posting new video" $ parseEndpoint "POST /api/vids" === PostVideo
-  , test "video options" $ parseEndpoint "OPTIONS /api/vids" === OptionsVideo
+
+  , test "cokk results page EN" $ parseEndpoint "GET /cokk/results" === GetCokkResultsPage
+  , test "cokk results page HU" $ parseEndpoint "GET /cokk/eredmenyek" === GetCokkResultsPage
+  , test "cokk results page RO" $ parseEndpoint "GET /cokk/rezultate" === GetCokkResultsPage
+
+  , test "cokk API" $ parseEndpoint "GET /api/cokk" === GetCokkJSON
+
+
+  , test "videos page EN" $ parseEndpoint "GET /videos" === GetVideosPage
+  , test "videos page HU" $ parseEndpoint "GET /videok" === GetVideosPage
+  , test "videos page RO" $ parseEndpoint "GET /videouri" === GetVideosPage
+
+  , test "videos API EN" $ parseEndpoint "GET /api/videos" === GetVideosJSON
+  , test "videos API HU" $ parseEndpoint "GET /api/videok" === GetVideosJSON
+  , test "videos API RO" $ parseEndpoint "GET /api/videouri" === GetVideosJSON
+
+  , test "video add page EN" $ parseEndpoint "GET /videos/add" === GetVideosAddPage
+  , test "video add page HU" $ parseEndpoint "GET /videok/add" === GetVideosAddPage
+  , test "video add page RO" $ parseEndpoint "GET /videouri/add" === GetVideosAddPage
+
+  , test "posting new video EN" $ parseEndpoint "POST /api/videos" === PostVideo
+  , test "posting new video HU" $ parseEndpoint "POST /api/videok" === PostVideo
+  , test "posting new video RO" $ parseEndpoint "POST /api/videouri" === PostVideo
+
+  , test "video options HU" $ parseEndpoint "OPTIONS /api/videok" === OptionsVideo
+  , test "video options RO" $ parseEndpoint "OPTIONS /api/videouri" === OptionsVideo
+  , test "video options EN" $ parseEndpoint "OPTIONS /api/videos" === OptionsVideo
+
+  , test "requesting pdf resource: test.pdf" $ parseEndpoint "GET /res/test.pdf" === GetResource "test.pdf"
+  , test "requesting pdf resource: test_underscore.pdf" $ parseEndpoint "GET /res/test_underscore.pdf" === GetResource "test_underscore.pdf"
   ]
 
 main :: IO ()
