@@ -24,7 +24,7 @@ import Types.Video (Video)
 import qualified Types.Video as Video
 import Types.VideoAddRequest
 import Types.Settings as Settings
-
+import Endpoints
 import Utils
 
 log :: Logger
@@ -76,24 +76,24 @@ process tojasDB
         vidsDB
         settings
         Request{requestType, path, content} =
-  case (requestType, path) of
-    (Get, "/") -> do
+  case parseEndpoint $ unwords [show requestType, path] of
+    GetLandingPage -> do
       Logger.info log $ "Requested landing page, sending " ++ mainPath
       sendFile mainPath
 
-    (Get, "/cv") -> do
+    GetCV -> do
       Logger.info log $ "Requested CV."
       sendFile cvPath
 
-    (Get, "/favicon.ico") -> do
+    GetFavicon -> do
       Logger.info log $ "Requested favicon."
       sendFile faviconPath
 
-    (Get, "/articles") -> do
+    GetArticlesPage -> do
       Logger.info log $ "Requested articles page."
       sendFile mainPath
 
-    (Get, "/cokk/list") -> do
+    GetCokkJSON -> do
       Logger.info log $ "[API] Requested cokkolesi lista."
       tojasok <- DB.everythingList tojasDB
       return
@@ -101,11 +101,11 @@ process tojasDB
         $ makeResponse OK
         $ tojasokToJson tojasok
 
-    (Get, "/vids") -> do
+    GetVideosPage -> do
       Logger.info log $ "Requested video list."
       sendFile mainPath
 
-    (Get, "/api/vids") -> do
+    GetVideosJSON -> do
       Logger.info log $ "[API] Requested video list."
       videos <- DB.everythingList vidsDB
       return
@@ -113,34 +113,30 @@ process tojasDB
         $ makeResponse OK
         $ Video.videosToJson videos
 
-    (Get, "/cokk/eredmeny") -> do
+    GetCokkResultsPage -> do
       Logger.info log $ "Requested results."
       sendFile mainPath
 
-    (Get, "/cokk") -> do
+    GetCokkPage -> do
       Logger.info log $ "Requested add egg page."
       sendFile mainPath
 
-    (Get, "/vids/add") -> do
+    GetVideosAddPage -> do
       Logger.info log $ "Requested video add page."
       sendFile mainPath
 
-    (Get, path)
-      | startsWith "/res/" path -> do
-        Logger.info log $ "Requesting resource [" ++ path ++ "]."
-        case resourceType path of
-          Just ft -> do
-            let filePath = contentPath </> (show ft ++ "s") </> fileName path ++ "." ++ show ft
-            Logger.info log $ "Sending " ++ filePath ++"... Let's hope it exists..."
-            sendFile filePath
-          Nothing -> do
-            Logger.warn log $ "No such resource: " ++ path
-            return badRequest
-      | otherwise -> do
-        Logger.warn log $ "Weird GET request: " ++ path
-        return badRequest
+    GetResource resource -> do
+      Logger.info log $ "Requesting resource [" ++ resource ++ "]."
+      case resourceType resource of
+        Just ft -> do
+          let filePath = contentPath </> (show ft ++ "s") </> fileName path ++ "." ++ show ft
+          Logger.info log $ "Sending " ++ filePath ++"... Let's hope it exists..."
+          sendFile filePath
+        Nothing -> do
+          Logger.warn log $ "No such resource: " ++ path
+          return badRequest
 
-    (Post, "/api/vids") -> do
+    PostVideo -> do
       Logger.info log $ "[API] Adding new video to list."
       let request = Json.parseJson content >>= run videoRequestDecoder
       either
@@ -156,12 +152,12 @@ process tojasDB
         )
         request
 
-    (Options, "/api/vids") -> do
+    OptionsVideo -> do
       Logger.info log $ "Someone asked if you can post to /api/vids/add, sure."
       return allowHeaders
 
-    (reqType, path) -> do
-      Logger.warn log $ "Weird " ++ show reqType ++ " request: " ++ path
+    Other req -> do
+      Logger.warn log $ "Weird request: " ++ req
       return badRequest
 
 contentPath :: String

@@ -38,3 +38,7 @@ maybeToEither e = maybe (Left e) Right
 
 eitherToMaybe :: Either e a -> Maybe a
 eitherToMaybe = either (const Nothing) Just
+
+fromRight :: a -> Either b a -> a
+fromRight _ (Right a) = a
+fromRight a _ = a

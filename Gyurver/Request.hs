@@ -8,7 +8,14 @@ import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, char, option, 
 import Gyurver.Gyurror
 import Utils
 
-data RequestType = Get | Post | Options deriving (Show, Read)
+data RequestType = Get | Post | Options deriving (Read)
+
+instance Show RequestType where
+  show rt = case rt of
+    Get -> "GET"
+    Post -> "POST"
+    Options -> "OPTIONS"
+
 data Request = Request
   { requestType :: RequestType
   , path :: String
