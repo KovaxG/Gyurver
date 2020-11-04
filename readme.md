@@ -58,4 +58,4 @@ defaultSettings = Settings
 
 ### JSON
 - `/api/cokk` list of contestants of the 2020 Cokkoles
-- `/api/vids` list of videos endpoint (Get, Post, Options)
+- `/api/videos` list of videos endpoint (Get, Post, Options)
