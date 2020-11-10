@@ -112,7 +112,7 @@ update msg model = case msg of
   WatchDateChanged watchDate -> ({ model | watchDate = watchDate }, Cmd.none)
   TagsChanged tags -> ({ model | tags = tags }, Cmd.none)
   PasswordChanged pass -> ({ model | password = pass }, Cmd.none)
-  Success -> ({ model | status = Received "OK" }, Nav.load "/videos")
+  Success -> ({ model | status = Received "OK" }, Nav.load Endpoints.videosPageEN)
   Response message -> ({ model | status = Received message }, Cmd.none)
   SaveData ->
     case toRequest model of
