@@ -24,6 +24,7 @@ data Endpoint
   | GetCokkJSON
   | GetVideosPage
   | GetVideosJSON
+  | GetVideoJSON Int
   | GetCokkResultsPage
   | GetCokkPage
   | GetVideosAddPage
@@ -42,7 +43,8 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
       $ fmap limit
       $ [ cv, favicon, articlesPageHU, articlesPageRO, articlesPageEN, cokkJson,  videosPageEN, videosJsonHU, cokkResultsPageEN, cokkPage,
           videoAddPageEN, getResource, postVideoEndpointEN, optionsVideoEndpointEN, cokkResultsPageRO, cokkResultsPageHU, videosPageHU, videosPageRO,
-          videoAddPageRO, videoAddPageHU, videosJsonRO, videosJsonEN, postVideoEndpointRO, postVideoEndpointHU, optionsVideoEndpointHU, optionsVideoEndpointRO
+          videoAddPageRO, videoAddPageHU, videosJsonRO, videosJsonEN, postVideoEndpointRO, postVideoEndpointHU, optionsVideoEndpointHU, optionsVideoEndpointRO,
+          videoJson
         ]
 
     landingPage = Parsec.string "GET /" $> GetLandingPage
@@ -62,6 +64,8 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
     videosJsonEN = Parsec.string "GET /api/videos" $> GetVideosJSON
     videosJsonHU = Parsec.string "GET /api/videok" $> GetVideosJSON
     videosJsonRO = Parsec.string "GET /api/videouri" $> GetVideosJSON
+
+    videoJson = Parsec.string "GET /api/video/" >> GetVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
 
     postVideoEndpointEN = Parsec.string "POST /api/videos" $> PostVideo
     postVideoEndpointHU = Parsec.string "POST /api/videok" $> PostVideo

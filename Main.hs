@@ -9,6 +9,7 @@ import Component.Database as DB
 import Component.Json as Json
 
 import Data.Function ((&))
+import Data.List as List
 
 import Events.Cokkolo
 
@@ -110,6 +111,13 @@ process tojasDB
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
         $ Video.videosToJson videos
+
+    GetVideoJSON reqNr -> do
+      videos <- DB.everythingList vidsDB
+
+      videos & List.find (\v -> Video.nr v == reqNr)
+             & maybe badRequest (addHeaders [("Content-Type", "application/json")] . makeResponse OK . Video.videoToJson)
+             & return
 
     GetCokkResultsPage -> do
       Logger.info log $ "Requested results."

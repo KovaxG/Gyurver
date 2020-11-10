@@ -68,9 +68,13 @@ tests =
   , test "videos API HU" $ parseEndpoint "GET /api/videok" === GetVideosJSON
   , test "videos API RO" $ parseEndpoint "GET /api/videouri" === GetVideosJSON
 
-  , test "video add page EN" $ parseEndpoint "GET /videos/add" === GetVideosAddPage
-  , test "video add page HU" $ parseEndpoint "GET /videok/add" === GetVideosAddPage
-  , test "video add page RO" $ parseEndpoint "GET /videouri/add" === GetVideosAddPage
+  , test "correct video API" $ parseEndpoint "GET /api/video/42" === GetVideoJSON 42
+  , test "alpha videos API" $ parseEndpoint "GET /api/video/asdf" === Other "GET /api/video/asdf"
+  , test "missing videos API" $ parseEndpoint "GET /api/video/" === Other "GET /api/video/"
+
+  , test "video add page EN" $ parseEndpoint "GET /videos/new" === GetVideosAddPage
+  , test "video add page HU" $ parseEndpoint "GET /videok/uj" === GetVideosAddPage
+  , test "video add page RO" $ parseEndpoint "GET /videouri/nou" === GetVideosAddPage
 
   , test "posting new video EN" $ parseEndpoint "POST /api/videos" === PostVideo
   , test "posting new video HU" $ parseEndpoint "POST /api/videok" === PostVideo
