@@ -55,17 +55,17 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
     videosPageHU = Parsec.string "GET /videok" $> GetVideosPage
     videosPageRO = Parsec.string "GET /videouri" $> GetVideosPage
 
-    videoAddPageEN = Parsec.string "GET /videos/add" $> GetVideosAddPage
-    videoAddPageRO = Parsec.string "GET /videouri/add" $> GetVideosAddPage
-    videoAddPageHU = Parsec.string "GET /videok/add" $> GetVideosAddPage
+    videoAddPageEN = Parsec.string "GET /videos/new" $> GetVideosAddPage
+    videoAddPageHU = Parsec.string "GET /videok/uj" $> GetVideosAddPage
+    videoAddPageRO = Parsec.string "GET /videouri/nou" $> GetVideosAddPage
 
     videosJsonEN = Parsec.string "GET /api/videos" $> GetVideosJSON
     videosJsonHU = Parsec.string "GET /api/videok" $> GetVideosJSON
     videosJsonRO = Parsec.string "GET /api/videouri" $> GetVideosJSON
 
     postVideoEndpointEN = Parsec.string "POST /api/videos" $> PostVideo
-    postVideoEndpointRO = Parsec.string "POST /api/videouri" $> PostVideo
     postVideoEndpointHU = Parsec.string "POST /api/videok" $> PostVideo
+    postVideoEndpointRO = Parsec.string "POST /api/videouri" $> PostVideo
 
     optionsVideoEndpointEN = Parsec.string "OPTIONS /api/videos" $> OptionsVideo
     optionsVideoEndpointHU = Parsec.string "OPTIONS /api/videok" $> OptionsVideo

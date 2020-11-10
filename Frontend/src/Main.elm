@@ -22,6 +22,7 @@ import VideoAdd
 import Vids as VideoList
 import Browser.Navigation exposing (pushUrl)
 import Settings
+import Endpoints
 
 main : Program () Model Msg
 main = application
@@ -107,12 +108,20 @@ update msg model =
 
 validLinks : Model -> Dict String (Model, Cmd Msg)
 validLinks model = Dict.fromList
-  [ (Settings.landingPage, Landing.init |> liftModelCmd Landing LandingMsg model)
-  , (Settings.cokkPage, CokkList.init |> liftModelCmd CokkList CokkListMsg model)
-  , (Settings.cokkResultsPage, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
-  , (Settings.articlesPage, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
-  , (Settings.videosPage, VideoList.init |> liftModelCmd VideoList VideoListMsg model)
-  , (Settings.videoAddPage, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
+  [ (Endpoints.landingPage, Landing.init |> liftModelCmd Landing LandingMsg model)
+  , (Endpoints.cokkPage, CokkList.init |> liftModelCmd CokkList CokkListMsg model)
+  , (Endpoints.cokkResultsPageEN, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
+  , (Endpoints.cokkResultsPageHU, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
+  , (Endpoints.cokkResultsPageRO, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
+  , (Endpoints.articlesPageEN, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
+  , (Endpoints.articlesPageHU, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
+  , (Endpoints.articlesPageRO, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
+  , (Endpoints.videosPageEN, VideoList.init |> liftModelCmd VideoList VideoListMsg model)
+  , (Endpoints.videosPageHU, VideoList.init |> liftModelCmd VideoList VideoListMsg model)
+  , (Endpoints.videosPageRO, VideoList.init |> liftModelCmd VideoList VideoListMsg model)
+  , (Endpoints.videoAddPageEN, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
+  , (Endpoints.videoAddPageHU, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
+  , (Endpoints.videoAddPageRO, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
   ]
 
 selectPage : Model -> String -> (Model, Cmd Msg)
@@ -143,11 +152,11 @@ navbar : Model -> Html Msg
 navbar model =
   Navbar.config NavbarMsg
   |> Navbar.withAnimation
-  |> Navbar.brand [ href Settings.landingPage ] [ text "Gyurver"]
+  |> Navbar.brand [ href Endpoints.landingPage ] [ text "Gyurver"]
   |> Navbar.items
-    [ Navbar.itemLink [ href Settings.articlesPage ] [ text "📑 Articles"]
-    , Navbar.itemLink [ href Settings.videosPage ] [ text "📼 Videos"]
-    , Navbar.itemLink [ href Settings.cokkPage ] [ text "🥚 Cökkölő"]
+    [ Navbar.itemLink [ href Endpoints.articlesPageEN ] [ text "📑 Articles"]
+    , Navbar.itemLink [ href Endpoints.videosPageEN ] [ text "📼 Videos"]
+    , Navbar.itemLink [ href Endpoints.cokkPage ] [ text "🥚 Cökkölő"]
     ]
   |> Navbar.customItems [Navbar.textItem [ ] [ text <| "v" ++ Settings.version]]
   |> Navbar.view model.navbar

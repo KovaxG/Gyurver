@@ -20,6 +20,7 @@ import Time exposing (Month(..))
 import Maybe.Extra as Maybe
 
 import Settings
+import Endpoints
 import Types.NewVideoRequest as NewVideoRequest exposing (NewVideoRequest)
 
 type Status
@@ -118,7 +119,7 @@ update msg model = case msg of
       Just request ->
         ( { model | status = Waiting }
         , Http.post
-          { url = Settings.path ++ Settings.videosJson
+          { url = Settings.path ++ Endpoints.videosJsonEN
           , body = Http.jsonBody (NewVideoRequest.encode request)
           , expect = Http.expectString toMessage
           }

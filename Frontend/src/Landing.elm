@@ -6,6 +6,7 @@ import Bootstrap.Grid as Grid
 import Html exposing (text, h1, p, a)
 import Html.Attributes exposing (href)
 
+import Endpoints
 import Settings
 
 type alias Model = ()
@@ -24,7 +25,7 @@ view _ =
     [ [ CDN.stylesheet
       , p [] [ text <| "Welcome to my site!" ]
       , p [] [ text "📑 Check out my "
-             , a [href Settings.cv] [text "CV"]
+             , a [href Endpoints.cv] [text "CV"]
              , text "."
              ]
       ] |> Grid.container []

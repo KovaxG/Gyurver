@@ -12,6 +12,7 @@ import Date exposing (Date)
 import Time exposing (Month(..))
 import Http exposing (Error)
 import Settings
+import Endpoints
 import Json.Decode as Decode exposing (Decoder)
 import Set
 import Types.Video as Video exposing (Video)
@@ -35,7 +36,7 @@ init : (Model, Cmd Msg)
 init =
   ( { videos = [], titleFilter = "", tagFilter = [] }  -- TODO maybe add a loading state?
   , Http.get
-    { url = Settings.path ++ Settings.videosJson
+    { url = Settings.path ++ Endpoints.videosJsonEN
     , expect = Http.expectJson toMessage (Decode.list Video.decode)
     }
   )

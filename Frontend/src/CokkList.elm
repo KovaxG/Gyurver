@@ -14,7 +14,9 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Button as Button
 import Bootstrap.Spinner as Spinner
 import Bootstrap.Text as Text
+
 import Settings
+import Endpoints
 
 type alias Model =
   { tojasok : List Tojas
@@ -34,7 +36,7 @@ init =
   let
     kezdeti = { tojasok = [], betoltve = False }
     parancs = get
-      { url = Settings.cokkJson
+      { url = Endpoints.cokkJson
       , expect = expectJson Tojasok (Decoder.list tojasDecoder)
       }
   in (kezdeti, parancs)
@@ -60,7 +62,7 @@ view model =
           , leiras
           , text "A felíratkozásnak már vége, a nap folyamán itt lesz egy link ahol majd meg lehet nézni az eredményeket. Sok sikert mindenkinek :)"
           , br [] []
-          , a [href Settings.cokkResultsPage] [text "Mutasd az Eredményeket!"]
+          , a [href Endpoints.cokkResultsPageHU] [text "Mutasd az Eredményeket!"]
           , h3 [] [text "Versenyzők"]
           , if model.betoltve
             then listaView model.tojasok
