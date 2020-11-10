@@ -14,8 +14,6 @@ import Events.Cokkolo
 
 import Gyurver.Html
 import Gyurver.Request
-    ( Request(Request, content, path, requestType),
-      RequestType(Options, Post, Get) )
 import Gyurver.Response
 import Gyurver.Server
 import           Gyurver.Logger (Logger(..))
@@ -143,8 +141,8 @@ process tojasDB
         (\errorMsg -> return $ makeResponse BadRequest errorMsg)
         (\request ->
           case videoRequestToVideo settings request of
-            Right video -> do
-              insert vidsDB video
+            Right videoWithoutIndex -> do
+              insertWithIndex vidsDB videoWithoutIndex
               return success
             Left error -> do
               Logger.info log error

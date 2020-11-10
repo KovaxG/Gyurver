@@ -7,7 +7,8 @@ import Json.Decode as Decode exposing (Decoder)
 import Types.Date as Date
 
 type alias Video =
-  { url : String
+  { nr : Int
+  , url : String
   , title : String
   , author : String
   , date : Date
@@ -18,8 +19,9 @@ type alias Video =
 
 decode : Decoder Video
 decode =
-  Decode.map7
+  Decode.map8
     Video
+    (Decode.field "nr" Decode.int)
     (Decode.field "url" Decode.string)
     (Decode.field "title" Decode.string)
     (Decode.field "author" Decode.string)
@@ -29,13 +31,14 @@ decode =
     (Decode.field "tags" (Decode.list Decode.string))
 
 encode : Video -> Value
-encode var =
+encode video =
   Encode.object
-    [ ("url", Encode.string var.url)
-    , ("title", Encode.string var.title)
-    , ("author", Encode.string var.author)
-    , ("date", Date.encode var.date)
-    , ("comment", Encode.string var.comment)
-    , ("watchDate", Maybe.withDefault Encode.null <| Maybe.map Date.encode var.watchDate)
-    , ("tags", Encode.list Encode.string var.tags)
+    [ ("nr", Encode.int video.nr)
+    , ("url", Encode.string video.url)
+    , ("title", Encode.string video.title)
+    , ("author", Encode.string video.author)
+    , ("date", Date.encode video.date)
+    , ("comment", Encode.string video.comment)
+    , ("watchDate", Maybe.withDefault Encode.null <| Maybe.map Date.encode video.watchDate)
+    , ("tags", Encode.list Encode.string video.tags)
     ]

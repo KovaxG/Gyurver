@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
-module Component.Database (DBHandle, getHandle, insert, everythingList, everything, get) where
+module Component.Database (DBHandle, getHandle, insert, insertWithIndex, everythingList, everything, get) where
 
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -31,6 +31,14 @@ insert :: (Read a, Show a) => DBHandle a -> a -> IO ()
 insert handle a = do
   Sem.block (semaphore handle)
   appendFile (path handle) (show a ++ "\n")
+  Sem.unblock (semaphore handle)
+
+insertWithIndex :: (Read a, Show a) => DBHandle a -> (Int -> a) -> IO ()
+insertWithIndex handle mkA = do
+  Sem.block (semaphore handle)
+  !raw <- safeReadTextFile (path handle)
+  let newId = maybe 0 (length . lines) raw
+  appendFile (path handle) (show (mkA newId) ++ "\n")
   Sem.unblock (semaphore handle)
 
 everythingList :: (Read a, Show a) => DBHandle a -> IO [a]

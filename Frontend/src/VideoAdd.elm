@@ -8,6 +8,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Spinner as Spinner
+import Browser.Navigation as Nav
 import Html exposing (Html, text, button, h1, p, a, br, iframe, div)
 import Html.Attributes exposing (href, src)
 import Html.Events exposing (onClick)
@@ -76,11 +77,10 @@ type Msg
 
 toMessage : Result Error String -> Msg
 toMessage result =
-  Response <|
     case result of
-      Ok msg -> msg
+      Ok msg -> Success
       Err error ->
-        case error of
+        Response <| case error of
           BadUrl str -> str
           Timeout -> "Request timed out. Check out the server, it might be overloaded."
           NetworkError -> "Network Error. Lol the description says that it means the user turned off their wifi, went in a cave, etc. :))"
@@ -112,7 +112,7 @@ update msg model = case msg of
   WatchDateChanged watchDate -> ({ model | watchDate = watchDate }, Cmd.none)
   TagsChanged tags -> ({ model | tags = tags }, Cmd.none)
   PasswordChanged pass -> ({ model | password = pass }, Cmd.none)
-  Success -> ({ model | status = Received "OK" }, Cmd.none)
+  Success -> ({ model | status = Received "OK" }, Nav.load "/videos")
   Response message -> ({ model | status = Received message }, Cmd.none)
   SaveData ->
     case toRequest model of

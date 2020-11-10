@@ -117,6 +117,8 @@ videoToHtml model vid =
         |> text
       , br [] []
       , div [] (strong [] [text "Tags "] :: List.map (tagToBadge model) vid.tags)
+      , strong [] [text "Nr "]
+      , text (String.fromInt vid.nr)
       ]
     ]
   , Grid.row []

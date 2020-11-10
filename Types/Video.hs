@@ -5,7 +5,8 @@ import Component.Json
 import Types.Date
 
 data Video =  Video
-  { link :: String
+  { nr :: Int
+  , link :: String
   , title :: String
   , channel :: String
   , date :: Date
@@ -19,7 +20,8 @@ videosToJson = show . JsonArray . map toJson
   where
     toJson :: Video -> Json
     toJson vid = JsonObject
-      [ ("url", JsonString (link vid))
+      [ ("nr", JsonNumber (fromIntegral $ nr vid))
+      , ("url", JsonString (link vid))
       , ("title", JsonString (title vid))
       , ("author", JsonString (channel vid))
       , ("date", dateToJson (date vid))

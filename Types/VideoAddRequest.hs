@@ -21,10 +21,11 @@ data VideoAddRequest =  VideoAddRequest
   , password :: String
   } deriving (Show)
 
-videoRequestToVideo :: Settings -> VideoAddRequest -> Either String Video
+videoRequestToVideo :: Settings -> VideoAddRequest -> Either String (Int -> Video)
 videoRequestToVideo settings request =
   if (settings & Settings.password)  == (request & password)
-  then Right $ Video.Video
+  then Right $ \vid ->
+    Video.Video vid
     (request & link)
     (request & title)
     (request & channel)
