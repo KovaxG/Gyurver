@@ -1,8 +1,10 @@
 {-# LANGUAGE BangPatterns #-}
-module Types.Video (Video(..), videosToJson, videoToJson) where
+module Types.Video (Video(..), videosToJson, videoToJson, videoDecoder) where
 
-import Component.Json
-import Types.Date
+import           Component.Json
+import           Component.Decoder (Decoder)
+import qualified Component.Decoder as Decoder
+import           Types.Date
 
 data Video =  Video
   { nr :: Int
@@ -30,4 +32,13 @@ videoToJson vid = JsonObject
   , ("tags", JsonArray (map JsonString (tags vid)))
   ]
 
-
+videoDecoder :: Int -> Decoder Video
+videoDecoder nr =
+  Video nr
+    <$> Decoder.field "url" Decoder.string
+    <*> Decoder.field "title" Decoder.string
+    <*> Decoder.field "author" Decoder.string
+    <*> Decoder.field "date" dateDecoder
+    <*> Decoder.field "comment" Decoder.string
+    <*> Decoder.field "watchDate" (Decoder.maybe dateDecoder)
+    <*> Decoder.field "tags" (Decoder.list Decoder.string)

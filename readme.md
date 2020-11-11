@@ -44,7 +44,7 @@ defaultSettings = Settings
 - `/` Landing Page
 - `/articles` Get a html list of articles with links
 - `/videos` Get a list of embedded videos
-- `/videos/add` Add new video page
+- `/videos/new` Add new video page
 - `/cokk` The contestants of the 2020 cokkoles
 - `/cokk/results` The results of the 2020 Cokkoles contest
 

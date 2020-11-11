@@ -4,12 +4,14 @@ module Main where
 
 import Prelude hiding (log)
 
-import Component.Decoder (Decoder(..))
-import Component.Database as DB
-import Component.Json as Json
+import qualified Component.Decoder as Decoder
+
+import           Component.Database (DBHandle)
+import qualified Component.Database as DB
+import qualified Component.Json as Json
 
 import Data.Function ((&))
-import Data.List as List
+import qualified Data.List as List
 
 import Events.Cokkolo
 
@@ -19,12 +21,12 @@ import Gyurver.Response
 import Gyurver.Server
 import           Gyurver.Logger (Logger(..))
 import qualified Gyurver.Logger as Logger
-import Types.Video (Video)
+import           Types.Video (Video)
 import qualified Types.Video as Video
 import Types.VideoAddRequest
 import Types.Settings as Settings
 import Endpoints
-import Utils
+import Utils (($>), safeReadBinaryFile, safeReadTextFile)
 
 log :: Logger
 log = File
@@ -113,8 +115,8 @@ process tojasDB
         $ Video.videosToJson videos
 
     GetVideoJSON reqNr -> do
+      Logger.info log $ "[API] Requesting video with nr: " ++ show reqNr
       videos <- DB.everythingList vidsDB
-
       videos & List.find (\v -> Video.nr v == reqNr)
              & maybe badRequest (addHeaders [("Content-Type", "application/json")] . makeResponse OK . Video.videoToJson)
              & return
@@ -144,22 +146,28 @@ process tojasDB
 
     PostVideo -> do
       Logger.info log $ "[API] Adding new video to list."
-      let request = Json.parseJson content >>= run videoRequestDecoder
-      either
-        (\errorMsg -> return $ makeResponse BadRequest errorMsg)
-        (\request ->
-          case videoRequestToVideo settings request of
-            Right videoWithoutIndex -> do
-              insertWithIndex vidsDB videoWithoutIndex
-              return success
-            Left error -> do
-              Logger.info log error
-              return $ makeResponse Unauthorized error
-        )
-        request
+      Json.parseJson content
+        >>= Decoder.run videoRequestDecoder
+        & either (return . makeResponse BadRequest)
+                (\request ->
+                  case videoRequestToVideo settings request of
+                    Right videoWithoutIndex -> DB.insertWithIndex vidsDB videoWithoutIndex $> success
+                    Left error -> Logger.info log error $> makeResponse Unauthorized error
+                )
+
+    PostVideoJSON reqNr -> do
+      Logger.info log $ "[API] Modified video with nr: " ++ show reqNr
+      Json.parseJson content
+        >>= Decoder.run (Video.videoDecoder reqNr)
+        & either (return . makeResponse BadRequest)
+                 (\video -> DB.repsertWithIndex vidsDB video Video.nr $> success)
 
     OptionsVideo -> do
-      Logger.info log $ "Someone asked if you can post to /api/vids/add, sure."
+      Logger.info log $ "Someone asked if you can post to /api/videos/new, sure."
+      return allowHeaders
+
+    OptionsVideoJSON reqNr -> do
+      Logger.info log $ "Someone asked if you can post to /api/video/" ++ show reqNr ++ ", sure."
       return allowHeaders
 
     Other req -> do

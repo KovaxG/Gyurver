@@ -30,7 +30,9 @@ data Endpoint
   | GetVideosAddPage
   | GetResource String
   | PostVideo
+  | PostVideoJSON Int
   | OptionsVideo
+  | OptionsVideoJSON Int
   | Other String
   deriving (Eq, Show)
 
@@ -44,7 +46,7 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
       $ [ cv, favicon, articlesPageHU, articlesPageRO, articlesPageEN, cokkJson,  videosPageEN, videosJsonHU, cokkResultsPageEN, cokkPage,
           videoAddPageEN, getResource, postVideoEndpointEN, optionsVideoEndpointEN, cokkResultsPageRO, cokkResultsPageHU, videosPageHU, videosPageRO,
           videoAddPageRO, videoAddPageHU, videosJsonRO, videosJsonEN, postVideoEndpointRO, postVideoEndpointHU, optionsVideoEndpointHU, optionsVideoEndpointRO,
-          videoJson
+          getVideoJson, postVideoJson, optionsVideoJson
         ]
 
     landingPage = Parsec.string "GET /" $> GetLandingPage
@@ -65,7 +67,11 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
     videosJsonHU = Parsec.string "GET /api/videok" $> GetVideosJSON
     videosJsonRO = Parsec.string "GET /api/videouri" $> GetVideosJSON
 
-    videoJson = Parsec.string "GET /api/video/" >> GetVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
+    getVideoJson = Parsec.string "GET /api/video/" >> GetVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
+
+    postVideoJson = Parsec.string "POST /api/video/" >> PostVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
+
+    optionsVideoJson = Parsec.string "OPTIONS /api/video/" >> OptionsVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
 
     postVideoEndpointEN = Parsec.string "POST /api/videos" $> PostVideo
     postVideoEndpointHU = Parsec.string "POST /api/videok" $> PostVideo
@@ -85,7 +91,9 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
 
     cv = Parsec.string "GET /cv" $> GetCV
     favicon = Parsec.string "GET /favicon.ico" $> GetFavicon
-    getResource = Parsec.string "GET /res/" >> GetResource <$> Parsec.many1 (Parsec.alphaNum <|> Parsec.char '.' <|> Parsec.char '_')
+    getResource = Parsec.string "GET /res/" >> GetResource <$> Parsec.many1 validResourceChar
+
+    validResourceChar = Parsec.alphaNum <|> Parsec.char '.' <|> Parsec.char '_'
 
 limit :: (Stream s m t, Show t) => ParsecT s u m a -> ParsecT s u m a
 limit rule = Parsec.try (rule <* Parsec.eof)

@@ -50,7 +50,6 @@ tests =
   , test "articles page HU" $ parseEndpoint "GET /cikkek" === GetArticlesPage
   , test "articles page RO" $ parseEndpoint "GET /articole" === GetArticlesPage
 
-
   , test "cokk page" $ parseEndpoint "GET /cokk" === GetCokkPage
 
   , test "cokk results page EN" $ parseEndpoint "GET /cokk/results" === GetCokkResultsPage
@@ -58,7 +57,6 @@ tests =
   , test "cokk results page RO" $ parseEndpoint "GET /cokk/rezultate" === GetCokkResultsPage
 
   , test "cokk API" $ parseEndpoint "GET /api/cokk" === GetCokkJSON
-
 
   , test "videos page EN" $ parseEndpoint "GET /videos" === GetVideosPage
   , test "videos page HU" $ parseEndpoint "GET /videok" === GetVideosPage
@@ -68,9 +66,17 @@ tests =
   , test "videos API HU" $ parseEndpoint "GET /api/videok" === GetVideosJSON
   , test "videos API RO" $ parseEndpoint "GET /api/videouri" === GetVideosJSON
 
-  , test "correct video API" $ parseEndpoint "GET /api/video/42" === GetVideoJSON 42
-  , test "alpha videos API" $ parseEndpoint "GET /api/video/asdf" === Other "GET /api/video/asdf"
-  , test "missing videos API" $ parseEndpoint "GET /api/video/" === Other "GET /api/video/"
+  , test "correct video API GET" $ parseEndpoint "GET /api/video/42" === GetVideoJSON 42
+  , test "alpha videos API GET" $ parseEndpoint "GET /api/video/asdf" === Other "GET /api/video/asdf"
+  , test "missing videos API GET" $ parseEndpoint "GET /api/video/" === Other "GET /api/video/"
+
+  , test "correct video API POST" $ parseEndpoint "POST /api/video/42" === PostVideoJSON 42
+  , test "alpha videos API POST" $ parseEndpoint "POST /api/video/asdf" === Other "POST /api/video/asdf"
+  , test "missing videos API POST" $ parseEndpoint "POST /api/video/" === Other "POST /api/video/"
+
+  , test "correct video OPTIONS" $ parseEndpoint "OPTIONS /api/video/42" === OptionsVideoJSON 42
+  , test "alpha videos OPTIONS" $ parseEndpoint "OPTIONS /api/video/asdf" === Other "OPTIONS /api/video/asdf"
+  , test "missing videos OPTIONS" $ parseEndpoint "OPTIONS /api/video/" === Other "OPTIONS /api/video/"
 
   , test "video add page EN" $ parseEndpoint "GET /videos/new" === GetVideosAddPage
   , test "video add page HU" $ parseEndpoint "GET /videok/uj" === GetVideosAddPage
