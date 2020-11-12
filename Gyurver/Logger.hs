@@ -29,7 +29,7 @@ genericLog logMode logger message = do
   case logger of
     Console -> putStrLn msg
     File -> do
-      let fileName = takeWhile ((/= ' ')) (show time) ++ ".gyurlog"
+      let fileName = takeWhile (/= ' ') (show time) ++ ".gyurlog"
       appendFile fileName (msg ++ "\n")
       putStrLn msg
 

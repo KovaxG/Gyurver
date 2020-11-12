@@ -74,23 +74,12 @@ init flags url key =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case (msg, model.content) of
-    (LandingMsg welcomeMsg, Landing welcome) ->
-      Landing.update welcomeMsg welcome |> liftModelCmd Landing LandingMsg model
-
-    (CokkListMsg cokkListMsg, CokkList cokkList) ->
-      CokkList.update cokkListMsg cokkList |> liftModelCmd CokkList CokkListMsg model
-
-    (EredmenyekMsg eredmenyekMsg, Eredmenyek eredmenyek) ->
-      Eredmenyek.update eredmenyekMsg eredmenyek |> liftModelCmd Eredmenyek EredmenyekMsg model
-
-    (ArticlesMsg articlesMsg, Articles articles) ->
-      Articles.update articlesMsg articles |> liftModelCmd Articles ArticlesMsg model
-
-    (VideoAddMsg videoAddMsg, VideoAdd videoAdd) ->
-      VideoAdd.update videoAddMsg videoAdd |> liftModelCmd VideoAdd VideoAddMsg model
-
-    (VideoListMsg videoListMsg, VideoList videoList) ->
-      VideoList.update videoListMsg videoList |> liftModelCmd VideoList VideoListMsg model
+    (LandingMsg wmsg, Landing w) -> Landing.update wmsg w |> liftModelCmd Landing LandingMsg model
+    (CokkListMsg clmsg, CokkList cl) -> CokkList.update clmsg cl |> liftModelCmd CokkList CokkListMsg model
+    (EredmenyekMsg emsg, Eredmenyek e) -> Eredmenyek.update emsg e |> liftModelCmd Eredmenyek EredmenyekMsg model
+    (ArticlesMsg amsg, Articles a) -> Articles.update amsg a |> liftModelCmd Articles ArticlesMsg model
+    (VideoAddMsg vamsg, VideoAdd va) -> VideoAdd.update vamsg va |> liftModelCmd VideoAdd VideoAddMsg model
+    (VideoListMsg vlmsg, VideoList vl) -> VideoList.update vlmsg vl |> liftModelCmd VideoList VideoListMsg model
 
     (UrlRequest request, _) ->
       case request of

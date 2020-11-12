@@ -28,7 +28,7 @@ runTests tests = unlines (passed ++ [""] ++ failed) ++ "\n" ++ lastLine ++ norma
     results = zipMap runTest tests
     passed = results & filter ((==Passed) . snd) & map ((++) greenText . description . fst)
     failed = results & filter ((==Failed) . snd) & map (\(t, _) -> (++ " -> " ++ show (assertion t)) $ (++) redText $ description $ t)
-    lastColor = if length failed == 0 then greenText else redText
+    lastColor = if null failed then greenText else redText
     lastLine = lastColor ++ "Passed: " ++ show (length passed) ++ " Failed: " ++ show (length failed)
 
 normalText :: String
@@ -98,4 +98,4 @@ main :: IO ()
 main = putStrLn $ runTests tests
 
 zipMap :: (a -> b) -> [a] -> [(a, b)]
-zipMap f as = fmap (\a -> (a, f a)) as
+zipMap f = fmap (\a -> (a, f a))

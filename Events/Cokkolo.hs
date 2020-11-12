@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 module Events.Cokkolo where
 
-import Data.List (intersperse)
+import qualified Data.List as List
 import System.Random
 
 data Tojas = Tojas
@@ -25,7 +25,7 @@ harc (t1, t2) = do
   return $ if coin then nyertes t1 else nyertes t2
 
 tojasokToJson :: [Tojas] -> String
-tojasokToJson = surround . concat . intersperse "," . map tojasToJson
+tojasokToJson = surround . List.intercalate "\n" . map show
   where
     surround :: String -> String
     surround s = "[" ++ s ++ "]"

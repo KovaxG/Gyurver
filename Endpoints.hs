@@ -13,7 +13,7 @@ parseResource = eitherToMaybe . Parsec.parse rule "Parsing Resource"
     rule = do
       name <- Parsec.many1 (Parsec.alphaNum <|> Parsec.char '_')
       Parsec.char '.'
-      term <- Parsec.many1 (Parsec.alphaNum)
+      term <- Parsec.many1 Parsec.alphaNum
       return $ Resource name term
 
 data Endpoint
@@ -42,8 +42,8 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
   where
     rule =
       foldl (<|>) (limit landingPage)
-      $ fmap limit
-      $ [ cv, favicon, articlesPageHU, articlesPageRO, articlesPageEN, cokkJson,  videosPageEN, videosJsonHU, cokkResultsPageEN, cokkPage,
+      $ limit <$>
+        [ cv, favicon, articlesPageHU, articlesPageRO, articlesPageEN, cokkJson,  videosPageEN, videosJsonHU, cokkResultsPageEN, cokkPage,
           videoAddPageEN, getResource, postVideoEndpointEN, optionsVideoEndpointEN, cokkResultsPageRO, cokkResultsPageHU, videosPageHU, videosPageRO,
           videoAddPageRO, videoAddPageHU, videosJsonRO, videosJsonEN, postVideoEndpointRO, postVideoEndpointHU, optionsVideoEndpointHU, optionsVideoEndpointRO,
           getVideoJson, postVideoJson, optionsVideoJson

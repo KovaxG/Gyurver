@@ -1,7 +1,7 @@
 module Gyurver.Html where
 
 import Prelude hiding (showList)
-import Data.List (intersperse)
+import qualified Data.List as List
 
 data Document = Document [Html] [Html]
 
@@ -74,10 +74,10 @@ text :: String -> Html
 text = Text
 
 showTags :: Show a => [a] -> String
-showTags = concat . intersperse "\n" . map show
+showTags = List.intercalate "\n" . map show
 
 showSpaces :: Show a => [a] -> String
-showSpaces = concat . map ((++) " " . show)
+showSpaces = concatMap ((++) " " . show)
 
 test :: Document
 test =

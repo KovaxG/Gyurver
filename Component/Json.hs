@@ -1,52 +1,52 @@
 module Component.Json where
 
 import Data.Bifunctor
-import Data.List (intersperse, sortOn)
+import qualified Data.List as List
 import Text.Parsec
 
 import Utils
 
-data Json 
+data Json
   = JsonNull
   | JsonBool Bool
-  | JsonNumber Double 
-  | JsonString String 
-  | JsonArray [Json] 
+  | JsonNumber Double
+  | JsonString String
+  | JsonArray [Json]
   | JsonObject [(String, Json)]
 
 nullable :: (a -> Json) -> Maybe a -> Json
-nullable f ma = maybe JsonNull f ma
-  
+nullable = maybe JsonNull
+
 instance Show Json where
   show JsonNull = "null"
   show (JsonBool True) = "true"
   show (JsonBool False) = "false"
   show (JsonNumber num) = show num
-  show (JsonString str) = show str 
+  show (JsonString str) = show str
   show (JsonArray jsons) = show jsons
-  show (JsonObject assocList) = 
-    "{" ++ (concat $ intersperse "," $ map lineToString assocList) ++ "}"
+  show (JsonObject assocList) =
+    "{" ++ List.intercalate "," (map lineToString assocList) ++ "}"
     where
-      lineToString (label, value) = 
+      lineToString (label, value) =
         show label ++ ":" ++ show value
 
 parseJson :: String -> Either String Json
 parseJson = first show . parse json ""
   where
-    json = 
-      jsonNull 
-      <|> jsonBool 
-      <|> jsonNumber 
-      <|> jsonString 
-      <|> jsonArray 
+    json =
+      jsonNull
+      <|> jsonBool
+      <|> jsonNumber
+      <|> jsonString
+      <|> jsonArray
       <|> jsonObject
-    
+
     jsonNull = string "null" $> JsonNull
-    
+
     jsonBool = jsonTrue <|> jsonFalse
     jsonTrue = string "true" $> JsonBool True
     jsonFalse = string "false" $> JsonBool False
-    
+
     jsonNumber = try jsonFloat <|> jsonInt
     jsonInt = do
       number <- read <$> many1 digit
@@ -56,18 +56,16 @@ parseJson = first show . parse json ""
       char '.'
       rest <- many1 digit
       return $ JsonNumber $ read $ number ++ "." ++ rest
-      
-    jsonString = do
-      str <- stringCharacters
-      return $ JsonString str
-    
+
+    jsonString = JsonString <$> stringCharacters
+
     stringCharacters = do
       char '\"'
       -- TODO not great, can't have quotes in strings :(
-      str <- many (noneOf "\"") 
+      str <- many (noneOf "\"")
       char '\"'
       return str
-    
+
     -- TODO fails at "[ 1 ]" for some reason
     -- the spaces between brackets don't work :(
     jsonArray = do
@@ -84,7 +82,7 @@ parseJson = first show . parse json ""
       attrs <- sepBy jsonAttr (spaces >> char ',' >> spaces)
       spaces
       char '}'
-      return $ JsonObject $ sortOn fst attrs
+      return $ JsonObject $ List.sortOn fst attrs
     jsonAttr = do
       fieldName <- stringCharacters
       spaces
@@ -92,4 +90,4 @@ parseJson = first show . parse json ""
       spaces
       element <- json
       return (fieldName, element)
-      
+

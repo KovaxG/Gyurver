@@ -10,10 +10,10 @@ import Data.Maybe
 ($>) = flip (<$)
 
 mapLeft :: (a -> b) -> Either a r -> Either b r
-mapLeft f = bimap f id
+mapLeft = first
 
 startsWith :: String -> String -> Bool
-startsWith ss s = (not $ length ss > length s) && (and $ zipWith (==) ss s)
+startsWith ss s = (length ss <= length s) && and (zipWith (==) ss s)
 
 safeReadTextFile :: String -> IO (Maybe String)
 safeReadTextFile path = do

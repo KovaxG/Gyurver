@@ -2,10 +2,10 @@ module Component.Semaphore (Semaphore, new, block, unblock) where
 
 import Control.Concurrent.MVar (MVar, newMVar, takeMVar, putMVar)
 
-data Semaphore = Semaphore (MVar ())
+newtype Semaphore = Semaphore (MVar ())
 
 new :: IO Semaphore
-new = fmap Semaphore $ newMVar ()
+new = Semaphore <$> newMVar ()
 
 block :: Semaphore -> IO ()
 block (Semaphore mvar) = takeMVar mvar
