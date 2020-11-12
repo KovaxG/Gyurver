@@ -10,6 +10,8 @@ import Bootstrap.Badge as Badge
 import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Form.Input as Input
+import Bootstrap.Button as Button
+import Bootstrap.Spinner as Spinner
 import Date exposing (Date)
 import Time exposing (Month(..))
 import Http exposing (Error)
@@ -18,32 +20,52 @@ import Endpoints
 import Json.Decode as Decode exposing (Decoder)
 import Set
 import Types.Video as Video exposing (Video)
+import Types.Result as Result
 import Html.Events exposing (onClick)
 import Util
 
 type TagType = SelectedTag | NormalTag
 
+type ItemStatus = Viewing | Editing | Waiting
+
 type alias VideoItem =
   { video : Video
-  , editable : Bool
+  , status : ItemStatus
   , title : String
   , author : String
   , date : String
   , watchDate : String
   , tags : String
   , comment : String
+  , error : String
   }
+
+type alias VideoEditRequest = Video
+
+itemToVideoEditRequest : VideoItem -> VideoEditRequest
+itemToVideoEditRequest item =
+  let video = item.video
+  in
+    { video
+    | title = item.title
+    , author = item.author
+    , date = Date.fromIsoString item.date |> Result.withDefault video.date
+    , watchDate = Date.fromIsoString item.watchDate |> Result.map Just |> Result.withDefault video.watchDate
+    , tags = List.map String.trim <| String.split "," item.tags
+    , comment = item.comment
+    }
 
 newVideoItem : Video -> VideoItem
 newVideoItem v =
   { video = v
-  , editable = False
+  , status = Viewing
   , title = v.title
   , author = v.author
   , comment = v.comment
   , date = Date.toIsoString v.date
   , watchDate = Maybe.withDefault "" <| Maybe.map Date.toIsoString v.watchDate
   , tags = String.join ", "  v.tags
+  , error = ""
   }
 
 type alias Model =
@@ -68,20 +90,25 @@ type Msg
   | Edit Int
   | CancelEdit Int
   | VideoEdit Int VideoEdit
+  | SaveChanges Int
+  | SaveChangesSuccess Video
+  | SaveChangesFailed Int String
 
 init : (Model, Cmd Msg)
 init =
-  ( { videos = [], titleFilter = "", tagFilter = [] }  -- TODO maybe add a loading state?
-  , Http.get
-    { url = Settings.path ++ Endpoints.videosJsonEN
-    , expect = Http.expectJson toMessage (Decode.list Video.decode)
-    }
-  )
+  let toMessage : Result Error (List Video) -> Msg
+      toMessage result = case result of
+        Ok vids -> SetVideos vids
+        Err _ -> SetVideos []
+  in
+    ( { videos = [], titleFilter = "", tagFilter = [] }  -- TODO maybe add a loading state?
+    , Http.get
+      { url = Settings.path ++ Endpoints.videosJsonEN
+      , expect = Http.expectJson toMessage (Decode.list Video.decode)
+      }
+    )
 
-toMessage : Result Error (List Video) -> Msg
-toMessage result = case result of
-  Ok vids -> SetVideos vids
-  Err _ -> SetVideos []
+
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
@@ -89,8 +116,11 @@ update msg model = case msg of
   TitleFilterChanged s -> ({ model | titleFilter = s }, Cmd.none)
   AddTag tag -> ({ model | tagFilter = addIfNotContains tag model.tagFilter }, Cmd.none)
   RemoveTag tag -> ({ model | tagFilter = model.tagFilter |> List.filter (\t -> t /= tag) }, Cmd.none)
-  Edit nr -> ({ model | videos = List.map (\item -> { item | editable = item.video.nr == nr }) model.videos }, Cmd.none)
+  Edit nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> { item | status = Editing }) model.videos }, Cmd.none)
   CancelEdit nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> newVideoItem item.video) model.videos }, Cmd.none)
+  SaveChanges nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | status = Waiting}) model.videos }, postVideo model nr)
+  SaveChangesSuccess video -> ({ model | videos = Util.mapIf (\item -> item.video.nr == video.nr) (\_ -> newVideoItem video) model.videos }, Cmd.none)
+  SaveChangesFailed nr str -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | error = str, status = Editing}) model.videos }, Cmd.none)
   VideoEdit nr change ->
     let updateVideo =
           case change of
@@ -101,6 +131,27 @@ update msg model = case msg of
             WatchDateChanged str -> (\item -> {item | watchDate = str})
             TagsChanged str -> (\item -> {item | tags = str})
     in ({model | videos = Util.mapIf (\item -> item.video.nr == nr) updateVideo model.videos}, Cmd.none)
+
+postVideo : Model -> Int -> Cmd Msg
+postVideo model nr =
+  let toMessage : Video -> Result Error String -> Msg
+      toMessage video result =
+        result
+        |> Result.map (always <| SaveChangesSuccess video)
+        |> Result.mapError (SaveChangesFailed nr << Util.showError)
+        |> Result.merge
+  in
+    model.videos
+    |> List.filter (\item -> item.video.nr == nr)
+    |> List.head
+    |> Maybe.map itemToVideoEditRequest
+    |> Maybe.map (\request ->
+      Http.post
+        { url = Settings.path ++ Endpoints.videoJson nr
+        , body = Http.jsonBody (Video.encode request)
+        , expect = Http.expectString (toMessage request)
+        })
+    |> Maybe.withDefault Cmd.none
 
 view : Model -> Document Msg
 view model =
@@ -149,9 +200,9 @@ tagSelection model =
 
 videoItemToHtml : Model -> VideoItem -> Html Msg
 videoItemToHtml model item =
-  if item.editable
-  then editableVideoToHtml model item
-  else nonEditableVideoToHtml model item.video
+  if item.status == Viewing
+  then nonEditableVideoToHtml model item.video
+  else editableVideoToHtml model item
 
 editableVideoToHtml : Model -> VideoItem -> Html Msg
 editableVideoToHtml model item =
@@ -173,14 +224,17 @@ editableVideoToHtml model item =
       , br [] []
       , strong [] [text "Nr "]
       , text (String.fromInt item.video.nr)
-      , div [onClick (CancelEdit item.video.nr)] [text "🔙"]
+      , Button.button [Button.onClick (CancelEdit item.video.nr)] [text "🔙"]
+      , if item.status == Waiting
+        then Spinner.spinner [] []
+        else Button.button [Button.onClick (SaveChanges item.video.nr)] [text "💾"]
+      , text item.error
       ]
     ]
   , Grid.row []
     [ Grid.col []
       [ strong [] [text "Comment "]
       , Textarea.textarea [Textarea.onInput (VideoEdit item.video.nr << CommentChanged), Textarea.value item.comment]
-      , div [onClick (CancelEdit item.video.nr)] [text "💾"]
       ]
     ]
   , br [] []
@@ -208,7 +262,7 @@ nonEditableVideoToHtml model video =
       , div [] (strong [] [text "Tags "] :: List.map (tagToBadge model) video.tags)
       , strong [] [text "Nr "]
       , text (String.fromInt video.nr)
-      , div [onClick (Edit video.nr)] [text "✏️"]
+      , Button.button [Button.onClick (Edit video.nr)] [text "✏️"]
       ]
     ]
   , Grid.row []

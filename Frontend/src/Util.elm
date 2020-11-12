@@ -1,4 +1,14 @@
 module Util exposing (..)
 
+import Http exposing (Error(..))
+
 mapIf : (a -> Bool) -> (a -> a) -> List a -> List a
 mapIf p f = List.map (\a -> if p a then f a else a)
+
+showError : Error -> String
+showError error = case error of
+  BadUrl str -> str
+  Timeout -> "Request timed out. Check out the server, it might be overloaded."
+  NetworkError -> "Network Error. Lol the description says that it means the user turned off their wifi, went in a cave, etc. :))"
+  BadStatus code -> "Bad Status with code" ++ String.fromInt code
+  BadBody str -> "Bad Body: " ++ str

@@ -24,6 +24,9 @@ videosJsonHU = "/api/videok"
 videosJsonRO = "/api/videouri"
 
 
+videoJson nr = "/api/video/" ++ String.fromInt nr
+
+
 cokkPage = "/cokk"
 
 

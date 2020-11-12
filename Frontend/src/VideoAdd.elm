@@ -23,6 +23,8 @@ import Maybe.Extra as Maybe
 import Settings
 import Endpoints
 import Types.NewVideoRequest as NewVideoRequest exposing (NewVideoRequest)
+import Types.Result as Result
+import Util
 
 type Status
   = Editing
@@ -77,15 +79,10 @@ type Msg
 
 toMessage : Result Error String -> Msg
 toMessage result =
-    case result of
-      Ok msg -> Success
-      Err error ->
-        Response <| case error of
-          BadUrl str -> str
-          Timeout -> "Request timed out. Check out the server, it might be overloaded."
-          NetworkError -> "Network Error. Lol the description says that it means the user turned off their wifi, went in a cave, etc. :))"
-          BadStatus code -> "Bad Status with code" ++ String.fromInt code
-          BadBody str -> "Bad Body: " ++ str
+  result
+  |> Result.map (always Success)
+  |> Result.mapError (Response << Util.showError)
+  |> Result.merge
 
 init : (Model, Cmd Msg)
 init =
