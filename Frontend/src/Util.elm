@@ -10,5 +10,8 @@ showError error = case error of
   BadUrl str -> str
   Timeout -> "Request timed out. Check out the server, it might be overloaded."
   NetworkError -> "Network Error. Lol the description says that it means the user turned off their wifi, went in a cave, etc. :))"
-  BadStatus code -> "Bad Status with code" ++ String.fromInt code
+  BadStatus code ->
+    if code == 401
+    then "Incorrect Password!"
+    else "Bad Status with code: " ++ String.fromInt code
   BadBody str -> "Bad Body: " ++ str

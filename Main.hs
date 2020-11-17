@@ -1,5 +1,4 @@
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE BangPatterns #-}
 module Main where
 
 import Prelude hiding (log)
@@ -25,7 +24,8 @@ import           Gyurver.Logger (Logger(..))
 import qualified Gyurver.Logger as Logger
 import           Types.Video (Video)
 import qualified Types.Video as Video
-import Types.VideoAddRequest
+import qualified Types.VideoAdd as VideoAdd
+import qualified Types.VideoEdit as VideoEdit
 import Types.Settings as Settings
 import Endpoints
 import Utils (($>), safeReadBinaryFile, safeReadTextFile)
@@ -147,22 +147,28 @@ process tojasDB
           return badRequest
 
     PostVideo -> do
-      Logger.info log $ "[API] Adding new video to list."
+      Logger.info log "[API] Adding new video to list."
       Json.parseJson content
-        >>= Decoder.run videoRequestDecoder
-        & either (return . makeResponse BadRequest)
-                (\request ->
-                  case videoRequestToVideo settings request of
-                    Right videoWithoutIndex -> DB.insertWithIndex vidsDB videoWithoutIndex $> success
-                    Left error -> Logger.info log error $> makeResponse Unauthorized error
-                )
+        >>= Decoder.run VideoAdd.decoder
+        & either
+          (return . makeResponse BadRequest)
+          (\request ->
+            case VideoAdd.toVideo settings request of
+              Right videoWithoutIndex -> DB.insertWithIndex vidsDB videoWithoutIndex $> success
+              Left error -> Logger.info log error $> makeResponse Unauthorized error
+          )
 
     PostVideoJSON reqNr -> do
       Logger.info log $ "[API] Modified video with nr: " ++ show reqNr
       Json.parseJson content
-        >>= Decoder.run (Video.videoDecoder reqNr)
-        & either (return . makeResponse BadRequest)
-                 (\video -> DB.repsertWithIndex vidsDB video Video.nr $> success)
+        >>= Decoder.run VideoEdit.decoder
+        & either
+          (return . makeResponse BadRequest)
+          (\request ->
+            case VideoEdit.toVideo settings request of
+              Right videoWithoutIndex -> DB.repsertWithIndex vidsDB (videoWithoutIndex reqNr) Video.nr $> success
+              Left error -> Logger.info log error $> makeResponse Unauthorized error
+          )
 
     OptionsVideo -> do
       Logger.info log $ "Someone asked if you can post to /api/videos/new, sure."

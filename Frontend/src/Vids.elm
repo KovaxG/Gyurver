@@ -12,9 +12,11 @@ import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Form.Input as Input
 import Bootstrap.Button as Button
 import Bootstrap.Spinner as Spinner
-import Date exposing (Date)
 import Time exposing (Month(..))
 import Http exposing (Error)
+import Json.Encode as Encode exposing (Value)
+import Date as ElmDate
+import Types.Date as Date exposing (Date)
 import Settings
 import Endpoints
 import Json.Decode as Decode exposing (Decoder)
@@ -38,22 +40,56 @@ type alias VideoItem =
   , tags : String
   , comment : String
   , error : String
+  , password : String
   }
 
-type alias VideoEditRequest = Video
+type alias VideoEditRequest =
+  { link : String
+  , title : String
+  , author : String
+  , date : Date
+  , comment : String
+  , watchDate : Maybe Date
+  , tags : List String
+  , password : String
+  }
+
+encode : VideoEditRequest -> Value
+encode req =
+  Encode.object
+    [ ("url", Encode.string req.link)
+    , ("title", Encode.string req.title)
+    , ("author", Encode.string req.author)
+    , ("date", Date.encode req.date)
+    , ("comment", Encode.string req.comment)
+    , ("watchDate", Maybe.withDefault Encode.null <| Maybe.map Date.encode req.watchDate)
+    , ("tags", Encode.list Encode.string req.tags)
+    , ("password", Encode.string req.password)
+    ]
 
 itemToVideoEditRequest : VideoItem -> VideoEditRequest
 itemToVideoEditRequest item =
-  let video = item.video
-  in
-    { video
-    | title = item.title
-    , author = item.author
-    , date = Date.fromIsoString item.date |> Result.withDefault video.date
-    , watchDate = Date.fromIsoString item.watchDate |> Result.map Just |> Result.withDefault video.watchDate
-    , tags = List.map String.trim <| String.split "," item.tags
-    , comment = item.comment
-    }
+  { link = item.video.url
+  , title = item.title
+  , author = item.author
+  , date = ElmDate.fromIsoString item.date |> Result.withDefault item.video.date
+  , watchDate = ElmDate.fromIsoString item.watchDate |> Result.map Just |> Result.withDefault item.video.watchDate
+  , tags = List.map String.trim <| String.split "," item.tags
+  , comment = item.comment
+  , password = item.password
+  }
+
+videoEditRequestToVideo : Int -> VideoEditRequest -> Video
+videoEditRequestToVideo nr ver =
+  { nr = nr
+  , url = ver.link
+  , title = ver.title
+  , author = ver.author
+  , date = ver.date
+  , comment = ver.comment
+  , watchDate = ver.watchDate
+  , tags = ver.tags
+  }
 
 newVideoItem : Video -> VideoItem
 newVideoItem v =
@@ -62,10 +98,11 @@ newVideoItem v =
   , title = v.title
   , author = v.author
   , comment = v.comment
-  , date = Date.toIsoString v.date
-  , watchDate = Maybe.withDefault "" <| Maybe.map Date.toIsoString v.watchDate
+  , date = ElmDate.toIsoString v.date
+  , watchDate = Maybe.withDefault "" <| Maybe.map ElmDate.toIsoString v.watchDate
   , tags = String.join ", "  v.tags
   , error = ""
+  , password = ""
   }
 
 type alias Model =
@@ -81,6 +118,7 @@ type VideoEdit
   | DateChanged String
   | WatchDateChanged String
   | TagsChanged String
+  | PasswordCanged String
 
 type Msg
   = SetVideos (List Video)
@@ -130,6 +168,7 @@ update msg model = case msg of
             DateChanged str -> (\item -> {item | date = str})
             WatchDateChanged str -> (\item -> {item | watchDate = str})
             TagsChanged str -> (\item -> {item | tags = str})
+            PasswordCanged str -> (\item -> {item | password = str})
     in ({model | videos = Util.mapIf (\item -> item.video.nr == nr) updateVideo model.videos}, Cmd.none)
 
 postVideo : Model -> Int -> Cmd Msg
@@ -148,8 +187,8 @@ postVideo model nr =
     |> Maybe.map (\request ->
       Http.post
         { url = Settings.path ++ Endpoints.videoJson nr
-        , body = Http.jsonBody (Video.encode request)
-        , expect = Http.expectString (toMessage request)
+        , body = Http.jsonBody (encode request)
+        , expect = Http.expectString (toMessage <| videoEditRequestToVideo nr request)
         })
     |> Maybe.withDefault Cmd.none
 
@@ -224,17 +263,19 @@ editableVideoToHtml model item =
       , br [] []
       , strong [] [text "Nr "]
       , text (String.fromInt item.video.nr)
-      , Button.button [Button.onClick (CancelEdit item.video.nr)] [text "🔙"]
-      , if item.status == Waiting
-        then Spinner.spinner [] []
-        else Button.button [Button.onClick (SaveChanges item.video.nr)] [text "💾"]
-      , text item.error
       ]
     ]
   , Grid.row []
     [ Grid.col []
       [ strong [] [text "Comment "]
       , Textarea.textarea [Textarea.onInput (VideoEdit item.video.nr << CommentChanged), Textarea.value item.comment]
+      , strong [] [text "Password "]
+      , Input.password [Input.onInput (VideoEdit item.video.nr << PasswordCanged), Input.value item.password]
+      , div [] [text item.error]
+      , Button.button [Button.onClick (CancelEdit item.video.nr)] [text "🔙"]
+      , if item.status == Waiting
+        then Spinner.spinner [] []
+        else Button.button [Button.onClick (SaveChanges item.video.nr)] [text "💾"]
       ]
     ]
   , br [] []
@@ -251,11 +292,11 @@ nonEditableVideoToHtml model video =
       , text video.author
       , br [] []
       , strong [] [text "Date "]
-      , text (Date.toIsoString video.date)
+      , text (ElmDate.toIsoString video.date)
       , br [] []
       , strong [] [text "Watch Date "]
       , video.watchDate
-        |> Maybe.map Date.toIsoString
+        |> Maybe.map ElmDate.toIsoString
         |> Maybe.withDefault "¯\\_(ツ)_/¯"
         |> text
       , br [] []
