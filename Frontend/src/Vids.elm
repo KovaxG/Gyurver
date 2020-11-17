@@ -28,7 +28,7 @@ import Util
 
 type TagType = SelectedTag | NormalTag
 
-type ItemStatus = Viewing | Editing | Waiting
+type ItemStatus = Viewing | Editing | EditWaiting | Deleting | DeleteWaiting
 
 type alias VideoItem =
   { video : Video
@@ -53,6 +53,14 @@ type alias VideoEditRequest =
   , tags : List String
   , password : String
   }
+
+type alias VideoDeleteRequest = { password : String }
+
+itemToVideoDeleteRequest : VideoItem -> VideoDeleteRequest
+itemToVideoDeleteRequest item = { password = item.password }
+
+encodeDeleteRequest : VideoDeleteRequest -> Value
+encodeDeleteRequest req = Encode.object [("password", Encode.string req.password)]
 
 encode : VideoEditRequest -> Value
 encode req =
@@ -111,6 +119,9 @@ type alias Model =
   , tagFilter : List String
   }
 
+type VideoDelete
+ = PasswordChanged String
+
 type VideoEdit
   = TitleChanged String
   | AuthorChanged String
@@ -128,9 +139,15 @@ type Msg
   | Edit Int
   | CancelEdit Int
   | VideoEdit Int VideoEdit
+  | Delete Int
+  | CancelDelete Int
+  | VideoDelete Int VideoDelete
+  | PerformDeletion Int
   | SaveChanges Int
   | SaveChangesSuccess Video
   | SaveChangesFailed Int String
+  | DeleteSuccess Int
+  | DeleteFailed Int String
 
 init : (Model, Cmd Msg)
 init =
@@ -156,9 +173,24 @@ update msg model = case msg of
   RemoveTag tag -> ({ model | tagFilter = model.tagFilter |> List.filter (\t -> t /= tag) }, Cmd.none)
   Edit nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> { item | status = Editing }) model.videos }, Cmd.none)
   CancelEdit nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> newVideoItem item.video) model.videos }, Cmd.none)
-  SaveChanges nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | status = Waiting}) model.videos }, postVideo model nr)
+
+  Delete nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> { item | status = Deleting }) model.videos }, Cmd.none)
+  CancelDelete nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> newVideoItem item.video) model.videos }, Cmd.none)
+
+  SaveChanges nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | status = EditWaiting}) model.videos }, postVideo model nr)
   SaveChangesSuccess video -> ({ model | videos = Util.mapIf (\item -> item.video.nr == video.nr) (\_ -> newVideoItem video) model.videos }, Cmd.none)
   SaveChangesFailed nr str -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | error = str, status = Editing}) model.videos }, Cmd.none)
+
+  PerformDeletion nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | status = DeleteWaiting}) model.videos }, deleteVideo model nr)
+  DeleteSuccess nr -> ({ model | videos = List.filter (\item -> item.video.nr /= nr) model.videos }, Cmd.none)
+  DeleteFailed nr str -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | error = str, status = Deleting}) model.videos }, Cmd.none)
+
+  VideoDelete nr change ->
+    let updateVideo =
+          case change of
+            PasswordChanged str -> (\item -> {item | password = str})
+    in ({model | videos = Util.mapIf (\item -> item.video.nr == nr) updateVideo model.videos}, Cmd.none)
+
   VideoEdit nr change ->
     let updateVideo =
           case change of
@@ -189,6 +221,31 @@ postVideo model nr =
         { url = Settings.path ++ Endpoints.videoJson nr
         , body = Http.jsonBody (encode request)
         , expect = Http.expectString (toMessage <| videoEditRequestToVideo nr request)
+        })
+    |> Maybe.withDefault Cmd.none
+
+deleteVideo : Model -> Int -> Cmd Msg
+deleteVideo model nr =
+  let toMessage : Result Error String -> Msg
+      toMessage result =
+        result
+        |> Result.map (always <| DeleteSuccess nr)
+        |> Result.mapError (DeleteFailed nr << Util.showError)
+        |> Result.merge
+  in
+    model.videos
+    |> List.filter (\item -> item.video.nr == nr)
+    |> List.head
+    |> Maybe.map itemToVideoDeleteRequest
+    |> Maybe.map (\request ->
+      Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = Settings.path ++ Endpoints.videoJson nr
+        , body = Http.jsonBody (encodeDeleteRequest request)
+        , expect = Http.expectString toMessage
+        , timeout = Nothing
+        , tracker = Nothing
         })
     |> Maybe.withDefault Cmd.none
 
@@ -239,9 +296,50 @@ tagSelection model =
 
 videoItemToHtml : Model -> VideoItem -> Html Msg
 videoItemToHtml model item =
-  if item.status == Viewing
-  then nonEditableVideoToHtml model item.video
-  else editableVideoToHtml model item
+  case item.status of
+    Viewing -> nonEditableVideoToHtml model item.video
+    Editing -> editableVideoToHtml model item
+    EditWaiting -> editableVideoToHtml model item
+    Deleting -> deleteVideoToHtml model item
+    DeleteWaiting -> editableVideoToHtml model item
+
+deleteVideoToHtml : Model -> VideoItem -> Html Msg
+deleteVideoToHtml model item =
+  [ Grid.row [] [Grid.col [] [h3 [] [text item.video.title]]]
+  , Grid.row []
+    [ Grid.col [] [iframe [src item.video.url] []]
+    , Grid.col []
+      [ strong [] [text "Channel "]
+      , text item.video.author
+      , br [] []
+      , strong [] [text "Date "]
+      , text (ElmDate.toIsoString item.video.date)
+      , br [] []
+      , strong [] [text "Watch Date "]
+      , item.video.watchDate
+        |> Maybe.map ElmDate.toIsoString
+        |> Maybe.withDefault "¯\\_(ツ)_/¯"
+        |> text
+      , br [] []
+      , div [] (strong [] [text "Tags "] :: List.map (tagToBadge model) item.video.tags)
+      , strong [] [text "Nr "]
+      , text (String.fromInt item.video.nr)
+      ]
+    ]
+  , Grid.row []
+    [ Grid.col []
+      [ strong [] [text "Comment "]
+      , text item.video.comment
+      , br [] []
+      , strong [] [text "Password "]
+      , Input.password [Input.onInput (VideoDelete item.video.nr << PasswordChanged), Input.value item.password]
+      , div [] [text item.error]
+      , Button.button [Button.onClick (CancelDelete item.video.nr)] [text "🔙"]
+      , Button.button [Button.onClick (PerformDeletion item.video.nr)] [text "❌"]
+      ]
+    ]
+  , br [] []
+  ] |> div []
 
 editableVideoToHtml : Model -> VideoItem -> Html Msg
 editableVideoToHtml model item =
@@ -273,7 +371,7 @@ editableVideoToHtml model item =
       , Input.password [Input.onInput (VideoEdit item.video.nr << PasswordCanged), Input.value item.password]
       , div [] [text item.error]
       , Button.button [Button.onClick (CancelEdit item.video.nr)] [text "🔙"]
-      , if item.status == Waiting
+      , if item.status == EditWaiting
         then Spinner.spinner [] []
         else Button.button [Button.onClick (SaveChanges item.video.nr)] [text "💾"]
       ]
@@ -304,6 +402,7 @@ nonEditableVideoToHtml model video =
       , strong [] [text "Nr "]
       , text (String.fromInt video.nr)
       , Button.button [Button.onClick (Edit video.nr)] [text "✏️"]
+      , Button.button [Button.onClick (Delete video.nr)] [text "🗑️"]
       ]
     ]
   , Grid.row []
