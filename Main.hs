@@ -10,6 +10,8 @@ import           Component.Database (DBHandle)
 import qualified Component.Database as DB
 import qualified Component.Json as Json
 
+import Data.Text (Text)
+import qualified Data.Text as Text
 import Data.Function ((&))
 import qualified Data.List as List
 
@@ -54,8 +56,8 @@ readSettings log =
       Logger.warn log "Could not read settings file, using default settings."
       return defaultSettings
 
-    fileFound :: String -> IO Settings
-    fileFound contents = contents & Settings.parse & either settingsParseFailed settingsLoaded
+    fileFound :: Text -> IO Settings
+    fileFound contents = contents & Text.unpack & Settings.parse & either settingsParseFailed settingsLoaded
 
     settingsParseFailed :: String -> IO Settings
     settingsParseFailed msg = do
