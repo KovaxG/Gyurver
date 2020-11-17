@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
-module Component.Database (DBHandle, getHandle, insert, insertWithIndex, repsertWithIndex, everythingList, everything, get) where
+module Component.Database (DBHandle, getHandle, insert, insertWithIndex, repsertWithIndex, everythingList, everything, get, delete) where
 
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -71,3 +71,11 @@ get handle id = do
   !raw <- safeReadTextFile (path handle)
   Sem.unblock (semaphore handle)
   return $ (listToMaybe . drop (id-1) . take id . map readText . Text.lines) =<< raw
+
+delete :: (Read a, Show a) => DBHandle a -> (a -> Bool) -> IO ()
+delete handle pred = do
+  Sem.block (semaphore handle)
+  !raw <- safeReadTextFile (path handle)
+  let objects = maybe [] (map readText . Text.lines) raw
+  safeWriteTextFile (path handle) $ Text.unlines (Text.pack . show <$> filter (not . pred) objects)
+  Sem.unblock (semaphore handle)

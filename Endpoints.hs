@@ -31,6 +31,7 @@ data Endpoint
   | GetResource String
   | PostVideo
   | PostVideoJSON Int
+  | DeleteVideoJSON Int
   | OptionsVideo
   | OptionsVideoJSON Int
   | Other String
@@ -46,7 +47,7 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         [ cv, favicon, articlesPageHU, articlesPageRO, articlesPageEN, cokkJson,  videosPageEN, videosJsonHU, cokkResultsPageEN, cokkPage,
           videoAddPageEN, getResource, postVideoEndpointEN, optionsVideoEndpointEN, cokkResultsPageRO, cokkResultsPageHU, videosPageHU, videosPageRO,
           videoAddPageRO, videoAddPageHU, videosJsonRO, videosJsonEN, postVideoEndpointRO, postVideoEndpointHU, optionsVideoEndpointHU, optionsVideoEndpointRO,
-          getVideoJson, postVideoJson, optionsVideoJson
+          getVideoJson, postVideoJson, optionsVideoJson, deleteVideoJSON
         ]
 
     landingPage = Parsec.string "GET /" $> GetLandingPage
@@ -72,6 +73,8 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
     postVideoJson = Parsec.string "POST /api/video/" >> PostVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
 
     optionsVideoJson = Parsec.string "OPTIONS /api/video/" >> OptionsVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
+
+    deleteVideoJSON = Parsec.string "DELETE /api/video/" >> DeleteVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
 
     postVideoEndpointEN = Parsec.string "POST /api/videos" $> PostVideo
     postVideoEndpointHU = Parsec.string "POST /api/videok" $> PostVideo

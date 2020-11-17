@@ -8,13 +8,14 @@ import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, char, option, 
 import Gyurver.Gyurror
 import Utils
 
-data RequestType = Get | Post | Options deriving (Read)
+data RequestType = Get | Post | Options | Delete deriving (Read)
 
 instance Show RequestType where
   show rt = case rt of
     Get -> "GET"
     Post -> "POST"
     Options -> "OPTIONS"
+    Delete -> "DELETE"
 
 data Request = Request
   { requestType :: RequestType
@@ -52,10 +53,11 @@ parseRequest =
         content = content
       }
 
-    requestType = getRequest <|> postRequest <|> optionsRequest
+    requestType = getRequest <|> postRequest <|> optionsRequest <|> deleteRequest
     getRequest = string "GET" $> Get
     postRequest = string "POST" $> Post
     optionsRequest = string "OPTIONS" $> Options
+    deleteRequest = string "DELETE" $> Delete
 
     path = many pathChars
     pathChars = alphaNum <|> char '/' <|> char '.' <|> char '_'

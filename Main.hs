@@ -26,6 +26,7 @@ import           Types.Video (Video)
 import qualified Types.Video as Video
 import qualified Types.VideoAdd as VideoAdd
 import qualified Types.VideoEdit as VideoEdit
+import Types.Password as Password
 import Types.Settings as Settings
 import Endpoints
 import Utils (($>), safeReadBinaryFile, safeReadTextFile)
@@ -170,8 +171,20 @@ process tojasDB
               Left error -> Logger.info log error $> makeResponse Unauthorized error
           )
 
+    DeleteVideoJSON reqNr -> do
+      Logger.info log $ "[API] Delete video nr: " ++ show reqNr
+      Json.parseJson content
+        >>= Decoder.run Password.decoder
+        & either
+          (return . makeResponse BadRequest)
+          (\(Password pwd) ->
+            if pwd == (settings & password)
+            then DB.delete vidsDB (\v -> Video.nr v == reqNr) $> success
+            else Logger.info log ("Bad password: " ++ pwd) $> makeResponse Unauthorized ""
+          )
+
     OptionsVideo -> do
-      Logger.info log $ "Someone asked if you can post to /api/videos/new, sure."
+      Logger.info log "Someone asked if you can post to /api/videos/new, sure."
       return allowHeaders
 
     OptionsVideoJSON reqNr -> do

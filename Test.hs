@@ -78,6 +78,10 @@ tests =
   , test "alpha videos OPTIONS" $ parseEndpoint "OPTIONS /api/video/asdf" === Other "OPTIONS /api/video/asdf"
   , test "missing videos OPTIONS" $ parseEndpoint "OPTIONS /api/video/" === Other "OPTIONS /api/video/"
 
+  , test "correct video DELETE" $ parseEndpoint "DELETE /api/video/42" === DeleteVideoJSON 42
+  , test "alpha videos DELETE" $ parseEndpoint "DELETE /api/video/asdf" === Other "DELETE /api/video/asdf"
+  , test "missing videos DELETE" $ parseEndpoint "DELETE /api/video/" === Other "DELETE /api/video/"
+
   , test "video add page EN" $ parseEndpoint "GET /videos/new" === GetVideosAddPage
   , test "video add page HU" $ parseEndpoint "GET /videok/uj" === GetVideosAddPage
   , test "video add page RO" $ parseEndpoint "GET /videouri/nou" === GetVideosAddPage
