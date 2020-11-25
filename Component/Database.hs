@@ -1,14 +1,16 @@
 {-# LANGUAGE BangPatterns #-}
 module Component.Database (DBHandle, getHandle, insert, insertWithIndex, repsertWithIndex, everythingList, everything, get, delete) where
 
-import Data.Map (Map)
+import           Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Function ((&))
+import qualified Data.Maybe as Maybe
+import           Data.Text (Text)
 import qualified Data.Text as Text
 
 import Component.Semaphore (Semaphore)
 import qualified Component.Semaphore as Sem
-import Utils (safeReadTextFile, safeWriteTextFile, readText)
+import Utils (safeReadTextFile, safeWriteTextFile, readText, mapIf)
 
 data DBHandle a = DBHandle
   { semaphore :: Semaphore
@@ -25,7 +27,7 @@ getHandle path = do
 
 createFile :: String -> IO ()
 createFile name = fmap
-  (fromMaybe $ error "I can't create a new file, probably you need to create a Data file.")
+  (Maybe.fromMaybe $ error "I can't create a new file, probably you need to create a Data file.")
   (safeWriteTextFile name Text.empty)
 
 insert :: (Read a, Show a) => DBHandle a -> a -> IO ()
@@ -46,17 +48,24 @@ repsertWithIndex :: (Read a, Show a) => DBHandle a -> a -> (a -> Int) -> IO ()
 repsertWithIndex handle a indexOf = do
   Sem.block (semaphore handle)
   !raw <- safeReadTextFile (path handle)
-  let !other = maybe [] (filter ((/= indexOf a) . indexOf) . fmap readText . Text.lines) raw
-  let !new = other ++ [a]
-  safeWriteTextFile (path handle) (Text.unlines $ fmap (Text.pack . show) new)
+  raw & maybe Text.empty func
+      & safeWriteTextFile (path handle)
   Sem.unblock (semaphore handle)
+  where
+    func :: Text -> Text
+    func = Text.unlines
+         . map (Text.pack . show)
+         . mapIf (\d -> indexOf d == indexOf a) (const a)
+         . map (read . Text.unpack)
+         . Text.lines
 
 everythingList :: (Read a, Show a) => DBHandle a -> IO [a]
 everythingList handle = do
   Sem.block (semaphore handle)
   !raw <- safeReadTextFile (path handle)
   Sem.unblock (semaphore handle)
-  return $ maybe [] (map readText . Text.lines) raw
+  raw & maybe [] (map readText . Text.lines)
+      & return
 
 everything :: (Read a, Show a) => DBHandle a -> IO (Map Int a)
 everything handle = do
@@ -70,7 +79,7 @@ get handle id = do
   Sem.block (semaphore handle)
   !raw <- safeReadTextFile (path handle)
   Sem.unblock (semaphore handle)
-  return $ (listToMaybe . drop (id-1) . take id . map readText . Text.lines) =<< raw
+  return $ (Maybe.listToMaybe . drop (id-1) . take id . map readText . Text.lines) =<< raw
 
 delete :: (Read a, Show a) => DBHandle a -> (a -> Bool) -> IO ()
 delete handle pred = do

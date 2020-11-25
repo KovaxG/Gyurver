@@ -15,6 +15,9 @@ import qualified Data.Text.IO as IO
 mapLeft :: (a -> b) -> Either a r -> Either b r
 mapLeft = first
 
+mapIf :: (a -> Bool) -> (a -> a) -> [a] -> [a]
+mapIf p f = map (\a -> if p a then f a else a)
+
 startsWith :: String -> String -> Bool
 startsWith ss s = (length ss <= length s) && and (zipWith (==) ss s)
 
