@@ -36,11 +36,11 @@ insert handle a = do
   appendFile (path handle) (show a ++ "\n")
   Sem.unblock (semaphore handle)
 
-insertWithIndex :: (Read a, Show a) => DBHandle a -> (Int -> a) -> IO ()
-insertWithIndex handle mkA = do
+insertWithIndex :: (Read a, Show a) => DBHandle a -> (Int -> a) -> (a -> Int) -> IO ()
+insertWithIndex handle mkA index= do
   Sem.block (semaphore handle)
   !raw <- safeReadTextFile (path handle)
-  let newId = maybe 0 (length . Text.lines) raw
+  let newId = maybe 0 ((+1) . maximum . (:) 0 . map (index . readText) . Text.lines) raw
   appendFile (path handle) (show (mkA newId) ++ "\n")
   Sem.unblock (semaphore handle)
 

@@ -155,7 +155,7 @@ process tojasDB
           (return . makeResponse BadRequest)
           (\request ->
             case VideoAdd.toVideo settings request of
-              Right videoWithoutIndex -> DB.insertWithIndex vidsDB videoWithoutIndex $> success
+              Right videoWithoutIndex -> DB.insertWithIndex vidsDB videoWithoutIndex Video.nr $> success
               Left error -> Logger.info log error $> makeResponse Unauthorized error
           )
 
