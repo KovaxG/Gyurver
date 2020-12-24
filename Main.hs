@@ -86,31 +86,31 @@ process tojasDB
       sendFile mainPath
 
     GetCV -> do
-      Logger.info log $ "Requested CV."
+      Logger.info log "Requested CV."
       sendFile cvPath
 
     GetFavicon -> do
-      Logger.info log $ "Requested favicon."
+      Logger.info log "Requested favicon."
       sendFile faviconPath
 
     GetArticlesPage -> do
-      Logger.info log $ "Requested articles page."
+      Logger.info log "Requested articles page."
       sendFile mainPath
 
     GetCokkJSON -> do
-      Logger.info log $ "[API] Requested cokkolesi lista."
+      Logger.info log "[API] Requested cokkolesi lista."
       tojasok <- DB.everythingList tojasDB
       return
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
-        $ tojasokToJson tojasok
+        $ map tojasToJson tojasok
 
     GetVideosPage -> do
-      Logger.info log $ "Requested video list."
+      Logger.info log "Requested video list."
       sendFile mainPath
 
     GetVideosJSON -> do
-      Logger.info log $ "[API] Requested video list."
+      Logger.info log "[API] Requested video list."
       videos <- DB.everythingList vidsDB
       return
         $ addHeaders [("Content-Type", "application/json")]
@@ -125,15 +125,15 @@ process tojasDB
              & return
 
     GetCokkResultsPage -> do
-      Logger.info log $ "Requested results."
+      Logger.info log "Requested results."
       sendFile mainPath
 
     GetCokkPage -> do
-      Logger.info log $ "Requested add egg page."
+      Logger.info log "Requested add egg page."
       sendFile mainPath
 
     GetVideosAddPage -> do
-      Logger.info log $ "Requested video add page."
+      Logger.info log "Requested video add page."
       sendFile mainPath
 
     GetResource resource -> do

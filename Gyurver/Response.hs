@@ -73,5 +73,8 @@ instance CanSend Document where
 instance CanSend Json where
   toBytes = BS.pack . show
 
+instance CanSend [Json] where
+  toBytes = toBytes . JsonArray
+
 showHeader :: (String, String) -> String
 showHeader (k, v) = k ++ ": " ++ v ++ "\n"

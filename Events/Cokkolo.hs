@@ -1,35 +1,34 @@
 {-# LANGUAGE NamedFieldPuns #-}
 module Events.Cokkolo where
 
-import qualified Data.List as List
-import System.Random
+import           Data.Text (Text)
+import qualified Data.Text as Text
+import           Component.Database (DBFormat(..))
+import           Component.Json (Json(..))
 
 data Tojas = Tojas
-  { nev :: String
-  , hatterSzin :: String
-  } deriving (Show, Read)
-
-piroska = Tojas "Piroska" "red"
-sargacska = Tojas "Sargacska" "yellow"
-
-data Harc = Harc
-  { tojas1 :: String
-  , tojas2 :: String
-  , gyoztes :: String
+  { nev :: Text
+  , hatterSzin :: Text
   } deriving (Show)
 
-harc :: (Tojas, Tojas) -> IO Harc
-harc (t1, t2) = do
-  coin <- randomIO
-  let nyertes = Harc (nev t1) (nev t2) . nev
-  return $ if coin then nyertes t1 else nyertes t2
+piroska :: Tojas
+piroska = Tojas (Text.pack "Piroska") (Text.pack "red")
 
-tojasokToJson :: [Tojas] -> String
-tojasokToJson = surround . List.intercalate "," . map tojasToJson
-  where
-    surround :: String -> String
-    surround s = "[" ++ s ++ "]"
+sargacska :: Tojas
+sargacska = Tojas (Text.pack "Sargacska") (Text.pack "yellow")
 
-tojasToJson :: Tojas -> String
+instance DBFormat Tojas where
+  encode Tojas{nev, hatterSzin} =
+    Text.intercalate (Text.pack ", ") [nev, hatterSzin]
+  decode s =
+    let (szinR, nevR) = Text.span (/=',') $ Text.reverse s
+        hatterSzin = Text.reverse $ Text.strip szinR
+        nev = Text.reverse $ Text.tail nevR
+    in Just $ Tojas { nev, hatterSzin }
+
+tojasToJson :: Tojas -> Json
 tojasToJson Tojas{nev, hatterSzin} =
-  "{ \"nev\":\"" ++ nev ++ "\", \"szin\":\"" ++ hatterSzin ++ "\"}"
+  JsonObject
+    [ ("nev", JsonString (Text.unpack nev))
+    , ("szin", JsonString (Text.unpack hatterSzin))
+    ]
