@@ -38,7 +38,7 @@ createFile name = fmap
 insert :: DBFormat a => DBHandle a -> a -> IO ()
 insert handle a = do
   Sem.block (semaphore handle)
-  TIO.appendFile (path handle) (encode a)
+  TIO.appendFile (path handle) (Text.snoc (encode a) '\n')
   Sem.unblock (semaphore handle)
 
 insertWithIndex :: DBFormat a => DBHandle a -> (Int -> a) -> (a -> Int) -> IO ()
@@ -46,7 +46,7 @@ insertWithIndex handle mkA index= do
   Sem.block (semaphore handle)
   !raw <- safeReadTextFile (path handle)
   let newId = maybe 0 ((+1) . maximum . (:) 0 . map (index . Maybe.fromJust . decode) . Text.lines) raw
-  TIO.appendFile (path handle) (encode $ mkA newId)
+  TIO.appendFile (path handle) (Text.snoc (encode $ mkA newId) '\n')
   Sem.unblock (semaphore handle)
 
 repsertWithIndex :: DBFormat a => DBHandle a -> a -> (a -> Int) -> IO ()
