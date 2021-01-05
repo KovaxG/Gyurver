@@ -309,7 +309,10 @@ deleteVideoToHtml model item =
   , Grid.row []
     [ Grid.col [] [iframe [src item.video.url] []]
     , Grid.col []
-      [ strong [] [text "Channel "]
+      [ strong [] [text "URL "]
+      , text item.video.url
+      , br [] []
+      , strong [] [text "Channel "]
       , text item.video.author
       , br [] []
       , strong [] [text "Date "]
@@ -347,7 +350,10 @@ editableVideoToHtml model item =
   , Grid.row []
     [ Grid.col [] [iframe [src item.video.url] []]
     , Grid.col []
-      [ strong [] [text "Channel "]
+      [ strong [] [text "URL "]
+      , text item.video.url
+      , br [] []
+      , strong [] [text "Channel "]
       , input [ placeholder "author", value item.author, onInput (VideoEdit item.video.nr << AuthorChanged)] []
       , br [] []
       , strong [] [text "Date "]
@@ -386,7 +392,10 @@ nonEditableVideoToHtml model video =
   , Grid.row []
     [ Grid.col [] [iframe [src video.url] []]
     , Grid.col []
-      [ strong [] [text "Channel "]
+      [ strong [] [text "URL "]
+      , text video.url
+      , br [] []
+      , strong [] [text "Channel "]
       , text video.author
       , br [] []
       , strong [] [text "Date "]
