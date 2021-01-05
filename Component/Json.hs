@@ -22,13 +22,24 @@ instance Show Json where
   show (JsonBool True) = "true"
   show (JsonBool False) = "false"
   show (JsonNumber num) = show num
-  show (JsonString str) = show str
+  show (JsonString str) = stringify str
   show (JsonArray jsons) = show jsons
   show (JsonObject assocList) =
     "{" ++ List.intercalate "," (map lineToString assocList) ++ "}"
     where
       lineToString (label, value) =
         show label ++ ":" ++ show value
+
+-- The normal show for strings escapes every single special 
+-- character and I can't use it in the db because show followed
+-- by a read yields different results
+-- Ex. show "Jó" --> "J\243"
+-- Maybe a better way is to replace escaped characters, but nobody got time for dat
+stringify :: String -> String
+stringify s = "\"" ++ (escape =<< s) ++ "\""
+  where
+    escape '\"' = "\\\""
+    escape c = [c]
 
 parseJson :: String -> Either String Json
 parseJson = first show . parse json ""
