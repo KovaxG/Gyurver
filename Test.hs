@@ -50,13 +50,13 @@ tests =
   , test "articles page HU" $ parseEndpoint "GET /cikkek" === GetArticlesPage
   , test "articles page RO" $ parseEndpoint "GET /articole" === GetArticlesPage
 
-  , test "cokk page" $ parseEndpoint "GET /cokk" === GetCokkPage
+  , test "2020 cokk page" $ parseEndpoint "GET /cokk2020" === GetCokk2020Page
 
-  , test "cokk results page EN" $ parseEndpoint "GET /cokk/results" === GetCokkResultsPage
-  , test "cokk results page HU" $ parseEndpoint "GET /cokk/eredmenyek" === GetCokkResultsPage
-  , test "cokk results page RO" $ parseEndpoint "GET /cokk/rezultate" === GetCokkResultsPage
+  , test "2020 cokk results page EN" $ parseEndpoint "GET /cokk2020/results" === GetCokk2020ResultsPage
+  , test "2020 cokk results page HU" $ parseEndpoint "GET /cokk2020/eredmenyek" === GetCokk2020ResultsPage
+  , test "2020 cokk results page RO" $ parseEndpoint "GET /cokk2020/rezultate" === GetCokk2020ResultsPage
 
-  , test "cokk API" $ parseEndpoint "GET /api/cokk" === GetCokkJSON
+  , test "2020 cokk API" $ parseEndpoint "GET /api/cokk2020" === GetCokk2020JSON
 
   , test "videos page EN" $ parseEndpoint "GET /videos" === GetVideosPage
   , test "videos page HU" $ parseEndpoint "GET /videok" === GetVideosPage

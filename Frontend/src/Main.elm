@@ -98,10 +98,10 @@ update msg model =
 validLinks : Model -> Dict String (Model, Cmd Msg)
 validLinks model = Dict.fromList
   [ (Endpoints.landingPage, Landing.init |> liftModelCmd Landing LandingMsg model)
-  , (Endpoints.cokkPage, CokkList.init |> liftModelCmd CokkList CokkListMsg model)
-  , (Endpoints.cokkResultsPageEN, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
-  , (Endpoints.cokkResultsPageHU, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
-  , (Endpoints.cokkResultsPageRO, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
+  , (Endpoints.cokk2020Page, CokkList.init |> liftModelCmd CokkList CokkListMsg model)
+  , (Endpoints.cokk2020ResultsPageEN, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
+  , (Endpoints.cokk2020ResultsPageHU, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
+  , (Endpoints.cokk2020ResultsPageRO, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
   , (Endpoints.articlesPageEN, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
   , (Endpoints.articlesPageHU, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
   , (Endpoints.articlesPageRO, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
@@ -145,7 +145,14 @@ navbar model =
   |> Navbar.items
     [ Navbar.itemLink [ href Endpoints.articlesPageEN ] [ text "📑 Articles"]
     , Navbar.itemLink [ href Endpoints.videosPageEN ] [ text "📼 Videos"]
-    , Navbar.itemLink [ href Endpoints.cokkPage ] [ text "🥚 Cökkölő"]
+    , Navbar.dropdown
+      { id = "Cokkolo_Dropdown"
+      , toggle = Navbar.dropdownToggle [] [text "🥚 Cökkölő"]
+      , items =
+        [ Navbar.dropdownItem [href Endpoints.cokk2020Page] [text "2020"]
+        , Navbar.dropdownItem [href Endpoints.cokk2021Page] [text "2021"]
+        ]
+      }
     ]
   |> Navbar.customItems [Navbar.textItem [ ] [ text <| "v" ++ Settings.version]]
   |> Navbar.view model.navbar

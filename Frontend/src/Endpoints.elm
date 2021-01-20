@@ -27,14 +27,14 @@ videosJsonRO = "/api/videouri"
 videoJson nr = "/api/video/" ++ String.fromInt nr
 
 
-cokkPage = "/cokk"
+cokk2020Page = "/cokk2020"
+cokk2021Page = "/cokk2021"
 
+cokk2020ResultsPageEN = "/cokk2020/results"
+cokk2020ResultsPageHU = "/cokk2020/eredmenyek"
+cokk2020ResultsPageRO = "/cokk2020/rezultate"
 
-cokkResultsPageEN = "/cokk/results"
-cokkResultsPageHU = "/cokk/eredmenyek"
-cokkResultsPageRO = "/cokk/rezultate"
-
-cokkJson = "/api/cokk"
+cokk2020Json = "/api/cokk2020"
 
 
 cv = "/cv"

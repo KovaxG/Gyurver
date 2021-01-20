@@ -21,12 +21,12 @@ data Endpoint
   | GetCV
   | GetFavicon
   | GetArticlesPage
-  | GetCokkJSON
+  | GetCokk2020JSON
   | GetVideosPage
   | GetVideosJSON
   | GetVideoJSON Int
-  | GetCokkResultsPage
-  | GetCokkPage
+  | GetCokk2020ResultsPage
+  | GetCokk2020Page
   | GetVideosAddPage
   | GetResource String
   | PostVideo
@@ -44,8 +44,8 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
     rule =
       foldl (<|>) (limit landingPage)
       $ limit <$>
-        [ cv, favicon, articlesPageHU, articlesPageRO, articlesPageEN, cokkJson,  videosPageEN, videosJsonHU, cokkResultsPageEN, cokkPage,
-          videoAddPageEN, getResource, postVideoEndpointEN, optionsVideoEndpointEN, cokkResultsPageRO, cokkResultsPageHU, videosPageHU, videosPageRO,
+        [ cv, favicon, articlesPageHU, articlesPageRO, articlesPageEN, cokk2020Json,  videosPageEN, videosJsonHU, cokk2020ResultsPageEN, cokk2020Page,
+          videoAddPageEN, getResource, postVideoEndpointEN, optionsVideoEndpointEN, cokk2020ResultsPageRO, cokk2020ResultsPageHU, videosPageHU, videosPageRO,
           videoAddPageRO, videoAddPageHU, videosJsonRO, videosJsonEN, postVideoEndpointRO, postVideoEndpointHU, optionsVideoEndpointHU, optionsVideoEndpointRO,
           getVideoJson, postVideoJson, optionsVideoJson, deleteVideoJSON
         ]
@@ -84,13 +84,13 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
     optionsVideoEndpointHU = Parsec.string "OPTIONS /api/videok" $> OptionsVideo
     optionsVideoEndpointRO = Parsec.string "OPTIONS /api/videouri" $> OptionsVideo
 
-    cokkPage = Parsec.string "GET /cokk" $> GetCokkPage
+    cokk2020Page = Parsec.string "GET /cokk2020" $> GetCokk2020Page
 
-    cokkResultsPageEN = Parsec.string "GET /cokk/results" $> GetCokkResultsPage
-    cokkResultsPageHU = Parsec.string "GET /cokk/eredmenyek" $> GetCokkResultsPage
-    cokkResultsPageRO = Parsec.string "GET /cokk/rezultate" $> GetCokkResultsPage
+    cokk2020ResultsPageEN = Parsec.string "GET /cokk2020/results" $> GetCokk2020ResultsPage
+    cokk2020ResultsPageHU = Parsec.string "GET /cokk2020/eredmenyek" $> GetCokk2020ResultsPage
+    cokk2020ResultsPageRO = Parsec.string "GET /cokk2020/rezultate" $> GetCokk2020ResultsPage
 
-    cokkJson = Parsec.string "GET /api/cokk" $> GetCokkJSON
+    cokk2020Json = Parsec.string "GET /api/cokk2020" $> GetCokk2020JSON
 
     cv = Parsec.string "GET /cv" $> GetCV
     favicon = Parsec.string "GET /favicon.ico" $> GetFavicon

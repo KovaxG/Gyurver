@@ -97,7 +97,7 @@ process tojasDB
       Logger.info log "Requested articles page."
       sendFile mainPath
 
-    GetCokkJSON -> do
+    GetCokk2020JSON -> do
       Logger.info log "[API] Requested cokkolesi lista."
       tojasok <- DB.everythingList tojasDB
       return
@@ -124,11 +124,11 @@ process tojasDB
              & maybe badRequest (addHeaders [("Content-Type", "application/json")] . makeResponse OK . Video.videoToJson)
              & return
 
-    GetCokkResultsPage -> do
+    GetCokk2020ResultsPage -> do
       Logger.info log "Requested results."
       sendFile mainPath
 
-    GetCokkPage -> do
+    GetCokk2020Page -> do
       Logger.info log "Requested add egg page."
       sendFile mainPath
 

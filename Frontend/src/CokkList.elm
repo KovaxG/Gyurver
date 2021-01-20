@@ -36,7 +36,7 @@ init =
   let
     kezdeti = { tojasok = [], betoltve = False }
     parancs = get
-      { url = Endpoints.cokkJson
+      { url = Endpoints.cokk2020Json
       , expect = expectJson Tojasok (Decoder.list tojasDecoder)
       }
   in (kezdeti, parancs)
@@ -62,7 +62,7 @@ view model =
           , leiras
           , text "A felíratkozásnak már vége, a nap folyamán itt lesz egy link ahol majd meg lehet nézni az eredményeket. Sok sikert mindenkinek :)"
           , br [] []
-          , a [href Endpoints.cokkResultsPageHU] [text "Mutasd az Eredményeket!"]
+          , a [href Endpoints.cokk2020ResultsPageHU] [text "Mutasd az Eredményeket!"]
           , h3 [] [text "Versenyzők"]
           , if model.betoltve
             then listaView model.tojasok
