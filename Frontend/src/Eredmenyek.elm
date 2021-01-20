@@ -23,6 +23,11 @@ init = (NoModel, Cmd.none)
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = (model, Cmd.none)
 
+type alias RowData =
+  { tojasPic : Html Msg
+  , score : Int
+  }
+
 view : Model -> Document Msg
 view model =
   { title = "Eredmenyek"
@@ -47,50 +52,82 @@ view model =
       , [ Grid.col [] [h2 [] [text "Csoportok"]]
         ] |>  Grid.row []
       , [ [ h5 [] [text "A Csoport"]
-          , csoportTable [(div [] [tojasPic "red", text "heni"], 2), (div [] [tojasPic "red", text "Hímes a tojás, de erős"], 4), (div [] [tojasPic "red", text "Tojásvadász"], 1)]
+          , csoportTable [ { tojasPic = div [] [tojasPic "red", text "heni"], score = 2 }
+                         , { tojasPic = div [] [tojasPic "red", text "Hímes a tojás, de erős"], score = 4 }
+                         , { tojasPic = div [] [tojasPic "red", text "Tojásvadász"], score = 1 }
+                         ]
           ] |> Grid.col []
         , [ h5 [] [text "B Csoport"]
-          , csoportTable [(div [] [tojasPic "#F6DADA", text "Lusta vagyok szinezni"], 5), (div [] [tojasPic "#F6DADA", text "DoktorStrong"], 3), (div [] [tojasPic "green", text "Legkemenyebb"], 2)]
+          , csoportTable [ { tojasPic = div [] [tojasPic "#F6DADA", text "Lusta vagyok szinezni"], score = 5 }
+                         , { tojasPic = div [] [tojasPic "#F6DADA", text "DoktorStrong"], score = 3 }
+                         , { tojasPic = div [] [tojasPic "green", text "Legkemenyebb"], score = 2 }
+                         ]
           ] |> Grid.col []
         ] |> Grid.row []
       , [ [ h5 [] [text "C Csoport"]
-          , csoportTable [(div [] [tojasPic "red", text "Perszeusz"], 3), (div [] [tojasPic "black", text "Csirke"], 2), (div [] [tojasPic "red", text "Törékeny de erős!"], 4)]
+          , csoportTable [ { tojasPic = div [] [tojasPic "red", text "Perszeusz"], score = 3 }
+                         , { tojasPic = div [] [tojasPic "black", text "Csirke"], score = 2 }
+                         , { tojasPic = div [] [tojasPic "red", text "Törékeny de erős!"], score = 4 }
+                         ]
           ] |> Grid.col []
         , [ h5 [] [text "D Csoport"]
-          , csoportTable [(div [] [tojasPic "yellow", text "Cökkenetes"], 1), (div [] [tojasPic "green", text "Cökkenő számtani nyuladvány"], 3), (div [] [tojasPic "black", text "Faith"], 4)]
+          , csoportTable [ { tojasPic = div [] [tojasPic "yellow", text "Cökkenetes"], score = 1 }
+                         , { tojasPic = div [] [tojasPic "green", text "Cökkenő számtani nyuladvány"], score = 3 }
+                         , { tojasPic = div [] [tojasPic "black", text "Faith"], score = 4 }
+                         ]
           ] |> Grid.col []
         ] |> Grid.row []
       , [ [ h5 [] [text "E Csoport"]
-          , csoportTable [(div [] [tojasPic "#F6DADA", text "Purdé"], 3), (div [] [tojasPic "purple", text "Füles"], 5), (div [] [tojasPic "orange", text "Zeltman Kingsford Császár"], 2)]
+          , csoportTable [ { tojasPic = div [] [tojasPic "#F6DADA", text "Purdé"], score = 3 }
+                         , { tojasPic = div [] [tojasPic "purple", text "Füles"], score = 5 }
+                         , { tojasPic = div [] [tojasPic "orange", text "Zeltman Kingsford Császár"], score = 2 }
+                         ]
           ] |>  Grid.col []
         , [ h5 [] [text "F Csoport"]
-          , csoportTable [(div [] [tojasPic "#F6DADA", text "Mona Lisa"], 2), (div [] [tojasPic "purple", text "CFR"], 2), (div [] [tojasPic "green", text "Kicsi Zöld"], 3)]
+          , csoportTable [ { tojasPic = div [] [tojasPic "#F6DADA", text "Mona Lisa"], score = 2 }
+                         , { tojasPic = div [] [tojasPic "purple", text "CFR"], score = 2 }
+                         , { tojasPic = div [] [tojasPic "green", text "Kicsi Zöld"], score = 3 }
+                         ]
           ] |> Grid.col []
         ] |> Grid.row []
         , [ [ h5 [] [text "G Csoport"]
-            , csoportTable [(div [] [tojasPic "black", text "Kőtojás"], 1), (div [] [tojasPic "orange", text "Sanya"], 2)]
+            , csoportTable [ { tojasPic = div [] [tojasPic "black", text "Kőtojás"], score = 1 }
+                           , { tojasPic = div [] [tojasPic "orange", text "Sanya"], score = 2 }
+                           ]
             ] |> Grid.col []
           , [ h5 [] [text "H Csoport"]
-            , csoportTable [(div [] [tojasPic "#F6DADA", text "Keményke"], 0), (div [] [tojasPic "red", text "Nyuszi"], 2)]
+            , csoportTable [ { tojasPic = div [] [tojasPic "#F6DADA", text "Keményke"], score = 0 }
+                           , { tojasPic = div [] [tojasPic "red", text "Nyuszi"], score = 2 }
+                           ]
             ] |> Grid.col []
           ] |> Grid.row []
       ] |> Grid.container []
     ]
   }
 
-csoportTable : List (Html Msg, Int) -> Html Msg
+csoportTable : List RowData -> Html Msg
 csoportTable rows =
-  Table.table
-    { options = [ Table.striped, Table.bordered ]
-    , thead =
-        Table.simpleThead
-          [ Table.th [] [text "Tojás"]
-          , Table.th [] [text "Pontszám"]
-          ]
-    , tbody =
-        Table.tbody []
-          (rows |> List.map (\(k, v) -> Table.tr [] [Table.td [] [ k ], Table.td [] [text <| String.fromInt v]]))
-    }
+  let max = List.maximum <| List.map .score rows
+  in
+    Table.table
+      { options = [ Table.bordered ]
+      , thead =
+          Table.simpleThead
+            [ Table.th [] [text "Tojás"]
+            , Table.th [] [text "Pontszám"]
+            ]
+      , tbody =
+          Table.tbody []
+            ( rows
+              |> List.map (\rd ->
+                Table.tr
+                  [if max == Just rd.score then Table.rowSuccess else noAttr]
+                  [ Table.td [] [rd.tojasPic]
+                  , Table.td [] [text <| String.fromInt rd.score]
+                  ]
+              )
+            )
+      }
 
 tojasPic : String -> Html Msg
 tojasPic color =
@@ -135,3 +172,6 @@ fules = [tojasPic "purple", text "Füles"]
 kiszo = [tojasPic "green", text "Kicsi Zöld"]
 sanya = [tojasPic "orange", text "Sanya"]
 nyusz = [tojasPic "red", text "Nyuszi"]
+
+noAttr : Table.RowOption msg
+noAttr = Table.rowAttr (style "" "")
