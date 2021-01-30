@@ -180,11 +180,27 @@ process tojasDB
           )
 
     PostCokk2021Login -> do
+      let
+        parseFailure :: String -> IO Response
+        parseFailure = return . makeResponse BadRequest
+
+        parseSuccess :: Cokk2021.Login -> IO Response
+        parseSuccess login = do
+          users <- DB.everythingList cokk2021UserDB
+          let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
+                                      && Cokk2021.jelszoHash u == Cokk2021.pass login) users
+          return $ maybe
+            (makeResponse Unauthorized "Bad Credentials")
+            (makeResponse OK . Cokk2021.userJsonEncoder)
+            userOpt
+
       Logger.info log "Login attempt"
-      return $ makeResponse BadRequest "Endpoint is not finished"
+      Json.parseJson content
+        >>= Decoder.run Cokk2021.loginDecoder
+        & either parseFailure parseSuccess
 
     PostCokk2021Register -> do
-      let
+      let -- TODO extract parsing pattern
         parseFailure :: String -> IO Response
         parseFailure = return . makeResponse BadRequest
 

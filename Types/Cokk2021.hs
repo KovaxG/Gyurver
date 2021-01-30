@@ -24,9 +24,9 @@ userJsonEncoder user = JsonObject
 
 userDecoder :: Decoder User
 userDecoder =
-    User <$> Decoder.field "nev" Decoder.string
-         <*> Decoder.field "fhs" Decoder.string
-         <*> Decoder.field "tnv" Decoder.string
+  User <$> Decoder.field "nev" Decoder.string
+       <*> Decoder.field "fhs" Decoder.string
+       <*> Decoder.field "tnv" Decoder.string
 
 instance DBFormat User where
   encode = Text.pack . show . userJsonEncoder
@@ -35,3 +35,13 @@ instance DBFormat User where
     . (=<<) (Decoder.run userDecoder)
     . Json.parseJson
     . Text.unpack
+
+data Login = Login
+  { user :: String
+  , pass :: String
+  }
+
+loginDecoder :: Decoder Login
+loginDecoder =
+  Login <$> Decoder.field "user" Decoder.string
+        <*> Decoder.field "pass" Decoder.string
