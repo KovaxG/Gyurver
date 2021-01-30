@@ -83,7 +83,12 @@ process tojasDB
         vidsDB
         cokk2021UserDB
         settings
-        Request{requestType, path, content} =
+        Request{requestType, path, content} = do
+  let
+    processJsonBody :: Decoder.Decoder a -> (a -> IO Response) -> IO Response
+    processJsonBody decoder handle =
+      Json.parseJson content >>= Decoder.run decoder & either (return . makeResponse BadRequest) handle
+
   case parseEndpoint $ unwords [show requestType, path] of
     GetLandingPage -> do
       Logger.info log $ "Requested landing page, sending " ++ mainPath
@@ -157,81 +162,49 @@ process tojasDB
 
     PostVideo -> do
       Logger.info log "[API] Adding new video to list."
-      Json.parseJson content
-        >>= Decoder.run VideoAdd.decoder
-        & either
-          (return . makeResponse BadRequest)
-          (\request ->
-            case VideoAdd.toVideo settings request of
-              Right videoWithoutIndex -> DB.insertWithIndex vidsDB videoWithoutIndex Video.nr $> success
-              Left error -> Logger.info log error $> makeResponse Unauthorized error
-          )
+      processJsonBody VideoAdd.decoder $ \request ->
+        case VideoAdd.toVideo settings request of
+          Right videoWithoutIndex -> DB.insertWithIndex vidsDB videoWithoutIndex Video.nr $> success
+          Left error -> Logger.info log error $> makeResponse Unauthorized error
+
 
     PostVideoJSON reqNr -> do
       Logger.info log $ "[API] Modified video with nr: " ++ show reqNr
-      Json.parseJson content
-        >>= Decoder.run VideoEdit.decoder
-        & either
-          (return . makeResponse BadRequest)
-          (\video ->
-            case VideoEdit.toVideo settings video of
-              Right videoWithoutIndex -> DB.repsertWithIndex vidsDB (videoWithoutIndex reqNr) Video.nr $> success
-              Left error -> Logger.info log error $> makeResponse Unauthorized error
-          )
+      processJsonBody VideoEdit.decoder $ \video ->
+        case VideoEdit.toVideo settings video of
+          Right videoWithoutIndex -> DB.repsertWithIndex vidsDB (videoWithoutIndex reqNr) Video.nr $> success
+          Left error -> Logger.info log error $> makeResponse Unauthorized error
 
     PostCokk2021Login -> do
-      let
-        parseFailure :: String -> IO Response
-        parseFailure = return . makeResponse BadRequest
-
-        parseSuccess :: Cokk2021.Login -> IO Response
-        parseSuccess login = do
-          users <- DB.everythingList cokk2021UserDB
-          let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
-                                      && Cokk2021.jelszoHash u == Cokk2021.pass login) users
-          return $ maybe
-            (makeResponse Unauthorized "Bad Credentials")
-            (makeResponse OK . Cokk2021.userJsonEncoder)
-            userOpt
-
       Logger.info log "Login attempt"
-      Json.parseJson content
-        >>= Decoder.run Cokk2021.loginDecoder
-        & either parseFailure parseSuccess
+      processJsonBody Cokk2021.loginDecoder $ \login -> do
+        users <- DB.everythingList cokk2021UserDB
+        let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
+                                    && Cokk2021.jelszoHash u == Cokk2021.pass login) users
+        return $ maybe
+          (makeResponse Unauthorized "Bad Credentials")
+          (makeResponse OK . Cokk2021.userJsonEncoder)
+          userOpt
 
     PostCokk2021Register -> do
-      let -- TODO extract parsing pattern
-        parseFailure :: String -> IO Response
-        parseFailure = return . makeResponse BadRequest
-
-        parseSuccess :: Cokk2021.User -> IO Response
-        parseSuccess user = do
-          users <- DB.everythingList cokk2021UserDB
-          if   Cokk2021.felhasznaloNev user `elem` map Cokk2021.felhasznaloNev users
-          then return $ makeResponse BadRequest "Felhasznalonev nem egyedi."
-          else
-            if Cokk2021.tojasNev user `elem` map Cokk2021.tojasNev users
-            then return $ makeResponse BadRequest "Tojasnev nem egyedi."
-            else do
-              DB.insert cokk2021UserDB user
-              return $ makeResponse OK ("Welcome " ++ Cokk2021.felhasznaloNev user)
-
       Logger.info log "Registration attempt"
-      Json.parseJson content
-        >>= Decoder.run Cokk2021.userDecoder
-        & either parseFailure parseSuccess
+      processJsonBody Cokk2021.userDecoder $ \user -> do
+        users <- DB.everythingList cokk2021UserDB
+        if Cokk2021.felhasznaloNev user `elem` map Cokk2021.felhasznaloNev users
+        then return $ makeResponse BadRequest "Felhasznalonev nem egyedi."
+        else
+          if Cokk2021.tojasNev user `elem` map Cokk2021.tojasNev users
+          then return $ makeResponse BadRequest "Tojasnev nem egyedi."
+          else do
+            DB.insert cokk2021UserDB user
+            return $ makeResponse OK ("Welcome " ++ Cokk2021.felhasznaloNev user)
 
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr
-      Json.parseJson content
-        >>= Decoder.run Password.decoder
-        & either
-          (return . makeResponse BadRequest)
-          (\(Password pwd) ->
-            if pwd == (settings & password)
-            then DB.delete vidsDB (\v -> Video.nr v == reqNr) $> success
-            else Logger.info log ("Bad password: " ++ pwd) $> makeResponse Unauthorized ""
-          )
+      processJsonBody Password.decoder $ \(Password pwd) ->
+        if pwd == (settings & password)
+        then DB.delete vidsDB (\v -> Video.nr v == reqNr) $> success
+        else Logger.info log ("Bad password: " ++ pwd) $> makeResponse Unauthorized ""
 
     OptionsVideo -> do
       Logger.info log "Someone asked if you can post to /api/videos/new, sure."
