@@ -4,7 +4,7 @@ import Data.Bifunctor
 import qualified Data.List as List
 import Text.Parsec
 
-import Utils
+import Utils (($>))
 
 data Json
   = JsonNull
@@ -30,7 +30,7 @@ instance Show Json where
       lineToString (label, value) =
         show label ++ ":" ++ show value
 
--- The normal show for strings escapes every single special 
+-- The normal show for strings escapes every single special
 -- character and I can't use it in the db because show followed
 -- by a read yields different results
 -- Ex. show "Jó" --> "J\243"

@@ -26,8 +26,9 @@ import           Types.Video (Video)
 import qualified Types.Video as Video
 import qualified Types.VideoAdd as VideoAdd
 import qualified Types.VideoEdit as VideoEdit
-import Types.Password as Password
-import Types.Settings as Settings
+import           Types.Password as Password
+import           Types.Settings as Settings
+import qualified Types.Cokk2021 as Cokk2021
 import Endpoints
 import Utils (($>), safeReadBinaryFile, safeReadTextFile)
 
@@ -40,13 +41,14 @@ main = do
 
   tojasDB <- DB.getHandle "cokkolo2020"
   vidsDB <- DB.getHandle "vids"
+  cokk2021UserDB <- DB.getHandle "cokk2021User"
 
   settings <- readSettings log
   Logger.info log (show settings)
   runServer log
             (settings & hostAddress)
             (settings & port)
-            (process tojasDB vidsDB settings)
+            (process tojasDB vidsDB cokk2021UserDB settings)
 
 readSettings :: Logger -> IO Settings
 readSettings log =
@@ -73,11 +75,13 @@ readSettings log =
 
 process :: DBHandle Tojas
         -> DBHandle Video
+        -> DBHandle Cokk2021.User
         -> Settings
         -> Request
         -> IO Response
 process tojasDB
         vidsDB
+        cokk2021UserDB
         settings
         Request{requestType, path, content} =
   case parseEndpoint $ unwords [show requestType, path] of
@@ -129,7 +133,11 @@ process tojasDB
       sendFile mainPath
 
     GetCokk2020Page -> do
-      Logger.info log "Requested add egg page."
+      Logger.info log "Requested cokk 2020 page."
+      sendFile mainPath
+
+    GetCokk2021Page -> do
+      Logger.info log "Requested cokk 2021 page"
       sendFile mainPath
 
     GetVideosAddPage -> do
@@ -165,11 +173,37 @@ process tojasDB
         >>= Decoder.run VideoEdit.decoder
         & either
           (return . makeResponse BadRequest)
-          (\request ->
-            case VideoEdit.toVideo settings request of
+          (\video ->
+            case VideoEdit.toVideo settings video of
               Right videoWithoutIndex -> DB.repsertWithIndex vidsDB (videoWithoutIndex reqNr) Video.nr $> success
               Left error -> Logger.info log error $> makeResponse Unauthorized error
           )
+
+    PostCokk2021Login -> do
+      Logger.info log "Login attempt"
+      return $ makeResponse BadRequest "Endpoint is not finished"
+
+    PostCokk2021Register -> do
+      let
+        parseFailure :: String -> IO Response
+        parseFailure = return . makeResponse BadRequest
+
+        parseSuccess :: Cokk2021.User -> IO Response
+        parseSuccess user = do
+          users <- DB.everythingList cokk2021UserDB
+          if   Cokk2021.felhasznaloNev user `elem` map Cokk2021.felhasznaloNev users
+          then return $ makeResponse BadRequest "Felhasznalonev nem egyedi."
+          else
+            if Cokk2021.tojasNev user `elem` map Cokk2021.tojasNev users
+            then return $ makeResponse BadRequest "Tojasnev nem egyedi."
+            else do
+              DB.insert cokk2021UserDB user
+              return $ makeResponse OK ("Welcome " ++ Cokk2021.felhasznaloNev user)
+
+      Logger.info log "Registration attempt"
+      Json.parseJson content
+        >>= Decoder.run Cokk2021.userDecoder
+        & either parseFailure parseSuccess
 
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr

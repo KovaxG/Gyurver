@@ -51,12 +51,16 @@ tests =
   , test "articles page RO" $ parseEndpoint "GET /articole" === GetArticlesPage
 
   , test "2020 cokk page" $ parseEndpoint "GET /cokk2020" === GetCokk2020Page
+  , test "2021 cokk page" $ parseEndpoint "GET /cokk2021" === GetCokk2021Page
 
   , test "2020 cokk results page EN" $ parseEndpoint "GET /cokk2020/results" === GetCokk2020ResultsPage
   , test "2020 cokk results page HU" $ parseEndpoint "GET /cokk2020/eredmenyek" === GetCokk2020ResultsPage
   , test "2020 cokk results page RO" $ parseEndpoint "GET /cokk2020/rezultate" === GetCokk2020ResultsPage
 
   , test "2020 cokk API" $ parseEndpoint "GET /api/cokk2020" === GetCokk2020JSON
+
+  , test "2021 cokk login API" $ parseEndpoint "POST /api/cokk2021/login" === PostCokk2021Login
+  , test "2021 cokk register API" $ parseEndpoint "POST /api/cokk2021/register" === PostCokk2021Register
 
   , test "videos page EN" $ parseEndpoint "GET /videos" === GetVideosPage
   , test "videos page HU" $ parseEndpoint "GET /videok" === GetVideosPage
