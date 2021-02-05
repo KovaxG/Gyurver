@@ -1,4 +1,4 @@
-module Types.NewVideoRequest exposing (..)
+module Video.NewVideoRequest exposing (..)
 
 import Date exposing (Date)
 import Json.Encode as Encode exposing (Value)

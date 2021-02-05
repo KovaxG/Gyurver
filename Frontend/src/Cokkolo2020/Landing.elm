@@ -1,4 +1,4 @@
-module CokkList exposing (Model, Msg, init, update, view)
+module Cokkolo2020.Landing exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
 import Browser.Navigation exposing (load)

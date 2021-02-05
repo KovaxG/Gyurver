@@ -1,4 +1,4 @@
-module Vids exposing (Model, Msg, init, update, view)
+module Video.Vids exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
 import Html exposing (Html, text, h1, h3, br, strong, div, iframe, input, span)
@@ -21,7 +21,7 @@ import Settings
 import Endpoints
 import Json.Decode as Decode exposing (Decoder)
 import Set
-import Types.Video as Video exposing (Video)
+import Video.Video as Video exposing (Video)
 import Types.Result as Result
 import Html.Events exposing (onClick)
 import Util

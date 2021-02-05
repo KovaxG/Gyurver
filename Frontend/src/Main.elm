@@ -15,11 +15,11 @@ import Html.Attributes exposing (href)
 import Bootstrap.Utilities.Spacing as Spacing
 
 import Landing
-import CokkList
-import Eredmenyek
+import Cokkolo2020.Landing
+import Cokkolo2020.Results
 import Articles
-import VideoAdd
-import Vids as VideoList
+import Video.VideoAdd as VideoAdd
+import Video.Vids as VideoList
 import Browser.Navigation exposing (pushUrl)
 import Settings
 import Endpoints
@@ -42,8 +42,8 @@ type alias Model =
 
 type Content
   = Landing Landing.Model
-  | CokkList CokkList.Model
-  | Eredmenyek Eredmenyek.Model
+  | CokkoloLanding2020 Cokkolo2020.Landing.Model
+  | CokkoloResults2020 Cokkolo2020.Results.Model
   | Articles Articles.Model
   | VideoAdd VideoAdd.Model
   | VideoList VideoList.Model
@@ -56,8 +56,8 @@ type Msg
   | UrlRequest UrlRequest
   | UrlChange Url
   | LandingMsg Landing.Msg
-  | CokkListMsg CokkList.Msg
-  | EredmenyekMsg Eredmenyek.Msg
+  | CokkoloLanding2020Msg Cokkolo2020.Landing.Msg
+  | CokkoloResults2020Msg Cokkolo2020.Results.Msg
   | ArticlesMsg Articles.Msg
   | VideoAddMsg VideoAdd.Msg
   | VideoListMsg VideoList.Msg
@@ -75,8 +75,8 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case (msg, model.content) of
     (LandingMsg wmsg, Landing w) -> Landing.update wmsg w |> liftModelCmd Landing LandingMsg model
-    (CokkListMsg clmsg, CokkList cl) -> CokkList.update clmsg cl |> liftModelCmd CokkList CokkListMsg model
-    (EredmenyekMsg emsg, Eredmenyek e) -> Eredmenyek.update emsg e |> liftModelCmd Eredmenyek EredmenyekMsg model
+    (CokkoloLanding2020Msg clmsg, CokkoloLanding2020 cl) -> Cokkolo2020.Landing.update clmsg cl |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model
+    (CokkoloResults2020Msg emsg, CokkoloResults2020 e) -> Cokkolo2020.Results.update emsg e |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model
     (ArticlesMsg amsg, Articles a) -> Articles.update amsg a |> liftModelCmd Articles ArticlesMsg model
     (VideoAddMsg vamsg, VideoAdd va) -> VideoAdd.update vamsg va |> liftModelCmd VideoAdd VideoAddMsg model
     (VideoListMsg vlmsg, VideoList vl) -> VideoList.update vlmsg vl |> liftModelCmd VideoList VideoListMsg model
@@ -98,10 +98,10 @@ update msg model =
 validLinks : Model -> Dict String (Model, Cmd Msg)
 validLinks model = Dict.fromList
   [ (Endpoints.landingPage, Landing.init |> liftModelCmd Landing LandingMsg model)
-  , (Endpoints.cokk2020Page, CokkList.init |> liftModelCmd CokkList CokkListMsg model)
-  , (Endpoints.cokk2020ResultsPageEN, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
-  , (Endpoints.cokk2020ResultsPageHU, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
-  , (Endpoints.cokk2020ResultsPageRO, Eredmenyek.init |> liftModelCmd Eredmenyek EredmenyekMsg  model)
+  , (Endpoints.cokk2020Page, Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model)
+  , (Endpoints.cokk2020ResultsPageEN, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg  model)
+  , (Endpoints.cokk2020ResultsPageHU, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg  model)
+  , (Endpoints.cokk2020ResultsPageRO, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg  model)
   , (Endpoints.articlesPageEN, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
   , (Endpoints.articlesPageHU, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
   , (Endpoints.articlesPageRO, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
@@ -125,8 +125,8 @@ view : Model -> Document Msg
 view model =
   case model.content of
     Landing welcome -> Landing.view welcome |> liftDocument model LandingMsg
-    CokkList cokkList -> CokkList.view cokkList |> liftDocument model CokkListMsg
-    Eredmenyek eredmenyek -> Eredmenyek.view eredmenyek |> liftDocument model EredmenyekMsg
+    CokkoloLanding2020 cokkList -> Cokkolo2020.Landing.view cokkList |> liftDocument model CokkoloLanding2020Msg
+    CokkoloResults2020 eredmenyek -> Cokkolo2020.Results.view eredmenyek |> liftDocument model CokkoloResults2020Msg
     Articles articles -> Articles.view articles |> liftDocument model ArticlesMsg
     VideoAdd videoAdd -> VideoAdd.view videoAdd |> liftDocument model VideoAddMsg
     VideoList videoList -> VideoList.view videoList |> liftDocument model VideoListMsg

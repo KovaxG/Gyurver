@@ -1,4 +1,4 @@
-module Eredmenyek exposing (Model, Msg, init, update, view)
+module Cokkolo2020.Results exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
 import Browser.Navigation exposing (load)

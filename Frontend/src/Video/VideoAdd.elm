@@ -1,4 +1,4 @@
-module VideoAdd exposing (Model, Msg, init, update, view)
+module Video.VideoAdd exposing (Model, Msg, init, update, view)
 
 import Browser exposing (UrlRequest, Document, application)
 import Bootstrap.CDN as CDN
@@ -22,7 +22,7 @@ import Maybe.Extra as Maybe
 
 import Settings
 import Endpoints
-import Types.NewVideoRequest as NewVideoRequest exposing (NewVideoRequest)
+import Video.NewVideoRequest as NewVideoRequest exposing (NewVideoRequest)
 import Types.Result as Result
 import Util
 
