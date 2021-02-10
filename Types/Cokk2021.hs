@@ -15,24 +15,40 @@ data User = User
   , tojasNev :: String
   }
 
+data Registration = Registration
+  { username :: String
+  , password :: String
+  , eggName :: String
+  }
+
+userRegistrationDecoder :: Decoder Registration
+userRegistrationDecoder =
+  Registration <$> Decoder.field "username" Decoder.string
+               <*> Decoder.field "password" Decoder.string
+               <*> Decoder.field "eggname" Decoder.string
+
+registrationToUser :: Registration -> User
+registrationToUser reg =
+  User { felhasznaloNev = username reg , jelszoHash = password reg, tojasNev = eggName reg }
+
 userJsonEncoder :: User -> Json
 userJsonEncoder user = JsonObject
-  [ ("nev", JsonString $ felhasznaloNev user)
-  , ("fhs", JsonString $ jelszoHash user)
-  , ("tnv", JsonString $ tojasNev user)
+  [ ("username", JsonString $ felhasznaloNev user)
+  , ("password", JsonString $ jelszoHash user)
+  , ("eggname", JsonString $ tojasNev user)
   ]
 
-userDecoder :: Decoder User
-userDecoder =
-  User <$> Decoder.field "nev" Decoder.string
-       <*> Decoder.field "fhs" Decoder.string
-       <*> Decoder.field "tnv" Decoder.string
+userJsonDecoder :: Decoder User
+userJsonDecoder =
+  User <$> Decoder.field "username" Decoder.string
+       <*> Decoder.field "password" Decoder.string
+       <*> Decoder.field "eggname" Decoder.string
 
 instance DBFormat User where
   encode = Text.pack . show . userJsonEncoder
   decode =
     Utils.eitherToMaybe
-    . (=<<) (Decoder.run userDecoder)
+    . (=<<) (Decoder.run userJsonDecoder)
     . Json.parseJson
     . Text.unpack
 

@@ -188,7 +188,8 @@ process tojasDB
 
     PostCokk2021Register -> do
       Logger.info log "Registration attempt"
-      processJsonBody Cokk2021.userDecoder $ \user -> do
+      processJsonBody Cokk2021.userRegistrationDecoder $ \registration -> do
+        let user = Cokk2021.registrationToUser registration
         users <- DB.everythingList cokk2021UserDB
         if Cokk2021.felhasznaloNev user `elem` map Cokk2021.felhasznaloNev users
         then return $ makeResponse BadRequest "Felhasznalonev nem egyedi."
@@ -197,7 +198,7 @@ process tojasDB
           then return $ makeResponse BadRequest "Tojasnev nem egyedi."
           else do
             DB.insert cokk2021UserDB user
-            return $ makeResponse OK ("Welcome " ++ Cokk2021.felhasznaloNev user)
+            return $ makeResponse OK $ Cokk2021.userJsonEncoder user
 
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr

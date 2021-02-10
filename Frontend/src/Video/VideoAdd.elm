@@ -77,13 +77,6 @@ type Msg
   | Success
   | Response String
 
-toMessage : Result Error String -> Msg
-toMessage result =
-  result
-  |> Result.map (always Success)
-  |> Result.mapError (Response << Util.showError)
-  |> Result.merge
-
 init : (Model, Cmd Msg)
 init =
   ( { url = ""
@@ -118,7 +111,7 @@ update msg model = case msg of
         , Http.post
           { url = Settings.path ++ Endpoints.videosJsonEN
           , body = Http.jsonBody (NewVideoRequest.encode request)
-          , expect = Http.expectString toMessage
+          , expect = Http.expectString <| Util.processMessage (always Success) Response
           }
         )
       Nothing ->

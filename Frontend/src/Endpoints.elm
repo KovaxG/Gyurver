@@ -36,5 +36,7 @@ cokk2020ResultsPageRO = "/cokk2020/rezultate"
 
 cokk2020Json = "/api/cokk2020"
 
+cokk2021RegisterJson = "/api/cokk2021/register"
+cokk2021LoginJson = "/api/cokk2021/login"
 
 cv = "/cv"
