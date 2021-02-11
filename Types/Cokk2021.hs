@@ -14,6 +14,7 @@ data User = User
   , jelszoHash :: String
   , tojasNev :: String
   , kolni :: Int
+  , kep :: String
   }
 
 data Registration = Registration
@@ -34,6 +35,7 @@ registrationToUser reg = User
   , jelszoHash = password reg
   , tojasNev = eggName reg
   , kolni = 0
+  , kep = "pucer"
   }
 
 userJsonEncoder :: User -> Json
@@ -42,6 +44,7 @@ userJsonEncoder user = JsonObject
   , ("password", JsonString $ jelszoHash user)
   , ("eggname", JsonString $ tojasNev user)
   , ("perfume", JsonNumber $ fromIntegral $ kolni user)
+  , ("image", JsonString $ kep user)
   ]
 
 userJsonDecoder :: Decoder User
@@ -50,17 +53,20 @@ userJsonDecoder =
        <*> Decoder.field "password" Decoder.string
        <*> Decoder.field "eggname" Decoder.string
        <*> Decoder.field "perfume" Decoder.int
+       <*> Decoder.field "image" Decoder.string
 
 userToEggListItemJson :: User -> Json
 userToEggListItemJson u = JsonObject
   [ ("username", JsonString $ felhasznaloNev u)
   , ("eggname", JsonString $ tojasNev u)
+  , ("image", JsonString $ kep u)
   ]
 
 userToUserListItemJson :: User -> Json
 userToUserListItemJson u = JsonObject
   [ ("username", JsonString $ felhasznaloNev u)
   , ("eggname", JsonString $ tojasNev u)
+  , ("image", JsonString $ kep u)
   ]
 
 instance DBFormat User where

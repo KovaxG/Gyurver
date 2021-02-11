@@ -1,7 +1,8 @@
 module Cokkolo2021.Landing exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
-import Html exposing (Html, button, div, text, h1, h2, h3, p, ol, li, br, a)
+import Html exposing (Html, button, div, text, h1, h2, h3, p, ol, li, br, a, img)
+import Html.Attributes exposing (src, alt, style)
 import Http as Http
 import Json.Encode as Encode exposing (Value)
 import Json.Decode as Decode exposing (Decoder)
@@ -72,16 +73,18 @@ type alias User =
   , password : String
   , eggName : String
   , perfume : Int
+  , image : String
   }
 
 userDecoder : Decoder User
 userDecoder =
-  Decode.map4
+  Decode.map5
     User
     (Decode.field "username" Decode.string)
     (Decode.field "password" Decode.string)
     (Decode.field "eggname" Decode.string)
     (Decode.field "perfume" Decode.int)
+    (Decode.field "image" Decode.string)
 
 type alias DashboardViewState = User
 
@@ -109,6 +112,7 @@ type Msg
   | RegisterViewRegister
   | RegisterViewRegisterSuccess User
   | RegisterViewRegisterFailure String
+  | DashboardViewLogout
 
 init : (Model, Cmd Msg)
 init = (LoginView loginViewInitState, Cmd.none)
@@ -143,6 +147,7 @@ update msg model = case (msg, model) of
         , expect = Http.expectJson (Util.processMessage RegisterViewRegisterSuccess RegisterViewRegisterFailure) userDecoder
         }
     )
+  (DashboardViewLogout, DashboardView _) -> (LoginView loginViewInitState, Cmd.none)
   _ -> (LoginView loginViewInitState, Cmd.none)
 
 view : Model -> Document Msg
@@ -216,7 +221,27 @@ showPage v = case v of
       ] |> Grid.col []
     ] |> Grid.row []
   DashboardView state ->
-    [ [ h1 [] [text "Dashboard"]
+    [ [ h2 [] [text <| state.eggName]
+      , img
+        [ src <| getImageURL state.image
+        , alt "Jaj ne nem töltödött be a kép! Most mi lesz 😢 Pls szólj Gyurinak"
+        , style "height" "250px"
+        , style "width" "250px"
+        ] []
+      ] |> Grid.col []
+    , [ Button.button
+        [ Button.primary
+        , Button.attrs [ Spacing.m2 ]
+        , Button.onClick DashboardViewLogout
+        ] [text "Logout"]
+      , br [] []
+      , text <| "Kölni: " ++ String.fromInt state.perfume ++ " 💦"
+      , br [] []
       , text <| Debug.toString state
       ] |> Grid.col []
     ] |> Grid.row []
+
+getImageURL : String -> String
+getImageURL name = case name of
+  "pucer" -> "https://www.pinclipart.com/picdir/middle/68-682374_egg-balancing-by-ofirma85-fnaf-puppet-pixel-art.png"
+  _ -> "https://clipground.com/images/omg-emoji-clipart-3.jpg"
