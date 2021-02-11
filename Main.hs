@@ -145,6 +145,11 @@ process tojasDB
       Logger.info log "Requested cokk 2021 page"
       sendFile mainPath
 
+    GetCokk2021Eggs -> do
+      Logger.info log "[API] Requested eggs list"
+      users <- DB.everythingList cokk2021UserDB
+      return $ makeResponse OK $ map Cokk2021.userToEggListItemJson users
+
     GetVideosAddPage -> do
       Logger.info log "Requested video add page."
       sendFile mainPath
@@ -176,7 +181,7 @@ process tojasDB
           Left error -> Logger.info log error $> makeResponse Unauthorized error
 
     PostCokk2021Login -> do
-      Logger.info log "Login attempt"
+      Logger.info log "[API] Login attempt"
       processJsonBody Cokk2021.loginDecoder $ \login -> do
         users <- DB.everythingList cokk2021UserDB
         let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
@@ -187,7 +192,7 @@ process tojasDB
           userOpt
 
     PostCokk2021Register -> do
-      Logger.info log "Registration attempt"
+      Logger.info log "[API] Registration attempt"
       processJsonBody Cokk2021.userRegistrationDecoder $ \registration -> do
         let user = Cokk2021.registrationToUser registration
         users <- DB.everythingList cokk2021UserDB

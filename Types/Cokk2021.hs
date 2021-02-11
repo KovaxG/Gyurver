@@ -44,6 +44,13 @@ userJsonDecoder =
        <*> Decoder.field "password" Decoder.string
        <*> Decoder.field "eggname" Decoder.string
 
+userToEggListItemJson :: User -> Json
+userToEggListItemJson u =
+  JsonObject
+    [ ("username", JsonString $ felhasznaloNev u)
+    , ("eggname", JsonString $ tojasNev u)
+    ]
+
 instance DBFormat User where
   encode = Text.pack . show . userJsonEncoder
   decode =

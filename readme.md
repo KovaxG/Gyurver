@@ -63,3 +63,5 @@ defaultSettings = Settings
 - `/api/cokk2020` list of contestants of the 2020 Cokkoles
 - `/api/cokk2021/login` login endpoint for 2021 Cokkoles
 - `/api/cokk2021/register` register endpoint for 2021 Cokkoles
+- `/api/cokk2021/versenyzok/tojasok` list of participating eggs for 2021 Cokkoles
+- `/api/cokk2021/versenyzok/gazdak` list of participating users for 2021 Cokkoles
