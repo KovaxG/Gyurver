@@ -150,6 +150,11 @@ process tojasDB
       users <- DB.everythingList cokk2021UserDB
       return $ makeResponse OK $ map Cokk2021.userToEggListItemJson users
 
+    GetCokk2021Users -> do
+      Logger.info log "[API] Requested users list"
+      users <- DB.everythingList cokk2021UserDB
+      return $ makeResponse OK $ map Cokk2021.userToUserListItemJson users
+
     GetVideosAddPage -> do
       Logger.info log "Requested video add page."
       sendFile mainPath
