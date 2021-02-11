@@ -71,15 +71,17 @@ type alias User =
   { username : String
   , password : String
   , eggName : String
+  , perfume : Int
   }
 
 userDecoder : Decoder User
 userDecoder =
-  Decode.map3
+  Decode.map4
     User
     (Decode.field "username" Decode.string)
     (Decode.field "password" Decode.string)
     (Decode.field "eggname" Decode.string)
+    (Decode.field "perfume" Decode.int)
 
 type alias DashboardViewState = User
 

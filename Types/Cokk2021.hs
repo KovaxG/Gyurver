@@ -13,6 +13,7 @@ data User = User
   { felhasznaloNev :: String
   , jelszoHash :: String
   , tojasNev :: String
+  , kolni :: Int
   }
 
 data Registration = Registration
@@ -28,14 +29,19 @@ userRegistrationDecoder =
                <*> Decoder.field "eggname" Decoder.string
 
 registrationToUser :: Registration -> User
-registrationToUser reg =
-  User { felhasznaloNev = username reg , jelszoHash = password reg, tojasNev = eggName reg }
+registrationToUser reg = User
+  { felhasznaloNev = username reg
+  , jelszoHash = password reg
+  , tojasNev = eggName reg
+  , kolni = 0
+  }
 
 userJsonEncoder :: User -> Json
 userJsonEncoder user = JsonObject
   [ ("username", JsonString $ felhasznaloNev user)
   , ("password", JsonString $ jelszoHash user)
   , ("eggname", JsonString $ tojasNev user)
+  , ("perfume", JsonNumber $ fromIntegral $ kolni user)
   ]
 
 userJsonDecoder :: Decoder User
@@ -43,6 +49,7 @@ userJsonDecoder =
   User <$> Decoder.field "username" Decoder.string
        <*> Decoder.field "password" Decoder.string
        <*> Decoder.field "eggname" Decoder.string
+       <*> Decoder.field "perfume" Decoder.int
 
 userToEggListItemJson :: User -> Json
 userToEggListItemJson u = JsonObject
