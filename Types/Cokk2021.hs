@@ -55,15 +55,8 @@ userJsonDecoder =
        <*> Decoder.field "perfume" Decoder.int
        <*> Decoder.field "image" Decoder.string
 
-userToEggListItemJson :: User -> Json
-userToEggListItemJson u = JsonObject
-  [ ("username", JsonString $ felhasznaloNev u)
-  , ("eggname", JsonString $ tojasNev u)
-  , ("image", JsonString $ kep u)
-  ]
-
-userToUserListItemJson :: User -> Json
-userToUserListItemJson u = JsonObject
+userToListItemJson :: User -> Json
+userToListItemJson u = JsonObject
   [ ("username", JsonString $ felhasznaloNev u)
   , ("eggname", JsonString $ tojasNev u)
   , ("image", JsonString $ kep u)

@@ -15,6 +15,7 @@ import Bootstrap.Spinner as Spinner
 import Bootstrap.Text as Text
 import Bootstrap.Form.Input as Input
 import Bootstrap.Utilities.Spacing as Spacing
+import Bootstrap.Table as Table
 
 import Settings
 import Endpoints
@@ -91,10 +92,36 @@ type alias DashboardViewState = User
 populateDashBoardState : User -> DashboardViewState
 populateDashBoardState user = user
 
+type alias ContestantViewState =
+  { user : User
+  , items : List Contestant
+  }
+
+type alias Contestant =
+  { username : String
+  , eggname : String
+  , image : String
+  }
+
+contestantDecoder : Decoder Contestant
+contestantDecoder =
+  Decode.map3
+    Contestant
+    (Decode.field "username" Decode.string)
+    (Decode.field "eggname" Decode.string)
+    (Decode.field "image" Decode.string)
+
+initializeContestantsViewState : User -> ContestantViewState
+initializeContestantsViewState u =
+  { user = u
+  , items = []
+  }
+
 type View
   = LoginView LoginViewState
   | RegisterView RegisterViewState
   | DashboardView DashboardViewState
+  | ContestantView ContestantViewState
 
 type alias Model = View
 type Msg
@@ -113,6 +140,9 @@ type Msg
   | RegisterViewRegisterSuccess User
   | RegisterViewRegisterFailure String
   | DashboardViewLogout
+  | DashboardViewSwitchToContestantView
+  | ContestantViewSwitchToDashboardView
+  | ContestantViewPopulateList (List Contestant)
 
 init : (Model, Cmd Msg)
 init = (LoginView loginViewInitState, Cmd.none)
@@ -148,6 +178,15 @@ update msg model = case (msg, model) of
         }
     )
   (DashboardViewLogout, DashboardView _) -> (LoginView loginViewInitState, Cmd.none)
+  (DashboardViewSwitchToContestantView, DashboardView s) ->
+    ( ContestantView <| initializeContestantsViewState s
+    , Http.get
+      { url = Settings.path ++ Endpoints.cokk2021ParticipantsJson
+      , expect = Http.expectJson (Util.processMessage ContestantViewPopulateList (always <| ContestantViewPopulateList [])) (Decode.list contestantDecoder)
+      }
+    )
+  (ContestantViewPopulateList items, ContestantView s) -> (ContestantView { s | items = items }, Cmd.none)
+  (ContestantViewSwitchToDashboardView, ContestantView s) -> (DashboardView <| populateDashBoardState s.user, Cmd.none)
   _ -> (LoginView loginViewInitState, Cmd.none)
 
 view : Model -> Document Msg
@@ -237,9 +276,55 @@ showPage v = case v of
       , br [] []
       , text <| "Kölni: " ++ String.fromInt state.perfume ++ " 💦"
       , br [] []
+      , Button.button
+        [ Button.outlineSecondary
+        , Button.attrs [ Spacing.m2 ]
+        , Button.onClick DashboardViewSwitchToContestantView
+        ] [text "Résztvevők"]
+      , br [] []
       , text <| Debug.toString state
       ] |> Grid.col []
     ] |> Grid.row []
+  ContestantView state ->
+    [ [ h1 [] [text "Résztvevők"]
+      , Button.button
+        [ Button.primary
+        , Button.attrs [ Spacing.m2 ]
+        , Button.onClick ContestantViewSwitchToDashboardView
+        ] [text "Vissza"]
+      , Table.table
+        { options = []
+        , thead =
+            Table.simpleThead
+              [ Table.th [] []
+              , Table.th [] [text "Tojás"]
+              , Table.th [] [text "Gazda"]
+              ]
+        , tbody =
+              state.items
+                |> List.map (\c ->
+                  [ Table.td [] [ img [ src <| getImageURL c.image
+                                      , alt "Jaj ne nem töltödött be a kép! Most mi lesz 😢 Pls szólj Gyurinak"
+                                      , style "height" "50px"
+                                      , style "width" "50px"
+                                      ] []]
+                  , Table.td [] [text c.eggname]
+                  , Table.td [] [text c.username]
+                  ] |> Table.tr []
+                )
+              |> Table.tbody []
+        }
+      ] |> Grid.col []
+    ] |> Grid.row []
+
+contestantToHtml : Contestant -> Html Msg
+contestantToHtml li =
+  [ text li.username
+  , text " "
+  , text li.eggname
+  , text " "
+  , text li.image
+  ] |> div []
 
 getImageURL : String -> String
 getImageURL name = case name of

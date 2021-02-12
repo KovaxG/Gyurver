@@ -145,15 +145,13 @@ process tojasDB
       Logger.info log "Requested cokk 2021 page"
       sendFile mainPath
 
-    GetCokk2021Eggs -> do
-      Logger.info log "[API] Requested eggs list"
+    GetCokk2021Participants  -> do
+      Logger.info log "[API] Requested participants list"
       users <- DB.everythingList cokk2021UserDB
-      return $ makeResponse OK $ map Cokk2021.userToEggListItemJson users
-
-    GetCokk2021Users -> do
-      Logger.info log "[API] Requested users list"
-      users <- DB.everythingList cokk2021UserDB
-      return $ makeResponse OK $ map Cokk2021.userToUserListItemJson users
+      return
+        $ addHeaders [("Content-Type", "application/json")]
+        $ makeResponse OK
+        $ map Cokk2021.userToListItemJson users
 
     GetVideosAddPage -> do
       Logger.info log "Requested video add page."

@@ -38,5 +38,6 @@ cokk2020Json = "/api/cokk2020"
 
 cokk2021RegisterJson = "/api/cokk2021/register"
 cokk2021LoginJson = "/api/cokk2021/login"
+cokk2021ParticipantsJson = "/api/cokk2021/resztvevok"
 
 cv = "/cv"
