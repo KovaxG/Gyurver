@@ -317,15 +317,6 @@ showPage v = case v of
       ] |> Grid.col []
     ] |> Grid.row []
 
-contestantToHtml : Contestant -> Html Msg
-contestantToHtml li =
-  [ text li.username
-  , text " "
-  , text li.eggname
-  , text " "
-  , text li.image
-  ] |> div []
-
 getImageURL : String -> String
 getImageURL name = case name of
   "pucer" -> "https://www.pinclipart.com/picdir/middle/68-682374_egg-balancing-by-ofirma85-fnaf-puppet-pixel-art.png"
