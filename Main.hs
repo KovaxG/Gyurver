@@ -30,7 +30,8 @@ import           Types.Password as Password
 import           Types.Settings as Settings
 import qualified Types.Cokk2021 as Cokk2021
 import Endpoints
-import Utils (($>), safeReadBinaryFile, safeReadTextFile)
+import Utils (($>))
+import qualified Utils
 
 log :: Logger
 log = File
@@ -52,7 +53,7 @@ main = do
 
 readSettings :: Logger -> IO Settings
 readSettings log =
-  safeReadTextFile "gyurver.settings" >>= maybe fileNotFound fileFound
+  Utils.safeReadTextFile "gyurver.settings" >>= maybe fileNotFound fileFound
   where
     fileNotFound :: IO Settings
     fileNotFound = do
@@ -208,6 +209,32 @@ process tojasDB
             DB.insert cokk2021UserDB user
             return $ makeResponse OK $ Cokk2021.userJsonEncoder user
 
+    PostCokk2021Water -> do
+      Logger.info log "[API] Watering!"
+      processJsonBody Cokk2021.waterRequestDecoder $ \req ->
+        if Cokk2021.source req == Cokk2021.target req
+        then return $ makeResponse BadRequest "Nem ontozheted meg magad! >:|"
+        else
+          DB.modifyData cokk2021UserDB $ \users ->
+            let
+              targetUserOpt = List.find (\u -> Cokk2021.target req == Cokk2021.felhasznaloNev u) users
+              sourceUserOpt = List.find (\u -> Cokk2021.source req == Cokk2021.felhasznaloNev u
+                                            && Cokk2021.sourcePass req == Cokk2021.jelszoHash u) users
+              sourceUserNotFound = (users, makeResponse BadRequest "Bocs, de rossz a jelszo/felhasznalo")
+              targetUserNotFound = (users, makeResponse BadRequest "Bocs de nem letezik az akit meg akarsz ontozni")
+            in case sourceUserOpt of
+                Nothing -> sourceUserNotFound
+                Just _ ->
+                  case targetUserOpt of
+                    Nothing -> targetUserNotFound
+                    Just targetUser ->
+                      let newData =
+                            Utils.mapIf
+                              (\u -> Cokk2021.felhasznaloNev u == Cokk2021.target req)
+                              (\u -> u { Cokk2021.kolni = Cokk2021.kolni targetUser + 1 })
+                              users
+                      in (newData, makeResponse OK "EZ")
+
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr
       processJsonBody Password.decoder $ \(Password pwd) ->
@@ -257,7 +284,7 @@ badRequest =
 
 sendFile :: String -> IO Response
 sendFile path =
-  safeReadBinaryFile path
+  Utils.safeReadBinaryFile path
   & fmap (maybe (makeResponse InternalServerError "Could not read file!") (makeResponse OK))
 
 (</>) :: String -> String -> String

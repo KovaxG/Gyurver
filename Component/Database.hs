@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
-module Component.Database (DBHandle, getHandle, insert, insertWithIndex, repsertWithIndex, everythingList, everything, get, delete, DBFormat(..)) where
+module Component.Database (DBHandle, getHandle, insert, insertWithIndex, repsertWithIndex, everythingList, everything, get, delete, modifyData, DBFormat(..)) where
 
 import           Data.Map (Map)
 import qualified Data.Map as Map
@@ -93,3 +93,13 @@ delete handle pred = do
   let objects = maybe [] (map (Maybe.fromJust . decode) . Text.lines) raw
   safeWriteTextFile (path handle) $ Text.unlines (encode <$> filter (not . pred) objects)
   Sem.unblock (semaphore handle)
+
+modifyData :: DBFormat a => DBHandle a -> ([a] -> ([a], b)) -> IO b
+modifyData handle f = do
+  Sem.block (semaphore handle)
+  !raw <- safeReadTextFile (path handle)
+  let objects = maybe [] (map (Maybe.fromJust . decode) . Text.lines) raw
+  let (newObjects, result) = f objects
+  safeWriteTextFile (path handle) $ Text.unlines $ fmap encode newObjects
+  Sem.unblock (semaphore handle)
+  return result

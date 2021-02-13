@@ -23,6 +23,18 @@ data Registration = Registration
   , eggName :: String
   }
 
+data WaterRequest = WaterRequest
+  { source :: String
+  , target :: String
+  , sourcePass :: String
+  }
+
+waterRequestDecoder :: Decoder WaterRequest
+waterRequestDecoder =
+  WaterRequest <$> Decoder.field "username" Decoder.string
+               <*> Decoder.field "target" Decoder.string
+               <*> Decoder.field "password" Decoder.string
+
 userRegistrationDecoder :: Decoder Registration
 userRegistrationDecoder =
   Registration <$> Decoder.field "username" Decoder.string

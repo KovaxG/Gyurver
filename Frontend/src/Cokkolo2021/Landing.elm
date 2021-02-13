@@ -261,12 +261,7 @@ showPage v = case v of
     ] |> Grid.row []
   DashboardView state ->
     [ [ h2 [] [text <| state.eggName]
-      , img
-        [ src <| getImageURL state.image
-        , alt "Jaj ne nem töltödött be a kép! Most mi lesz 😢 Pls szólj Gyurinak"
-        , style "height" "250px"
-        , style "width" "250px"
-        ] []
+      , displayImage state.image 250 250
       ] |> Grid.col []
     , [ Button.button
         [ Button.primary
@@ -303,11 +298,7 @@ showPage v = case v of
         , tbody =
               state.items
                 |> List.map (\c ->
-                  [ Table.td [] [ img [ src <| getImageURL c.image
-                                      , alt "Jaj ne nem töltödött be a kép! Most mi lesz 😢 Pls szólj Gyurinak"
-                                      , style "height" "50px"
-                                      , style "width" "50px"
-                                      ] []]
+                  [ Table.td [] [displayImage c.image 50 50]
                   , Table.td [] [text c.eggname]
                   , Table.td [] [text c.username]
                   ] |> Table.tr []
@@ -316,6 +307,14 @@ showPage v = case v of
         }
       ] |> Grid.col []
     ] |> Grid.row []
+
+displayImage : String -> Int -> Int -> Html Msg
+displayImage image width height = img
+  [ src <| getImageURL image
+  , alt "Jaj ne nem töltödött be a kép! Most mi lesz 😢 Pls szólj Gyurinak"
+  , style "height" (String.fromInt height ++ "px")
+  , style "width" (String.fromInt width ++ "px")
+  ] []
 
 getImageURL : String -> String
 getImageURL name = case name of
