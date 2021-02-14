@@ -66,7 +66,7 @@ type Msg
   | VideoListMsg VideoList.Msg
 
 subscriptions : Model -> Sub Msg
-subscriptions model = Sub.none
+subscriptions model = Navbar.subscriptions model.navbar NavbarMsg
 
 init : () -> Url -> Key -> (Model, Cmd Msg)
 init flags url key =

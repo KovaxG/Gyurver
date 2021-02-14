@@ -61,6 +61,7 @@ defaultSettings = Settings
 - `/api/videos` list of videos endpoint (Get, Post, Options)
 - `/api/video/#` data about a certain video (Get, Post, Delete)
 - `/api/cokk2020` list of contestants of the 2020 Cokkoles
-- `/api/cokk2021/login` login endpoint for 2021 Cokkoles
-- `/api/cokk2021/register` register endpoint for 2021 Cokkoles
-- `/api/cokk2021/resztvevok` list of participants for 2021 Cokkoles
+- `/api/cokk2021/login` login endpoint for 2021 Cokkoles (Post)
+- `/api/cokk2021/register` register endpoint for 2021 Cokkoles (Post)
+- `/api/cokk2021/resztvevok` list of participants for 2021 Cokkoles (Get)
+- `/api/cokk2021/water` water someone for 2021 Cokkoles (Post)
