@@ -294,13 +294,18 @@ showPage v = case v of
               [ Table.th [] []
               , Table.th [] [text "Tojás"]
               , Table.th [] [text "Gazda"]
+              , Table.th [] []
               ]
         , tbody =
               state.items
                 |> List.map (\c ->
-                  [ Table.td [] [displayImage c.image 50 50]
-                  , Table.td [] [text c.eggname]
-                  , Table.td [] [text c.username]
+                  [ Table.td [] [ displayImage c.image 50 50 ]
+                  , Table.td [] [ text c.eggname ]
+                  , Table.td [] [ text c.username ]
+                  , Table.td [] [ if c.username == state.user.username
+                                  then text "(te vagy)"
+                                  else Button.button [ Button.outlineSecondary] [text "💦"]
+                                ]
                   ] |> Table.tr []
                 )
               |> Table.tbody []

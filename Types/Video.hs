@@ -5,6 +5,7 @@ import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 import           Component.Database (DBFormat(..))
 import           Types.Date
+import qualified Types.Date as Date
 import qualified Data.Text as Text
 import           Utils (eitherToMaybe)
 
@@ -40,9 +41,9 @@ videoToJson vid = JsonObject
   , ("url", JsonString (link vid))
   , ("title", JsonString (title vid))
   , ("author", JsonString (channel vid))
-  , ("date", dateToJson (date vid))
+  , ("date", Date.toJson (date vid))
   , ("comment", JsonString (comment vid))
-  , ("watchDate", nullable dateToJson (watchDate vid))
+  , ("watchDate", nullable Date.toJson (watchDate vid))
   , ("tags", JsonArray (map JsonString (tags vid)))
   ]
 
@@ -53,9 +54,9 @@ videoDecoder =
     <*> Decoder.field "url" Decoder.string
     <*> Decoder.field "title" Decoder.string
     <*> Decoder.field "author" Decoder.string
-    <*> Decoder.field "date" dateDecoder
+    <*> Decoder.field "date" Date.decoder
     <*> Decoder.field "comment" Decoder.string
-    <*> Decoder.field "watchDate" (Decoder.maybe dateDecoder)
+    <*> Decoder.field "watchDate" (Decoder.maybe Date.decoder)
     <*> Decoder.field "tags" (Decoder.list Decoder.string)
 
 instance DBFormat Video where

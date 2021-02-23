@@ -7,6 +7,8 @@ import qualified Component.Json as Json
 import           Component.Database (DBFormat(..))
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
+import           Types.DateTime (DateTime)
+import qualified Types.DateTime as DateTime
 import qualified Utils
 
 data User = User
@@ -91,3 +93,33 @@ loginDecoder :: Decoder Login
 loginDecoder =
   Login <$> Decoder.field "user" Decoder.string
         <*> Decoder.field "pass" Decoder.string
+
+data WaterLog = WaterLog
+  { wlSource :: String
+  , wlTarget :: String
+  , wlDateTime :: DateTime
+  }
+
+mkWaterLog :: String -> String -> IO WaterLog
+mkWaterLog source target = WaterLog source target <$> DateTime.getCurrentDateTime
+
+waterLogToJson :: WaterLog -> Json
+waterLogToJson wl = JsonObject
+  [ ("source", JsonString $ wlSource wl)
+  , ("target", JsonString $ wlTarget wl)
+  , ("time", DateTime.toJson $ wlDateTime wl)
+  ]
+
+waterLogDecoder :: Decoder WaterLog
+waterLogDecoder =
+  WaterLog <$> Decoder.field "source" Decoder.string
+           <*> Decoder.field "target" Decoder.string
+           <*> Decoder.field "time" DateTime.decoder
+
+instance DBFormat WaterLog where
+  encode = Text.pack . show . waterLogToJson
+  decode =
+    Utils.eitherToMaybe
+    . (=<<) (Decoder.run waterLogDecoder)
+    . Json.parseJson
+    . Text.unpack

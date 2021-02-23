@@ -43,13 +43,14 @@ main = do
   tojasDB <- DB.getHandle "cokkolo2020"
   vidsDB <- DB.getHandle "vids"
   cokk2021UserDB <- DB.getHandle "cokk2021User"
+  cokk2021WaterDB <- DB.getHandle "cokk2021Water"
 
   settings <- readSettings log
   Logger.info log (show settings)
   runServer log
             (settings & hostAddress)
             (settings & port)
-            (process tojasDB vidsDB cokk2021UserDB settings)
+            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB settings)
 
 readSettings :: Logger -> IO Settings
 readSettings log =
@@ -77,12 +78,14 @@ readSettings log =
 process :: DBHandle Tojas
         -> DBHandle Video
         -> DBHandle Cokk2021.User
+        -> DBHandle Cokk2021.WaterLog
         -> Settings
         -> Request
         -> IO Response
 process tojasDB
         vidsDB
         cokk2021UserDB
+        cokk2021WaterDB
         settings
         Request{requestType, path, content} = do
   let
@@ -214,14 +217,14 @@ process tojasDB
       processJsonBody Cokk2021.waterRequestDecoder $ \req ->
         if Cokk2021.source req == Cokk2021.target req
         then return $ makeResponse BadRequest "Nem ontozheted meg magad! >:|"
-        else
-          DB.modifyData cokk2021UserDB $ \users ->
+        else do
+          result <- DB.modifyData cokk2021UserDB $ \users ->
             let
               targetUserOpt = List.find (\u -> Cokk2021.target req == Cokk2021.felhasznaloNev u) users
               sourceUserOpt = List.find (\u -> Cokk2021.source req == Cokk2021.felhasznaloNev u
                                             && Cokk2021.sourcePass req == Cokk2021.jelszoHash u) users
-              sourceUserNotFound = (users, makeResponse BadRequest "Bocs, de rossz a jelszo/felhasznalo")
-              targetUserNotFound = (users, makeResponse BadRequest "Bocs de nem letezik az akit meg akarsz ontozni")
+              sourceUserNotFound = (users, Just "Bocs, de rossz a jelszo/felhasznalo")
+              targetUserNotFound = (users, Just "Bocs de nem letezik az akit meg akarsz ontozni")
             in case sourceUserOpt of
                 Nothing -> sourceUserNotFound
                 Just _ ->
@@ -233,7 +236,15 @@ process tojasDB
                               (\u -> Cokk2021.felhasznaloNev u == Cokk2021.target req)
                               (\u -> u { Cokk2021.kolni = Cokk2021.kolni targetUser + 1 })
                               users
-                      in (newData, makeResponse OK "EZ")
+                      in (newData, Nothing)
+
+          maybe (do
+                  wLog <- Cokk2021.mkWaterLog (Cokk2021.source req) (Cokk2021.target req)
+                  DB.insert cokk2021WaterDB wLog
+                  return $ makeResponse OK "Success"
+                )
+                (return . makeResponse BadRequest)
+                result
 
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr
