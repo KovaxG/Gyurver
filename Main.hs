@@ -193,9 +193,13 @@ process tojasDB
         users <- DB.everythingList cokk2021UserDB
         let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
                                     && Cokk2021.jelszoHash u == Cokk2021.pass login) users
-        return $ maybe
-          (makeResponse Unauthorized "Bad Credentials")
-          (makeResponse OK . Cokk2021.userJsonEncoder)
+        maybe
+          (return $ makeResponse Unauthorized "Bad Credentials")
+          (\user -> do
+            waterLogs <- DB.everythingList cokk2021WaterDB
+            let dashboardData = Cokk2021.mkDashboardData user waterLogs
+            return $ makeResponse OK $ Cokk2021.dashboardDataEncoder dashboardData
+          )
           userOpt
 
     PostCokk2021Register -> do
@@ -210,7 +214,8 @@ process tojasDB
           then return $ makeResponse BadRequest "Tojasnev nem egyedi."
           else do
             DB.insert cokk2021UserDB user
-            return $ makeResponse OK $ Cokk2021.userJsonEncoder user
+            let dashboardData = Cokk2021.mkDashboardData user []
+            return $ makeResponse OK $ Cokk2021.dashboardDataEncoder dashboardData
 
     PostCokk2021Water -> do
       Logger.info log "[API] Watering!"

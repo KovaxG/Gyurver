@@ -11,6 +11,27 @@ import           Types.DateTime (DateTime)
 import qualified Types.DateTime as DateTime
 import qualified Utils
 
+data DashboardData = DashboardData
+  { userData :: User
+  , events :: [WaterLog]
+  }
+
+mkDashboardData :: User -> [WaterLog] -> DashboardData
+mkDashboardData user log =
+  let outgoing = filter (\l -> wlSource l == felhasznaloNev user) log
+      incoming = filter (\l -> wlTarget l == felhasznaloNev user) log
+  in DashboardData user (outgoing ++ incoming)
+
+dashboardDataEncoder :: DashboardData -> Json
+dashboardDataEncoder (DashboardData user events) = JsonObject
+  [ ("username", JsonString $ felhasznaloNev user)
+  , ("password", JsonString $ jelszoHash user)
+  , ("eggname", JsonString $ tojasNev user)
+  , ("perfume", JsonNumber $ fromIntegral $ kolni user)
+  , ("image", JsonString $ kep user)
+  , ("events", JsonArray $ waterLogToJson <$> events)
+  ]
+
 data User = User
   { felhasznaloNev :: String
   , jelszoHash :: String
