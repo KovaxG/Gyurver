@@ -1,4 +1,4 @@
-module Types.Cokk2021 where
+module Events.Cokk2021 where
 
 import qualified Data.Text as Text
 

@@ -1,3 +1,12 @@
+{-
+  Ideas for improvement:
+
+  1. Replace the lock with STM transactions like described in the video:
+     https://www.youtube.com/watch?v=2lll2VbX8Vc
+
+  2. Remove unused functions and try to reduce the number of functions if possible.
+-}
+
 {-# LANGUAGE BangPatterns #-}
 module Component.Database (DBHandle, getHandle, insert, insertWithIndex, repsertWithIndex, everythingList, everything, get, delete, modifyData, DBFormat(..)) where
 

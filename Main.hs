@@ -14,7 +14,8 @@ import qualified Data.Text as Text
 import Data.Function ((&))
 import qualified Data.List as List
 
-import Events.Cokkolo
+import qualified Events.Cokk2020 as Cokk2020
+import qualified Events.Cokk2021 as Cokk2021
 
 import Gyurver.Html
 import Gyurver.Request
@@ -28,7 +29,6 @@ import qualified Types.VideoAdd as VideoAdd
 import qualified Types.VideoEdit as VideoEdit
 import           Types.Password as Password
 import           Types.Settings as Settings
-import qualified Types.Cokk2021 as Cokk2021
 import Endpoints
 import Utils (($>))
 import qualified Utils
@@ -75,7 +75,7 @@ readSettings log =
       Logger.info log $ "Loaded settings, ip is " ++ show (hostAddress settings)
       return settings
 
-process :: DBHandle Tojas
+process :: DBHandle Cokk2020.Tojas
         -> DBHandle Video
         -> DBHandle Cokk2021.User
         -> DBHandle Cokk2021.WaterLog
@@ -116,7 +116,7 @@ process tojasDB
       return
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
-        $ map tojasToJson tojasok
+        $ map Cokk2020.tojasToJson tojasok
 
     GetVideosPage -> do
       Logger.info log "Requested video list."

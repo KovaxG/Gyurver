@@ -1,5 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Events.Cokkolo where
+module Events.Cokk2020 where
 
 import           Data.Text (Text)
 import qualified Data.Text as Text

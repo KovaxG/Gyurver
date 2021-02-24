@@ -32,7 +32,6 @@ getCurrentDateTime = do
   let localTime = DTime.utcToLocalTime timezone now
   let day = DTime.localDay localTime
   let (y, m, d) = Calendar.toGregorian day
-  let localTime = DTime.utcToLocalTime timezone now
   let timeOfDay = DTime.localTimeOfDay localTime
   let time = Time (DTime.todHour timeOfDay) (DTime.todMin timeOfDay) (floor $ DTime.todSec timeOfDay)
   let date = Date (fromIntegral y) m d
