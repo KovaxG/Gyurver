@@ -17,6 +17,7 @@ import Bootstrap.Form.Input as Input
 import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Table as Table
 
+import Types.DateTime as DateTime exposing (DateTime)
 import Settings
 import Endpoints
 import Util
@@ -29,11 +30,11 @@ type alias LoginViewState =
   , state : ViewState
   }
 
-encodeLoginViewState : LoginViewState -> Value
-encodeLoginViewState s =
+encodeLoginInfo : String -> String -> Value
+encodeLoginInfo username password =
   Encode.object
-    [ ("user", Encode.string s.username)
-    , ("pass", Encode.string s.password)
+    [ ("user", Encode.string username)
+    , ("pass", Encode.string password)
     ]
 
 loginViewInitState : LoginViewState
@@ -87,10 +88,34 @@ userDecoder =
     (Decode.field "perfume" Decode.int)
     (Decode.field "image" Decode.string)
 
-type alias DashboardViewState = User
+type alias DashboardViewState =
+  { user : User
+  , logs : List Log
+  }
 
-populateDashBoardState : User -> DashboardViewState
-populateDashBoardState user = user
+dashboardViewStateDecoder : Decoder DashboardViewState
+dashboardViewStateDecoder =
+  Decode.map2
+    DashboardViewState
+    (Decode.field "user" userDecoder)
+    (Decode.field "events" <| Decode.list logDecoder)
+
+populateTemporaryDashboard : User -> DashboardViewState
+populateTemporaryDashboard user = { user = user, logs = [] }
+
+type alias Log =
+  { source : String
+  , target : String
+  , datetime : DateTime
+  }
+
+logDecoder : Decoder Log
+logDecoder =
+  Decode.map3
+    Log
+    (Decode.field "source" Decode.string)
+    (Decode.field "target" Decode.string)
+    (Decode.field "time" DateTime.decode)
 
 type alias ContestantViewState =
   { user : User
@@ -129,7 +154,7 @@ type Msg
   | LoginViewPasswordFieldChange String
   | LoginViewLogin
   | LoginViewSwitchToRegisterView
-  | LoginViewLoginSuccess User
+  | LoginViewLoginSuccess DashboardViewState
   | LoginViewLoginFailure String
   | RegisterViewUsernameFieldChange String
   | RegisterViewPassword1FieldChange String
@@ -137,12 +162,14 @@ type Msg
   | RegisterViewEggnameFieldChange String
   | RegisterViewSwitchToLoginView
   | RegisterViewRegister
-  | RegisterViewRegisterSuccess User
+  | RegisterViewRegisterSuccess DashboardViewState
   | RegisterViewRegisterFailure String
   | DashboardViewLogout
   | DashboardViewSwitchToContestantView
   | ContestantViewSwitchToDashboardView
   | ContestantViewPopulateList (List Contestant)
+  | ContestantViewDashboardSuccess DashboardViewState
+  | ContestantViewDashboardFailure String
 
 init : (Model, Cmd Msg)
 init = (LoginView loginViewInitState, Cmd.none)
@@ -153,13 +180,13 @@ update msg model = case (msg, model) of
   (LoginViewPasswordFieldChange d, LoginView s) -> (LoginView { s | password = d }, Cmd.none)
   (LoginViewSwitchToRegisterView, LoginView s) -> (RegisterView registerViewInitState, Cmd.none)
   (LoginViewLoginFailure err, LoginView s) -> (LoginView { s | state = Problem err }, Cmd.none)
-  (LoginViewLoginSuccess user, LoginView s) -> (DashboardView <| populateDashBoardState user, Cmd.none)
+  (LoginViewLoginSuccess dashboardState, LoginView s) -> (DashboardView dashboardState, Cmd.none)
   (LoginViewLogin, LoginView s) ->
     ( LoginView { s | state = Waiting }
     , Http.post
         { url = Settings.path ++ Endpoints.cokk2021LoginJson
-        , body = Http.jsonBody (encodeLoginViewState s)
-        , expect = Http.expectJson (Util.processMessage LoginViewLoginSuccess LoginViewLoginFailure) userDecoder
+        , body = Http.jsonBody (encodeLoginInfo s.username s.password)
+        , expect = Http.expectJson (Util.processMessage LoginViewLoginSuccess LoginViewLoginFailure) dashboardViewStateDecoder
         }
     )
   (RegisterViewUsernameFieldChange d, RegisterView s) -> (RegisterView { s | username = d }, Cmd.none)
@@ -167,26 +194,35 @@ update msg model = case (msg, model) of
   (RegisterViewPassword2FieldChange d, RegisterView s) -> (RegisterView { s | password2 = d }, Cmd.none)
   (RegisterViewEggnameFieldChange d, RegisterView s) -> (RegisterView { s | eggname = d }, Cmd.none)
   (RegisterViewSwitchToLoginView, RegisterView s) -> (LoginView loginViewInitState, Cmd.none)
-  (RegisterViewRegisterSuccess user, RegisterView s) -> (DashboardView <| populateDashBoardState user, Cmd.none)
+  (RegisterViewRegisterSuccess dashboardState, RegisterView s) -> (DashboardView dashboardState, Cmd.none)
   (RegisterViewRegisterFailure err, RegisterView s) -> (RegisterView { s | state = Problem err }, Cmd.none)
   (RegisterViewRegister, RegisterView s) ->
     ( RegisterView { s | state = Waiting }
     , Http.post
         { url = Settings.path ++ Endpoints.cokk2021RegisterJson
         , body = Http.jsonBody (encodeRegisterViewState s)
-        , expect = Http.expectJson (Util.processMessage RegisterViewRegisterSuccess RegisterViewRegisterFailure) userDecoder
+        , expect = Http.expectJson (Util.processMessage RegisterViewRegisterSuccess RegisterViewRegisterFailure) dashboardViewStateDecoder
         }
     )
   (DashboardViewLogout, DashboardView _) -> (LoginView loginViewInitState, Cmd.none)
   (DashboardViewSwitchToContestantView, DashboardView s) ->
-    ( ContestantView <| initializeContestantsViewState s
+    ( ContestantView <| initializeContestantsViewState s.user
     , Http.get
       { url = Settings.path ++ Endpoints.cokk2021ParticipantsJson
       , expect = Http.expectJson (Util.processMessage ContestantViewPopulateList (always <| ContestantViewPopulateList [])) (Decode.list contestantDecoder)
       }
     )
   (ContestantViewPopulateList items, ContestantView s) -> (ContestantView { s | items = items }, Cmd.none)
-  (ContestantViewSwitchToDashboardView, ContestantView s) -> (DashboardView <| populateDashBoardState s.user, Cmd.none)
+  (ContestantViewSwitchToDashboardView, ContestantView s) ->
+    ( DashboardView <| populateTemporaryDashboard s.user
+    , Http.post
+      { url = Settings.path ++ Endpoints.cokk2021DashboardJson
+      , body = Http.jsonBody (encodeLoginInfo s.user.username s.user.password)
+      , expect = Http.expectJson (Util.processMessage ContestantViewDashboardSuccess ContestantViewDashboardFailure) dashboardViewStateDecoder
+      }
+    )
+  (ContestantViewDashboardSuccess dashboardState, DashboardView s) -> (DashboardView dashboardState, Cmd.none)
+  (ContestantViewDashboardFailure errorMessage, DashboardView s) -> (DashboardView s, Cmd.none)
   _ -> (LoginView loginViewInitState, Cmd.none)
 
 view : Model -> Document Msg
@@ -260,8 +296,8 @@ showPage v = case v of
       ] |> Grid.col []
     ] |> Grid.row []
   DashboardView state ->
-    [ [ h2 [] [text <| state.eggName]
-      , displayImage state.image 250 250
+    [ [ h2 [] [text <| state.user.eggName]
+      , displayImage state.user.image 250 250
       ] |> Grid.col []
     , [ Button.button
         [ Button.primary
@@ -269,7 +305,7 @@ showPage v = case v of
         , Button.onClick DashboardViewLogout
         ] [text "Logout"]
       , br [] []
-      , text <| "Kölni: " ++ String.fromInt state.perfume ++ " 💦"
+      , text <| "Kölni: " ++ String.fromInt state.user.perfume ++ " 💦"
       , br [] []
       , Button.button
         [ Button.outlineSecondary

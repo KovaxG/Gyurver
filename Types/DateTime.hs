@@ -12,18 +12,26 @@ import qualified Types.Date as Date
 import           Types.Time (Time(..))
 import qualified Types.Time as Time
 
-data DateTime = DateTime Date Time deriving (Read, Show)
+data DateTime = DateTime Int Int Int Int Int Double deriving (Read, Show)
 
 toJson :: DateTime -> Json
-toJson (DateTime d t) = JsonObject
-  [ ("date", Date.toJson d)
-  , ("time", Time.toJson t)
+toJson (DateTime y m d h min s) = JsonObject
+  [ ("year", JsonNumber $ fromIntegral y)
+  , ("month", JsonNumber $ fromIntegral m)
+  , ("day", JsonNumber $ fromIntegral d)
+  , ("hours", JsonNumber $ fromIntegral h)
+  , ("minutes", JsonNumber $ fromIntegral min)
+  , ("seconds", JsonNumber s)
   ]
 
 decoder :: Decoder DateTime
 decoder =
-  DateTime <$> Decoder.field "date" Date.decoder
-           <*> Decoder.field "time" Time.decoder
+  DateTime <$> Decoder.field "year" Decoder.int
+           <*> Decoder.field "month" Decoder.int
+           <*> Decoder.field "day" Decoder.int
+           <*> Decoder.field "hours" Decoder.int
+           <*> Decoder.field "minutes" Decoder.int
+           <*> Decoder.field "seconds" Decoder.double
 
 getCurrentDateTime :: IO DateTime
 getCurrentDateTime = do
@@ -33,6 +41,6 @@ getCurrentDateTime = do
   let day = DTime.localDay localTime
   let (y, m, d) = Calendar.toGregorian day
   let timeOfDay = DTime.localTimeOfDay localTime
-  let time = Time (DTime.todHour timeOfDay) (DTime.todMin timeOfDay) (floor $ DTime.todSec timeOfDay)
-  let date = Date (fromIntegral y) m d
-  return $ DateTime date time
+  return $ DateTime
+    (fromIntegral y) m d
+    (DTime.todHour timeOfDay) (DTime.todMin timeOfDay) (realToFrac $ DTime.todSec timeOfDay)

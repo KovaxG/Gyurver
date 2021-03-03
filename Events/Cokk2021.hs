@@ -24,11 +24,7 @@ mkDashboardData user log =
 
 dashboardDataEncoder :: DashboardData -> Json
 dashboardDataEncoder (DashboardData user events) = JsonObject
-  [ ("username", JsonString $ felhasznaloNev user)
-  , ("password", JsonString $ jelszoHash user)
-  , ("eggname", JsonString $ tojasNev user)
-  , ("perfume", JsonNumber $ fromIntegral $ kolni user)
-  , ("image", JsonString $ kep user)
+  [ ("user", userJsonEncoder user)
   , ("events", JsonArray $ waterLogToJson <$> events)
   ]
 

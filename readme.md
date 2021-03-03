@@ -65,3 +65,4 @@ defaultSettings = Settings
 - `/api/cokk2021/register` register endpoint for 2021 Cokkoles (Post)
 - `/api/cokk2021/resztvevok` list of participants for 2021 Cokkoles (Get)
 - `/api/cokk2021/water` water someone for 2021 Cokkoles (Post)
+- `/api/cokk2021/dashboard` refresh dashboard for 2021 Cokkoles (Post)

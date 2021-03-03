@@ -251,6 +251,21 @@ process tojasDB
                 (return . makeResponse BadRequest)
                 result
 
+    PostCokk2021DashboardRefresh -> do
+      Logger.info log "[API] refreshing dashboard"
+      processJsonBody Cokk2021.loginDecoder $ \login -> do
+        users <- DB.everythingList cokk2021UserDB
+        let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
+                                    && Cokk2021.jelszoHash u == Cokk2021.pass login) users
+        maybe
+          (return $ makeResponse Unauthorized "Bad Credentials")
+          (\user -> do
+            waterLogs <- DB.everythingList cokk2021WaterDB
+            let dashboardData = Cokk2021.mkDashboardData user waterLogs
+            return $ makeResponse OK $ Cokk2021.dashboardDataEncoder dashboardData
+          )
+          userOpt
+
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr
       processJsonBody Password.decoder $ \(Password pwd) ->

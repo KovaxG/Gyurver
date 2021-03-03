@@ -63,6 +63,7 @@ tests =
   , test "2021 cokk register API" $ parseEndpoint "POST /api/cokk2021/register" === PostCokk2021Register
   , test "2021 cokk eggs API" $ parseEndpoint "GET /api/cokk2021/resztvevok" === GetCokk2021Participants
   , test "2021 cokk watering API" $ parseEndpoint "POST /api/cokk2021/water" === PostCokk2021Water
+  , test "2021 cokk dashboard refresh API" $ parseEndpoint "POST /api/cokk2021/dashboard" === PostCokk2021DashboardRefresh
 
   , test "videos page EN" $ parseEndpoint "GET /videos" === GetVideosPage
   , test "videos page HU" $ parseEndpoint "GET /videok" === GetVideosPage
