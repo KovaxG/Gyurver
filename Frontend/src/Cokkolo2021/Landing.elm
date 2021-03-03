@@ -7,6 +7,7 @@ import Http as Http
 import Json.Encode as Encode exposing (Value)
 import Json.Decode as Decode exposing (Decoder)
 import Debug
+import List.Extra as List
 
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
@@ -316,7 +317,7 @@ showPage v = case v of
         , Button.onClick DashboardViewSwitchToContestantView
         ] [text "Résztvevők"]
       , br [] []
-      , text <| Debug.toString state
+      , displayLogs state.user.username state.logs
       ] |> Grid.col []
     ] |> Grid.row []
   ContestantView state ->
@@ -364,3 +365,63 @@ getImageURL : String -> String
 getImageURL name = case name of
   "pucer" -> "https://www.pinclipart.com/picdir/middle/68-682374_egg-balancing-by-ofirma85-fnaf-puppet-pixel-art.png"
   _ -> "https://clipground.com/images/omg-emoji-clipart-3.jpg"
+
+displayLogs : String -> List Log -> Html Msg
+displayLogs username logs =
+  div []
+  <| List.map (\(byYearEx, byYears) ->
+    div []
+    <| (++) [text <| String.fromInt byYearEx.datetime.year, br [] []]
+    <| List.map (\(byMonthEx, byMonths) ->
+      div []
+      <| List.map (\(sortedByDayEx, sortedByDays) ->
+        div []
+        <| (++) [text <| showMonthAndDay sortedByDayEx.datetime]
+        <| List.map (\l -> div [] [text <| logToText username l])
+        <| sortedByDayEx :: sortedByDays
+      )
+      <| List.groupWhile (groupOn <| \a -> a.datetime.day)
+      <| List.sortWith (compareOn <| \a -> a.datetime.day)
+      <| byMonthEx :: byMonths
+    )
+    <| List.groupWhile (groupOn <| \a -> a.datetime.month)
+    <| List.sortWith (compareOn <| \a -> a.datetime.month)
+    <| byYearEx :: byYears
+  )
+  <| List.groupWhile (groupOn <| \a -> a.datetime.year)
+  <| List.sortWith (compareOn <| \a -> a.datetime.year)
+  <| logs
+
+logToText : String -> Log -> String
+logToText you l =
+  let msg =
+        if l.source == you
+        then "Megöntözted " ++ l.target ++ "-t"
+        else "Megontözött " ++ l.source ++ " (+💦)"
+      showDigits = String.padLeft 2 '0' << String.fromInt
+  in showDigits l.datetime.hour ++ ":"  ++ showDigits l.datetime.minutes ++ " " ++ msg
+
+compareOn : (a -> comparable) -> a -> a -> Order
+compareOn f a b = compare (f a) (f b)
+
+groupOn : (a -> b) -> a -> a -> Bool
+groupOn f a b = f a == f b
+
+monthToString : Int -> String
+monthToString m = case m of
+  1 -> "Jan"
+  2 -> "Feb"
+  3 -> "Mar"
+  4 -> "Apr"
+  5 -> "Maj"
+  6 -> "Jun"
+  7 -> "Jul"
+  8 -> "Aug"
+  9 -> "Sep"
+  10 -> "Nov"
+  11 -> "Okt"
+  12 -> "Dec"
+  _ -> "HOPSZ"
+
+showMonthAndDay : DateTime -> String
+showMonthAndDay dt = monthToString dt.month ++ " " ++ String.fromInt dt.day
