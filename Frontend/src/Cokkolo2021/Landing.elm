@@ -154,22 +154,18 @@ type Msg
   | LoginViewPasswordFieldChange String
   | LoginViewLogin
   | LoginViewSwitchToRegisterView
-  | LoginViewLoginSuccess DashboardViewState
-  | LoginViewLoginFailure String
+  | DashboardFetchSuccess DashboardViewState
+  | DashboardFetchFailure String
   | RegisterViewUsernameFieldChange String
   | RegisterViewPassword1FieldChange String
   | RegisterViewPassword2FieldChange String
   | RegisterViewEggnameFieldChange String
   | RegisterViewSwitchToLoginView
   | RegisterViewRegister
-  | RegisterViewRegisterSuccess DashboardViewState
-  | RegisterViewRegisterFailure String
   | DashboardViewLogout
   | DashboardViewSwitchToContestantView
   | ContestantViewSwitchToDashboardView
   | ContestantViewPopulateList (List Contestant)
-  | ContestantViewDashboardSuccess DashboardViewState
-  | ContestantViewDashboardFailure String
 
 init : (Model, Cmd Msg)
 init = (LoginView loginViewInitState, Cmd.none)
@@ -179,14 +175,14 @@ update msg model = case (msg, model) of
   (LoginViewUsernameFieldChange d, LoginView s) -> (LoginView { s | username = d }, Cmd.none)
   (LoginViewPasswordFieldChange d, LoginView s) -> (LoginView { s | password = d }, Cmd.none)
   (LoginViewSwitchToRegisterView, LoginView s) -> (RegisterView registerViewInitState, Cmd.none)
-  (LoginViewLoginFailure err, LoginView s) -> (LoginView { s | state = Problem err }, Cmd.none)
-  (LoginViewLoginSuccess dashboardState, LoginView s) -> (DashboardView dashboardState, Cmd.none)
+  (DashboardFetchFailure err, LoginView s) -> (LoginView { s | state = Problem err }, Cmd.none)
+  (DashboardFetchSuccess dashboardState, LoginView s) -> (DashboardView dashboardState, Cmd.none)
   (LoginViewLogin, LoginView s) ->
     ( LoginView { s | state = Waiting }
     , Http.post
         { url = Settings.path ++ Endpoints.cokk2021LoginJson
         , body = Http.jsonBody (encodeLoginInfo s.username s.password)
-        , expect = Http.expectJson (Util.processMessage LoginViewLoginSuccess LoginViewLoginFailure) dashboardViewStateDecoder
+        , expect = expectDashboardState
         }
     )
   (RegisterViewUsernameFieldChange d, RegisterView s) -> (RegisterView { s | username = d }, Cmd.none)
@@ -194,14 +190,14 @@ update msg model = case (msg, model) of
   (RegisterViewPassword2FieldChange d, RegisterView s) -> (RegisterView { s | password2 = d }, Cmd.none)
   (RegisterViewEggnameFieldChange d, RegisterView s) -> (RegisterView { s | eggname = d }, Cmd.none)
   (RegisterViewSwitchToLoginView, RegisterView s) -> (LoginView loginViewInitState, Cmd.none)
-  (RegisterViewRegisterSuccess dashboardState, RegisterView s) -> (DashboardView dashboardState, Cmd.none)
-  (RegisterViewRegisterFailure err, RegisterView s) -> (RegisterView { s | state = Problem err }, Cmd.none)
+  (DashboardFetchSuccess dashboardState, RegisterView s) -> (DashboardView dashboardState, Cmd.none)
+  (DashboardFetchFailure err, RegisterView s) -> (RegisterView { s | state = Problem err }, Cmd.none)
   (RegisterViewRegister, RegisterView s) ->
     ( RegisterView { s | state = Waiting }
     , Http.post
         { url = Settings.path ++ Endpoints.cokk2021RegisterJson
         , body = Http.jsonBody (encodeRegisterViewState s)
-        , expect = Http.expectJson (Util.processMessage RegisterViewRegisterSuccess RegisterViewRegisterFailure) dashboardViewStateDecoder
+        , expect = expectDashboardState
         }
     )
   (DashboardViewLogout, DashboardView _) -> (LoginView loginViewInitState, Cmd.none)
@@ -218,12 +214,19 @@ update msg model = case (msg, model) of
     , Http.post
       { url = Settings.path ++ Endpoints.cokk2021DashboardJson
       , body = Http.jsonBody (encodeLoginInfo s.user.username s.user.password)
-      , expect = Http.expectJson (Util.processMessage ContestantViewDashboardSuccess ContestantViewDashboardFailure) dashboardViewStateDecoder
+      , expect = expectDashboardState
       }
     )
-  (ContestantViewDashboardSuccess dashboardState, DashboardView s) -> (DashboardView dashboardState, Cmd.none)
-  (ContestantViewDashboardFailure errorMessage, DashboardView s) -> (DashboardView s, Cmd.none)
+  (DashboardFetchSuccess dashboardState, DashboardView s) -> (DashboardView dashboardState, Cmd.none)
+  (DashboardFetchFailure errorMessage, DashboardView s) -> (DashboardView s, Cmd.none)
   _ -> (LoginView loginViewInitState, Cmd.none)
+
+
+expectDashboardState : Http.Expect Msg
+expectDashboardState =
+  Http.expectJson
+    (Util.processMessage DashboardFetchSuccess DashboardFetchFailure)
+    dashboardViewStateDecoder
 
 view : Model -> Document Msg
 view model =
