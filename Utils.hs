@@ -51,3 +51,7 @@ fromRight a _ = a
 
 readText :: Read a => Text -> a
 readText = read . Text.unpack
+
+safeLast :: [a] -> Maybe a
+safeLast [] = Nothing
+safeLast xs = Just $ last xs

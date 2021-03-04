@@ -86,11 +86,12 @@ userJsonDecoder =
        <*> Decoder.field "perfume" Decoder.int
        <*> Decoder.field "image" Decoder.string
 
-userToListItemJson :: User -> Json
-userToListItemJson u = JsonObject
+userToListItemJson :: Bool -> User -> Json
+userToListItemJson b u = JsonObject
   [ ("username", JsonString $ felhasznaloNev u)
   , ("eggname", JsonString $ tojasNev u)
   , ("image", JsonString $ kep u)
+  , ("waterable", JsonBool b)
   ]
 
 instance DBFormat User where
@@ -140,3 +141,6 @@ instance DBFormat WaterLog where
     . (=<<) (Decoder.run waterLogDecoder)
     . Json.parseJson
     . Text.unpack
+
+isWaterable :: DateTime -> DateTime -> Bool
+isWaterable date@(DateTime.DateTime y1 m1 d1 _ _ _) now@(DateTime.DateTime y2 m2 d2 _ _ _) = y1 < y2 || m1 < m2 || d1 < d2

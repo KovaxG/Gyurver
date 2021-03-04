@@ -13,6 +13,7 @@ import Data.Text (Text)
 import qualified Data.Text as Text
 import Data.Function ((&))
 import qualified Data.List as List
+import qualified Data.Maybe as Maybe
 
 import qualified Events.Cokk2020 as Cokk2020
 import qualified Events.Cokk2021 as Cokk2021
@@ -23,6 +24,7 @@ import Gyurver.Response
 import Gyurver.Server
 import           Gyurver.Logger (Logger(..))
 import qualified Gyurver.Logger as Logger
+import qualified Types.DateTime as DateTime
 import           Types.Video (Video)
 import qualified Types.Video as Video
 import qualified Types.VideoAdd as VideoAdd
@@ -155,7 +157,27 @@ process tojasDB
       return
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
-        $ map Cokk2021.userToListItemJson users
+        $ map (Cokk2021.userToListItemJson True) users
+
+    PostCokk2021ParticipantsForUser -> do
+      Logger.info log "[API] Requested user participation list"
+      processJsonBody Cokk2021.loginDecoder $ \login -> do
+        users <- DB.everythingList cokk2021UserDB
+        let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
+                                    && Cokk2021.jelszoHash u == Cokk2021.pass login) users
+        maybe
+          (return $ makeResponse Unauthorized "Bad Credentials")
+          (\user -> do
+            waterLogs <- DB.everythingList cokk2021WaterDB
+            now <- DateTime.getCurrentDateTime
+            let relevantLines = filter (\w -> Cokk2021.wlSource w == Cokk2021.felhasznaloNev user) waterLogs
+            let nusers = map (\u -> (maybe True (flip Cokk2021.isWaterable now . Cokk2021.wlDateTime) $ Utils.safeLast $ List.sortOn Cokk2021.wlDateTime $ filter (\w -> Cokk2021.wlTarget w == Cokk2021.felhasznaloNev u) relevantLines, u)) users
+            return
+              $ addHeaders [("Content-Type", "application/json")]
+              $ makeResponse OK
+              $ map (uncurry Cokk2021.userToListItemJson) nusers
+          )
+          userOpt
 
     GetVideosAddPage -> do
       Logger.info log "Requested video add page."

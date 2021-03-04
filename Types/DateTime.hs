@@ -12,7 +12,7 @@ import qualified Types.Date as Date
 import           Types.Time (Time(..))
 import qualified Types.Time as Time
 
-data DateTime = DateTime Int Int Int Int Int Double deriving (Read, Show)
+data DateTime = DateTime Int Int Int Int Int Double deriving (Read, Show, Eq, Ord)
 
 toJson :: DateTime -> Json
 toJson (DateTime y m d h min s) = JsonObject
