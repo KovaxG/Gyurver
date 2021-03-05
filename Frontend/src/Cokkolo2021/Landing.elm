@@ -127,15 +127,17 @@ type alias Contestant =
   { username : String
   , eggname : String
   , image : String
+  , waterable : Bool
   }
 
 contestantDecoder : Decoder Contestant
 contestantDecoder =
-  Decode.map3
+  Decode.map4
     Contestant
     (Decode.field "username" Decode.string)
     (Decode.field "eggname" Decode.string)
     (Decode.field "image" Decode.string)
+    (Decode.field "waterable" Decode.bool)
 
 initializeContestantsViewState : User -> ContestantViewState
 initializeContestantsViewState u =
@@ -204,8 +206,9 @@ update msg model = case (msg, model) of
   (DashboardViewLogout, DashboardView _) -> (LoginView loginViewInitState, Cmd.none)
   (DashboardViewSwitchToContestantView, DashboardView s) ->
     ( ContestantView <| initializeContestantsViewState s.user
-    , Http.get
+    , Http.post
       { url = Settings.path ++ Endpoints.cokk2021ParticipantsJson
+      , body = Http.jsonBody (encodeLoginInfo s.user.username s.user.password)
       , expect = Http.expectJson (Util.processMessage ContestantViewPopulateList (always <| ContestantViewPopulateList [])) (Decode.list contestantDecoder)
       }
     )
@@ -344,9 +347,11 @@ showPage v = case v of
                   , Table.td [] [ text c.username ]
                   , Table.td [] [ if c.username == state.user.username
                                   then text "(te vagy)"
-                                  else Button.button [ Button.outlineSecondary] [text "💦"]
+                                  else if c.waterable
+                                  then Button.button [ Button.outlineSecondary] [text "💦"]
+                                  else text "(ma mar megontozted)"
                                 ]
-                  ] |> Table.tr []
+                  ] |> Table.tr (if not c.waterable then [Table.rowSuccess] else [])
                 )
               |> Table.tbody []
         }
