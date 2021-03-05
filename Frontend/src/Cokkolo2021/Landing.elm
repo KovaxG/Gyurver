@@ -145,6 +145,14 @@ initializeContestantsViewState u =
   , items = []
   }
 
+waterBodyEncoder : String -> User -> Value
+waterBodyEncoder target user =
+  Encode.object
+    [ ("username", Encode.string user.username)
+    , ("target", Encode.string target)
+    , ("password", Encode.string user.password)
+    ]
+
 type View
   = LoginView LoginViewState
   | RegisterView RegisterViewState
@@ -169,6 +177,8 @@ type Msg
   | DashboardViewSwitchToContestantView
   | ContestantViewSwitchToDashboardView
   | ContestantViewPopulateList (List Contestant)
+  | ContestantViewWaterUser String
+  | ContestantViewWateringSuccess
 
 init : (Model, Cmd Msg)
 init = (LoginView loginViewInitState, Cmd.none)
@@ -221,10 +231,18 @@ update msg model = case (msg, model) of
       , expect = expectDashboardState
       }
     )
+  (ContestantViewWaterUser target, ContestantView s) ->
+    ( ContestantView { s | items = Util.mapIf (\c -> c.username == target) (\c -> { c | waterable = False }) s.items }
+    , Http.post
+      { url = Settings.path ++ Endpoints.cokk2021Water
+      , body = Http.jsonBody (waterBodyEncoder target s.user)
+      , expect = Http.expectWhatever (always ContestantViewWateringSuccess)
+      }
+    )
+  (ContestantViewWateringSuccess, ContestantView s) -> (ContestantView s, Cmd.none)
   (DashboardFetchSuccess dashboardState, DashboardView s) -> (DashboardView dashboardState, Cmd.none)
   (DashboardFetchFailure errorMessage, DashboardView s) -> (DashboardView s, Cmd.none)
   _ -> (LoginView loginViewInitState, Cmd.none)
-
 
 expectDashboardState : Http.Expect Msg
 expectDashboardState =
@@ -345,10 +363,8 @@ showPage v = case v of
                   [ Table.td [] [ displayImage c.image 50 50 ]
                   , Table.td [] [ text c.eggname ]
                   , Table.td [] [ text c.username ]
-                  , Table.td [] [ if c.username == state.user.username
-                                  then text "(te vagy)"
-                                  else if c.waterable
-                                  then Button.button [ Button.outlineSecondary] [text "💦"]
+                  , Table.td [] [ if c.username == state.user.username then text "(te vagy)"
+                                  else if c.waterable then Button.button [ Button.outlineSecondary, Button.onClick (ContestantViewWaterUser c.username) ] [text "💦"]
                                   else text "(ma mar megontozted)"
                                 ]
                   ] |> Table.tr (if not c.waterable then [Table.rowSuccess] else [])
@@ -383,7 +399,7 @@ displayLogs username logs =
         div []
         <| (++) [text <| showMonthAndDay sortedByDayEx.datetime]
         <| List.map (\l -> div [] [text <| logToText username l])
-        <| sortedByDayEx :: sortedByDays
+        <| sortedByDayEx :: sortedByDays -- TODO Sort based on time!
       )
       <| List.groupWhile (groupOn <| \a -> a.datetime.day)
       <| List.sortWith (compareOn <| \a -> a.datetime.day)
