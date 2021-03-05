@@ -8,7 +8,7 @@ type alias DateTime =
   { year : Int
   , month : Int
   , day : Int
-  , hour : Int
+  , hours : Int
   , minutes : Int
   , seconds : Float
   }
@@ -30,7 +30,7 @@ encode dt =
     [ ("year", Encode.int dt.year)
     , ("month", Encode.int dt.month)
     , ("day", Encode.int dt.day)
-    , ("hours", Encode.int dt.hour)
+    , ("hours", Encode.int dt.hours)
     , ("minutes", Encode.int dt.minutes)
     , ("seconds", Encode.float dt.seconds)
     ]

@@ -390,16 +390,20 @@ getImageURL name = case name of
 displayLogs : String -> List Log -> Html Msg
 displayLogs username logs =
   div []
+  <| List.reverse
   <| List.map (\(byYearEx, byYears) ->
     div []
     <| (++) [text <| String.fromInt byYearEx.datetime.year, br [] []]
+    <| List.reverse
     <| List.map (\(byMonthEx, byMonths) ->
       div []
+      <| List.reverse
       <| List.map (\(sortedByDayEx, sortedByDays) ->
         div []
         <| (++) [text <| showMonthAndDay sortedByDayEx.datetime]
         <| List.map (\l -> div [] [text <| logToText username l])
-        <| sortedByDayEx :: sortedByDays -- TODO Sort based on time!
+        <| List.sortWith (compareOn <| \a -> toFloat (a.datetime.hours * 10000 + a.datetime.minutes * 100) + a.datetime.seconds)
+        <| sortedByDayEx :: sortedByDays
       )
       <| List.groupWhile (groupOn <| \a -> a.datetime.day)
       <| List.sortWith (compareOn <| \a -> a.datetime.day)
@@ -420,7 +424,7 @@ logToText you l =
         then "Megöntözted " ++ l.target ++ "-t"
         else "Megontözött " ++ l.source ++ " (+💦)"
       showDigits = String.padLeft 2 '0' << String.fromInt
-  in showDigits l.datetime.hour ++ ":"  ++ showDigits l.datetime.minutes ++ " " ++ msg
+  in showDigits l.datetime.hours ++ ":"  ++ showDigits l.datetime.minutes ++ " " ++ msg
 
 compareOn : (a -> comparable) -> a -> a -> Order
 compareOn f a b = compare (f a) (f b)
