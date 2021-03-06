@@ -16,7 +16,12 @@ import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 
 import qualified Events.Cokk2020 as Cokk2020
-import qualified Events.Cokk2021 as Cokk2021
+import qualified Events.Cokk2021.User as Cokk2021User
+import qualified Events.Cokk2021.Login as Cokk2021Login
+import qualified Events.Cokk2021.WaterLog as Cokk2021WaterLog
+import qualified Events.Cokk2021.Registration as Cokk2021Registration
+import qualified Events.Cokk2021.WaterRequest as Cokk2021WaterRequest
+import qualified Events.Cokk2021.DashboardData as Cokk2021DashboardData
 
 import Gyurver.Html
 import Gyurver.Request
@@ -32,7 +37,7 @@ import qualified Types.VideoEdit as VideoEdit
 import           Types.Password as Password
 import           Types.Settings as Settings
 import Endpoints
-import Utils (($>))
+import           Utils (($>), (</>))
 import qualified Utils
 
 log :: Logger
@@ -79,8 +84,8 @@ readSettings log =
 
 process :: DBHandle Cokk2020.Tojas
         -> DBHandle Video
-        -> DBHandle Cokk2021.User
-        -> DBHandle Cokk2021.WaterLog
+        -> DBHandle Cokk2021User.User
+        -> DBHandle Cokk2021WaterLog.WaterLog
         -> Settings
         -> Request
         -> IO Response
@@ -157,25 +162,32 @@ process tojasDB
       return
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
-        $ map (Cokk2021.userToListItemJson True) users
+        $ map (Cokk2021User.toListItemJson True) users
 
     PostCokk2021ParticipantsForUser -> do
       Logger.info log "[API] Requested user participation list"
-      processJsonBody Cokk2021.loginDecoder $ \login -> do
+      processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
-                                    && Cokk2021.jelszoHash u == Cokk2021.pass login) users
+        let userOpt = List.find (Cokk2021Login.matchesLogin login) users
         maybe
           (return $ makeResponse Unauthorized "Bad Credentials")
           (\user -> do
             waterLogs <- DB.everythingList cokk2021WaterDB
             now <- DateTime.getCurrentDateTime
-            let relevantLines = filter (\w -> Cokk2021.wlSource w == Cokk2021.felhasznaloNev user) waterLogs
-            let nusers = map (\u -> (maybe True (flip Cokk2021.isWaterable now . Cokk2021.wlDateTime) $ Utils.safeLast $ List.sortOn Cokk2021.wlDateTime $ filter (\w -> Cokk2021.wlTarget w == Cokk2021.felhasznaloNev u) relevantLines, u)) users
+            let relevantLines = filter (\w -> Cokk2021WaterLog.wlSource w == Cokk2021User.username user) waterLogs
+            let nusers =
+                  map (\u ->
+                    ( maybe True (flip Cokk2021WaterRequest.isWaterable now . Cokk2021WaterLog.wlDateTime)
+                        $ Utils.safeLast
+                        $ List.sortOn Cokk2021WaterLog.wlDateTime
+                        $ filter (\w -> Cokk2021WaterLog.wlTarget w == Cokk2021User.username u) relevantLines
+                    , u
+                    )
+                  ) users
             return
               $ addHeaders [("Content-Type", "application/json")]
               $ makeResponse OK
-              $ map (uncurry Cokk2021.userToListItemJson) nusers
+              $ map (uncurry Cokk2021User.toListItemJson) nusers
           )
           userOpt
 
@@ -211,45 +223,44 @@ process tojasDB
 
     PostCokk2021Login -> do
       Logger.info log "[API] Login attempt"
-      processJsonBody Cokk2021.loginDecoder $ \login -> do
+      processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
-                                    && Cokk2021.jelszoHash u == Cokk2021.pass login) users
+        let userOpt = List.find (Cokk2021Login.matchesLogin login) users
         maybe
           (return $ makeResponse Unauthorized "Bad Credentials")
           (\user -> do
             waterLogs <- DB.everythingList cokk2021WaterDB
-            let dashboardData = Cokk2021.mkDashboardData user waterLogs
-            return $ makeResponse OK $ Cokk2021.dashboardDataEncoder dashboardData
+            let dashboardData = Cokk2021DashboardData.make user waterLogs
+            return $ makeResponse OK $ Cokk2021DashboardData.encode dashboardData
           )
           userOpt
 
     PostCokk2021Register -> do
       Logger.info log "[API] Registration attempt"
-      processJsonBody Cokk2021.userRegistrationDecoder $ \registration -> do
-        let user = Cokk2021.registrationToUser registration
+      processJsonBody Cokk2021Registration.decode $ \registration -> do
+        let user = Cokk2021Registration.toUser registration
         users <- DB.everythingList cokk2021UserDB
-        if Cokk2021.felhasznaloNev user `elem` map Cokk2021.felhasznaloNev users
+        if Cokk2021User.username user `elem` map Cokk2021User.username users
         then return $ makeResponse BadRequest "Felhasznalonev nem egyedi."
         else
-          if Cokk2021.tojasNev user `elem` map Cokk2021.tojasNev users
+          if Cokk2021User.eggname user `elem` map Cokk2021User.eggname users
           then return $ makeResponse BadRequest "Tojasnev nem egyedi."
           else do
             DB.insert cokk2021UserDB user
-            let dashboardData = Cokk2021.mkDashboardData user []
-            return $ makeResponse OK $ Cokk2021.dashboardDataEncoder dashboardData
+            let dashboardData = Cokk2021DashboardData.make user []
+            return $ makeResponse OK $ Cokk2021DashboardData.encode dashboardData
 
     PostCokk2021Water -> do
       Logger.info log "[API] Watering!"
-      processJsonBody Cokk2021.waterRequestDecoder $ \req ->
-        if Cokk2021.source req == Cokk2021.target req
+      processJsonBody Cokk2021WaterRequest.decode $ \req ->
+        if Cokk2021WaterRequest.source req == Cokk2021WaterRequest.target req
         then return $ makeResponse BadRequest "Nem ontozheted meg magad! >:|"
         else do
           result <- DB.modifyData cokk2021UserDB $ \users ->
             let
-              targetUserOpt = List.find (\u -> Cokk2021.target req == Cokk2021.felhasznaloNev u) users
-              sourceUserOpt = List.find (\u -> Cokk2021.source req == Cokk2021.felhasznaloNev u
-                                            && Cokk2021.sourcePass req == Cokk2021.jelszoHash u) users
+              targetUserOpt = List.find (\u -> Cokk2021WaterRequest.target req == Cokk2021User.username u) users
+              sourceUserOpt = List.find (\u -> Cokk2021WaterRequest.source req == Cokk2021User.username u
+                                            && Cokk2021WaterRequest.sourcePass req == Cokk2021User.passwordHash u) users
               sourceUserNotFound = (users, Just "Bocs, de rossz a jelszo/felhasznalo")
               targetUserNotFound = (users, Just "Bocs de nem letezik az akit meg akarsz ontozni")
             in case sourceUserOpt of
@@ -260,13 +271,13 @@ process tojasDB
                     Just targetUser ->
                       let newData =
                             Utils.mapIf
-                              (\u -> Cokk2021.felhasznaloNev u == Cokk2021.target req)
-                              (\u -> u { Cokk2021.kolni = Cokk2021.kolni targetUser + 1 })
+                              (\u -> Cokk2021User.username u == Cokk2021WaterRequest.target req)
+                              (Cokk2021User.addPerfume 1)
                               users
                       in (newData, Nothing)
 
           maybe (do
-                  wLog <- Cokk2021.mkWaterLog (Cokk2021.source req) (Cokk2021.target req)
+                  wLog <- Cokk2021WaterLog.make (Cokk2021WaterRequest.source req) (Cokk2021WaterRequest.target req)
                   DB.insert cokk2021WaterDB wLog
                   return $ makeResponse OK "Success"
                 )
@@ -275,16 +286,15 @@ process tojasDB
 
     PostCokk2021DashboardRefresh -> do
       Logger.info log "[API] refreshing dashboard"
-      processJsonBody Cokk2021.loginDecoder $ \login -> do
+      processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (\u -> Cokk2021.felhasznaloNev u == Cokk2021.user login
-                                    && Cokk2021.jelszoHash u == Cokk2021.pass login) users
+        let userOpt = List.find (Cokk2021Login.matchesLogin login) users
         maybe
           (return $ makeResponse Unauthorized "Bad Credentials")
           (\user -> do
             waterLogs <- DB.everythingList cokk2021WaterDB
-            let dashboardData = Cokk2021.mkDashboardData user waterLogs
-            return $ makeResponse OK $ Cokk2021.dashboardDataEncoder dashboardData
+            let dashboardData = Cokk2021DashboardData.make user waterLogs
+            return $ makeResponse OK $ Cokk2021DashboardData.encode dashboardData
           )
           userOpt
 
@@ -339,6 +349,3 @@ sendFile :: String -> IO Response
 sendFile path =
   Utils.safeReadBinaryFile path
   & fmap (maybe (makeResponse InternalServerError "Could not read file!") (makeResponse OK))
-
-(</>) :: String -> String -> String
-a </> b = a ++ "/" ++ b

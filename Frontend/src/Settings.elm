@@ -2,7 +2,7 @@ module Settings exposing (path, version)
 
 -- TODO this should be false when releasing!!!
 debug : Bool
-debug = False
+debug = True
 
 path : String
 path =

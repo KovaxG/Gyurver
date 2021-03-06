@@ -12,6 +12,9 @@ import qualified Data.Text.IO as IO
 ($>) :: Functor f => f a -> b -> f b
 ($>) = flip (<$)
 
+(</>) :: String -> String -> String
+a </> b = a ++ "/" ++ b
+
 mapLeft :: (a -> b) -> Either a r -> Either b r
 mapLeft = first
 
