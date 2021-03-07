@@ -15,6 +15,10 @@ import qualified Data.Text.IO as IO
 (</>) :: String -> String -> String
 a </> b = a ++ "/" ++ b
 
+infixl 1 +:
+(+:) :: [a] -> a -> [a]
+as +: a = as ++ [a]
+
 mapLeft :: (a -> b) -> Either a r -> Either b r
 mapLeft = first
 
