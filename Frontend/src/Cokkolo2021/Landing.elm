@@ -9,6 +9,7 @@ import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 
 import Cokkolo2021.Views.Login as Login
+import Cokkolo2021.Views.Skills as Skills
 import Cokkolo2021.Views.Register as Register
 import Cokkolo2021.Views.Dashboard as Dashboard
 import Cokkolo2021.Views.Contestants as Contestants
@@ -87,6 +88,15 @@ update msg model = case (msg, model) of
   (ContestantsMsg Contestants.WateringSuccess, ContestantView s) -> (ContestantView s, Cmd.none)
   (DashboardMsg (Dashboard.FetchSuccess dashboardState), DashboardView s) -> (DashboardView dashboardState, Cmd.none)
   (DashboardMsg (Dashboard.FetchFailure errorMessage), DashboardView s) -> (DashboardView s, Cmd.none)
+  (DashboardMsg Dashboard.SwitchToSkillsView, DashboardView s) -> (SkillsView <| Skills.init s.user, Cmd.none)
+  (SkillsMsg Skills.SwitchToDashboard, SkillsView s) ->
+    ( DashboardView <| Dashboard.populateTemporary s.user
+    , Http.post
+      { url = Settings.path ++ Endpoints.cokk2021DashboardJson
+      , body = Http.jsonBody (Login.encode s.user.username s.user.password)
+      , expect = expectDashboardState
+      }
+    )
   _ -> (LoginView Login.init, Cmd.none)
 
 expectDashboardState : Http.Expect Msg
@@ -102,6 +112,7 @@ view model =
     [ [ CDN.stylesheet
       , case model of
           LoginView state -> Html.map LoginMsg <| Login.view state
+          SkillsView state -> Html.map SkillsMsg <| Skills.view state
           RegisterView state -> Html.map RegisterMsg <| Register.view state
           DashboardView state -> Html.map DashboardMsg <| Dashboard.view state
           ContestantView state -> Html.map ContestantsMsg <| Contestants.view state

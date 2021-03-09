@@ -46,11 +46,17 @@ type Message
   | FetchFailure String
   | Logout
   | SwitchToContestantView
+  | SwitchToSkillsView
 
 view : ViewState -> Html Message
 view state =
   [ [ h2 [] [text <| state.user.eggName]
     , displayImage state.user.image 250 250
+    , Button.button
+      [ Button.outlinePrimary
+      , Button.attrs [ Spacing.m2 ]
+      , Button.onClick SwitchToSkillsView
+      ] [text "Tulajdonságok"]
     ] |> Grid.col []
   , [ Button.button
       [ Button.primary

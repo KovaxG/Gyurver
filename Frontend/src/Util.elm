@@ -23,3 +23,6 @@ processMessage success fail result =
   |> Result.map success
   |> Result.mapError (fail << showError)
   |> Result.merge
+
+flip : (a -> b -> c) -> b -> a -> c
+flip f a b = f b a

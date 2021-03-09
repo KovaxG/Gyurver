@@ -62,7 +62,7 @@ view state =
       , Button.onClick SwitchToDashboardView
       ] [text "Vissza"]
       , Table.table
-      { options = []
+      { options = [ Table.hover ]
       , thead =
           Table.simpleThead
               [ Table.th [] []
@@ -71,18 +71,18 @@ view state =
               , Table.th [] []
               ]
       , tbody =
-              state.items
-              |> List.map (\c ->
-                  [ Table.td [] [ displayImage c.image 50 50 ]
-                  , Table.td [] [ text c.eggname ]
-                  , Table.td [] [ text c.username ]
-                  , Table.td [] [ if c.username == state.user.username then text "(te vagy)"
-                                  else if c.waterable then Button.button [ Button.outlineSecondary, Button.onClick (WaterUser c.username) ] [text "💦"]
-                                  else text "(ma mar megontozted)"
-                              ]
-                  ] |> Table.tr (if not c.waterable then [Table.rowSuccess] else [])
-              )
-              |> Table.tbody []
+        state.items
+        |> List.map (\c ->
+            [ Table.td [] [ displayImage c.image 50 50 ]
+            , Table.td [] [ text c.eggname ]
+            , Table.td [] [ text c.username ]
+            , Table.td [] [ if c.username == state.user.username then text "(te vagy)"
+                            else if c.waterable then Button.button [ Button.outlineSecondary, Button.onClick (WaterUser c.username) ] [text "💦"]
+                            else text "(ma mar megontozted)"
+                        ]
+            ] |> Table.tr (if not c.waterable then [Table.rowSuccess] else [])
+        )
+        |> Table.tbody []
       }
       ] |> Grid.col []
   ] |> Grid.row []
