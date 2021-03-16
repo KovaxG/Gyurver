@@ -18,8 +18,8 @@ type Message = SwitchToDashboard
 view : ViewState -> Html Message
 view state =
   let
-    tableRow : String -> (Skills -> Int) -> Table.Row Message
-    tableRow name f =
+    row : String -> (Skills -> Int) -> Table.Row Message
+    row name f =
       let level = f state.user.skills
       in
         [ Table.td [] [text name]
@@ -44,28 +44,28 @@ view state =
                 , Table.th [] []
                 ]
         , tbody =
-          [ tableRow "keménység" .kemenyseg
-          , tableRow "erősség" .erosseg
-          , tableRow "settenkedés" .settenkedes
-          , tableRow "szivarozás" .szivarozas
-          , tableRow "furfangosság" .furfangossag
-          , tableRow "tűzokádás" .tuzokadas
-          , tableRow "zsírosság" .zsirossag
-          , tableRow "intelligencia" .intelligencia
-          , tableRow "diplomácia" .diplomacia
-          , tableRow "hegyesség" .hegyesseg
-          , tableRow "szerencse" .szerencse
-          , tableRow "bájosság" .baj
-          , tableRow "meggyőzőerő" .meggyozoero
-          , tableRow "precízitás" .precizitas
-          , tableRow "nyelvtudás" .nyelvtudas
-          , tableRow "ízlés" .izles
-          , tableRow "vérnyomás" .vernyomas
-          , tableRow "humorérzék" .humorerzek
-          , tableRow "regeneráció" .regeneracio
-          , tableRow "művészlélek" .muveszlelek
-          , tableRow "tisztaságmánia" .tisztasagmania
-          , tableRow "edzettség" .edzettseg
+          [ row "keménység" .kemenyseg
+          , row "erősség" .erosseg
+          , row "settenkedés" .settenkedes
+          , row "szivarozás" .szivarozas
+          , row "furfangosság" .furfangossag
+          , row "tűzokádás" .tuzokadas
+          , row "zsírosság" .zsirossag
+          , row "intelligencia" .intelligencia
+          , row "diplomácia" .diplomacia
+          , row "hegyesség" .hegyesseg
+          , row "szerencse" .szerencse
+          , row "bájosság" .baj
+          , row "meggyőzőerő" .meggyozoero
+          , row "precízitás" .precizitas
+          , row "nyelvtudás" .nyelvtudas
+          , row "ízlés" .izles
+          , row "vérnyomás" .vernyomas
+          , row "humorérzék" .humorerzek
+          , row "regeneráció" .regeneracio
+          , row "művészlélek" .muveszlelek
+          , row "tisztaságmánia" .tisztasagmania
+          , row "edzettség" .edzettseg
           ]
           |> Table.tbody []
         }
