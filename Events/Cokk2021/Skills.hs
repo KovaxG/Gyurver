@@ -96,3 +96,29 @@ instance DBFormat Skills where
     . (=<<) (Decoder.run Events.Cokk2021.Skills.decode)
     . Json.parseJson
     . Text.unpack
+
+parse :: String -> Maybe (Skills -> Int)
+parse s = case s of
+  "kemenyseg" -> Just kemenyseg
+  "erosseg" -> Just erosseg
+  "settenkedes" -> Just settenkedes
+  "szivarozas" -> Just szivarozas
+  "furfangossag" -> Just furfangossag
+  "tuzokadas" -> Just tuzokadas
+  "zsirossag" -> Just zsirossag
+  "intelligencia" -> Just intelligencia
+  "diplomacia" -> Just diplomacia
+  "hegyesseg" -> Just hegyesseg
+  "szerencse" -> Just szerencse
+  "baj" -> Just baj
+  "meggyozoero" -> Just meggyozoero
+  "precizitas" -> Just precizitas
+  "nyelvtudas" -> Just nyelvtudas
+  "izles" -> Just izles
+  "vernyomas" -> Just vernyomas
+  "humorerzek" -> Just humorerzek
+  "regeneracio" -> Just regeneracio
+  "muveszlelek" -> Just muveszlelek
+  "tisztasagmania" -> Just tisztasagmania
+  "edzettseg" -> Just edzettseg
+  _ -> Nothing

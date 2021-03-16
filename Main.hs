@@ -19,6 +19,7 @@ import qualified Events.Cokk2020 as Cokk2020
 import qualified Events.Cokk2021.User as Cokk2021User
 import qualified Events.Cokk2021.Login as Cokk2021Login
 import qualified Events.Cokk2021.WaterLog as Cokk2021WaterLog
+import qualified Events.Cokk2021.IncSkillRequest as Cokk2021IncSkillRequest
 import qualified Events.Cokk2021.Registration as Cokk2021Registration
 import qualified Events.Cokk2021.WaterRequest as Cokk2021WaterRequest
 import qualified Events.Cokk2021.DashboardData as Cokk2021DashboardData
@@ -297,6 +298,12 @@ process tojasDB
             return $ makeResponse OK $ Cokk2021DashboardData.encode dashboardData
           )
           userOpt
+
+    PostCokk2021IncSkill -> do
+      Logger.info log "[API] increase skill"
+      processJsonBody Cokk2021IncSkillRequest.decode $ \req -> do
+        -- TODO implementation goes here
+        return $ makeResponse OK "OK Boomer"
 
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr
