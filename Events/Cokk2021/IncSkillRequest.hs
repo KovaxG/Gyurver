@@ -1,7 +1,9 @@
+{-# LANGUAGE NamedFieldPuns #-}
 module Events.Cokk2021.IncSkillRequest where
 
 import qualified Data.Text as Text
 
+import           Events.Cokk2021.Login (Login (..))
 import           Component.Json (Json(..))
 import qualified Component.Json as Json
 import           Component.Database (DBFormat(..))
@@ -35,3 +37,6 @@ instance DBFormat IncSkillRequest where
     . (=<<) (Decoder.run Events.Cokk2021.IncSkillRequest.decode)
     . Json.parseJson
     . Text.unpack
+
+toLogin :: IncSkillRequest -> Login
+toLogin ISK {username, password} = Login username password

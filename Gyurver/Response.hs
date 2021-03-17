@@ -20,6 +20,8 @@ data Status
   | BadRequest
   | Unauthorized
   | InternalServerError
+  | PaymentRequired
+  | Forbidden
 
 instance Show Status where
   show status =
@@ -28,6 +30,8 @@ instance Show Status where
       BadRequest -> "400 Bad Request"
       Unauthorized -> "401 Unauthorized"
       InternalServerError -> "500 Internal Server Error"
+      PaymentRequired -> "402 Payment Required"
+      Forbidden -> "403 Forbidden"
 
 data Response = Response
   { status  :: Status

@@ -122,3 +122,29 @@ parse s = case s of
   "tisztasagmania" -> Just tisztasagmania
   "edzettseg" -> Just edzettseg
   _ -> Nothing
+
+incSkill :: String -> Skills -> Maybe Skills
+incSkill skill skills = case skill of
+  "kemenyseg" -> Just $ skills { kemenyseg = kemenyseg skills + 1 }
+  "erosseg" -> Just $ skills { erosseg = erosseg skills + 1 }
+  "settenkedes" -> Just $ skills { settenkedes = settenkedes skills + 1 }
+  "szivarozas" -> Just $ skills { szivarozas = szivarozas skills + 1 }
+  "furfangossag" -> Just $ skills { furfangossag = furfangossag skills + 1 }
+  "tuzokadas" -> Just $ skills { tuzokadas = tuzokadas skills + 1 }
+  "zsirossag" -> Just $ skills { zsirossag = zsirossag skills + 1 }
+  "intelligencia" -> Just $ skills { intelligencia = intelligencia skills + 1 }
+  "diplomacia" -> Just $ skills { diplomacia = diplomacia skills + 1 }
+  "hegyesseg" -> Just $ skills { hegyesseg = hegyesseg skills + 1 }
+  "szerencse" -> Just $ skills { szerencse = szerencse skills + 1 }
+  "baj" -> Just $ skills { baj = baj skills + 1 }
+  "meggyozoero" -> Just $ skills { meggyozoero = meggyozoero skills + 1 }
+  "precizitas" -> Just $ skills { precizitas = precizitas skills + 1 }
+  "nyelvtudas" -> Just $ skills { nyelvtudas = nyelvtudas skills + 1 }
+  "izles" -> Just $ skills { izles = izles skills + 1 }
+  "vernyomas" -> Just $ skills { vernyomas = vernyomas skills + 1 }
+  "humorerzek" -> Just $ skills { humorerzek = humorerzek skills + 1 }
+  "regeneracio" -> Just $ skills { regeneracio = regeneracio skills + 1 }
+  "muveszlelek" -> Just $ skills { muveszlelek = muveszlelek skills + 1 }
+  "tisztasagmania" -> Just $ skills { tisztasagmania = tisztasagmania skills + 1 }
+  "edzettseg" -> Just $ skills { edzettseg = edzettseg skills + 1 }
+  _ -> Nothing

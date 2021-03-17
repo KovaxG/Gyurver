@@ -59,3 +59,4 @@ toListItemJson b u = JsonObject
   , ("waterable", JsonBool b)
   , ("skills", Skills.encode $ skills u)
   ]
+

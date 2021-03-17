@@ -18,6 +18,7 @@ import qualified Data.Maybe as Maybe
 import qualified Events.Cokk2020 as Cokk2020
 import qualified Events.Cokk2021.User as Cokk2021User
 import qualified Events.Cokk2021.Login as Cokk2021Login
+import qualified Events.Cokk2021.Skills as Cokk2021Skills
 import qualified Events.Cokk2021.WaterLog as Cokk2021WaterLog
 import qualified Events.Cokk2021.IncSkillRequest as Cokk2021IncSkillRequest
 import qualified Events.Cokk2021.Registration as Cokk2021Registration
@@ -302,8 +303,36 @@ process tojasDB
     PostCokk2021IncSkill -> do
       Logger.info log "[API] increase skill"
       processJsonBody Cokk2021IncSkillRequest.decode $ \req -> do
-        -- TODO implementation goes here
-        return $ makeResponse OK "OK Boomer"
+        users <- DB.everythingList cokk2021UserDB
+        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021IncSkillRequest.toLogin req) users
+        maybe
+          (return $ makeResponse Unauthorized "Bad Credentials")
+          (\user -> do
+            let skillOpt = Cokk2021Skills.parse $ Cokk2021IncSkillRequest.skill req
+            maybe
+              (return $ makeResponse BadRequest "No such skill exists!")
+              (\skill -> do
+                let level = skill $ Cokk2021User.skills user
+                if level >= 10
+                then return $ makeResponse Forbidden "You can't increase skill level above 10!"
+                else
+                  if Cokk2021User.perfume user < level + 1
+                  then return $ makeResponse PaymentRequired "Not enough perfume!"
+                  else do
+                    let updatedUser = user
+                          { Cokk2021User.perfume = Cokk2021User.perfume user - (level + 1)
+                          , Cokk2021User.skills = Maybe.fromMaybe (Cokk2021User.skills user)
+                                                $ Cokk2021Skills.incSkill (Cokk2021IncSkillRequest.skill req) (Cokk2021User.skills user)
+                          }
+                    DB.modifyData cokk2021UserDB $ \users ->
+                      ( Utils.mapIf (\u -> Cokk2021User.username u == Cokk2021User.username user) (const updatedUser) users
+                      , ()
+                      )
+                    return $ makeResponse OK "OK Boomer"
+              )
+              skillOpt
+          )
+          userOpt
 
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr
