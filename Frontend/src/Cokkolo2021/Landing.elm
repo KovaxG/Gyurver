@@ -97,6 +97,16 @@ update msg model = case (msg, model) of
       , expect = expectDashboardState
       }
     )
+  (SkillsMsg (Skills.IncSkill skill cost), SkillsView s) ->
+    ( SkillsView s
+    , Http.post
+      { url = Settings.path ++ Endpoints.cokk2021IncSkillJson
+      , body = Http.jsonBody <| Skills.toIncSkillRequest s skill
+      , expect = Http.expectWhatever <| Util.processMessage (\_ -> SkillsMsg <| Skills.IncSkillSuccess skill cost) (SkillsMsg << Skills.IncSkillFailure)
+      }
+    )
+  (SkillsMsg (Skills.IncSkillSuccess skill cost), SkillsView s) -> (SkillsView <| Skills.update skill cost s, Cmd.none)
+  (SkillsMsg (Skills.IncSkillFailure _), SkillsView s) -> (SkillsView s, Cmd.none)
   _ -> (LoginView Login.init, Cmd.none)
 
 expectDashboardState : Http.Expect Msg

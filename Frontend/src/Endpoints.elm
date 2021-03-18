@@ -40,6 +40,7 @@ cokk2021RegisterJson = "/api/cokk2021/register"
 cokk2021LoginJson = "/api/cokk2021/login"
 cokk2021ParticipantsJson = "/api/cokk2021/resztvevok"
 cokk2021DashboardJson = "/api/cokk2021/dashboard"
+cokk2021IncSkillJson =  "/api/cokk2021/skills/inc"
 cokk2021Water = "/api/cokk2021/water"
 
 cv = "/cv"

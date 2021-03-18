@@ -53,6 +53,32 @@ type alias Skills =
   , edzettseg : Int
   }
 
+modifySkill : String -> (Int -> Int) -> Skills -> Maybe Skills
+modifySkill skill f skills = case skill of
+  "kemenyseg" -> Just { skills | kemenyseg = f skills.kemenyseg }
+  "erosseg" -> Just { skills | erosseg = f skills.erosseg }
+  "settenkedes" -> Just { skills | settenkedes = f skills.settenkedes }
+  "szivarozas" -> Just { skills | szivarozas = f skills.szivarozas }
+  "furfangossag" -> Just { skills | furfangossag = f skills.furfangossag }
+  "tuzokadas" -> Just { skills | tuzokadas = f skills.tuzokadas }
+  "zsirossag" -> Just { skills | zsirossag = f skills.zsirossag }
+  "intelligencia" -> Just { skills | intelligencia = f skills.intelligencia }
+  "diplomacia" -> Just { skills | diplomacia = f skills.diplomacia }
+  "hegyesseg" -> Just { skills | hegyesseg = f skills.hegyesseg }
+  "szerencse" -> Just { skills | szerencse = f skills.szerencse }
+  "baj" -> Just { skills | baj = f skills.baj }
+  "meggyozoero" -> Just { skills | meggyozoero = f skills.meggyozoero }
+  "precizitas" -> Just { skills | precizitas = f skills.precizitas }
+  "nyelvtudas" -> Just { skills | nyelvtudas = f skills.nyelvtudas }
+  "izles" -> Just { skills | izles = f skills.izles }
+  "vernyomas" -> Just { skills | vernyomas = f skills.vernyomas }
+  "humorerzek" -> Just { skills | humorerzek = f skills.humorerzek }
+  "regeneracio" -> Just { skills | regeneracio = f skills.regeneracio }
+  "muveszlelek" -> Just { skills | muveszlelek = f skills.muveszlelek }
+  "tisztasagmania" -> Just { skills | tisztasagmania = f skills.tisztasagmania }
+  "edzettseg" -> Just { skills | edzettseg = f skills.edzettseg }
+  _ -> Nothing
+
 skillsDecoder : Decoder Skills
 skillsDecoder =
   Skills
