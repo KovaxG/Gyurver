@@ -53,6 +53,32 @@ type alias Skills =
   , edzettseg : Int
   }
 
+initSkills : Skills
+initSkills =
+  { kemenyseg = 0
+  , erosseg = 0
+  , settenkedes = 0
+  , szivarozas = 0
+  , furfangossag = 0
+  , tuzokadas = 0
+  , zsirossag = 0
+  , intelligencia = 0
+  , diplomacia = 0
+  , hegyesseg = 0
+  , szerencse = 0
+  , baj = 0
+  , meggyozoero = 0
+  , precizitas = 0
+  , nyelvtudas = 0
+  , izles = 0
+  , vernyomas = 0
+  , humorerzek = 0
+  , regeneracio = 0
+  , muveszlelek = 0
+  , tisztasagmania = 0
+  , edzettseg = 0
+  }
+
 modifySkill : String -> (Int -> Int) -> Skills -> Maybe Skills
 modifySkill skill f skills = case skill of
   "kemenyseg" -> Just { skills | kemenyseg = f skills.kemenyseg }

@@ -7,7 +7,7 @@ import Json.Decode as Decode exposing (Decoder)
 
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
-
+import Cokkolo2021.Views.Egg as Egg
 import Cokkolo2021.Views.Login as Login
 import Cokkolo2021.Views.Skills as Skills
 import Cokkolo2021.Views.Register as Register
@@ -86,6 +86,7 @@ update msg model = case (msg, model) of
       }
     )
   (ContestantsMsg Contestants.WateringSuccess, ContestantView s) -> (ContestantView s, Cmd.none)
+  (ContestantsMsg (Contestants.SwitchToEggView contestant), ContestantView s) -> (EggView <| Egg.init s contestant, Cmd.none)
   (DashboardMsg (Dashboard.FetchSuccess dashboardState), DashboardView s) -> (DashboardView dashboardState, Cmd.none)
   (DashboardMsg (Dashboard.FetchFailure errorMessage), DashboardView s) -> (DashboardView s, Cmd.none)
   (DashboardMsg Dashboard.SwitchToSkillsView, DashboardView s) -> (SkillsView <| Skills.init s.user, Cmd.none)
@@ -107,6 +108,7 @@ update msg model = case (msg, model) of
     )
   (SkillsMsg (Skills.IncSkillSuccess skill cost), SkillsView s) -> (SkillsView <| Skills.update skill cost s, Cmd.none)
   (SkillsMsg (Skills.IncSkillFailure _), SkillsView s) -> (SkillsView s, Cmd.none)
+  (EggMsg Egg.SwitchToContestantsView, EggView s) -> (ContestantView s.contestantsState, Cmd.none)
   _ -> (LoginView Login.init, Cmd.none)
 
 expectDashboardState : Http.Expect Msg
@@ -121,6 +123,7 @@ view model =
   , body =
     [ [ CDN.stylesheet
       , case model of
+          EggView state -> Html.map EggMsg <| Egg.view state
           LoginView state -> Html.map LoginMsg <| Login.view state
           SkillsView state -> Html.map SkillsMsg <| Skills.view state
           RegisterView state -> Html.map RegisterMsg <| Register.view state

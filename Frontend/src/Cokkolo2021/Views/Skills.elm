@@ -2,9 +2,9 @@ module Cokkolo2021.Views.Skills exposing (..)
 
 import Html exposing (Html, text, h2)
 import Bootstrap.Grid as Grid
+import Bootstrap.Table as Table
 import Bootstrap.Button as Button
 import Bootstrap.Utilities.Spacing as Spacing
-import Bootstrap.Table as Table
 
 import Json.Encode as Encode exposing (Value)
 import Json.Decode as Decode exposing (Decoder)

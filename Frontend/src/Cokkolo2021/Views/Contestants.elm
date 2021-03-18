@@ -1,6 +1,7 @@
 module Cokkolo2021.Views.Contestants exposing (..)
 
 import Html exposing (Html, text, h1)
+import Html.Events exposing (onClick)
 import Bootstrap.Grid as Grid
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
@@ -22,16 +23,18 @@ type alias Contestant =
   , eggname : String
   , image : String
   , waterable : Bool
+  , skills : Skills
   }
 
 decode : Decoder Contestant
 decode =
-  Decode.map4
+  Decode.map5
     Contestant
     (Decode.field "username" Decode.string)
     (Decode.field "eggname" Decode.string)
     (Decode.field "image" Decode.string)
     (Decode.field "waterable" Decode.bool)
+    (Decode.field "skills" skillsDecoder)
 
 init : User -> ViewState
 init u =
@@ -49,6 +52,7 @@ encodeWaterBody target user =
 
 type Message
   = SwitchToDashboardView
+  | SwitchToEggView Contestant
   | PopulateList (List Contestant)
   | WaterUser String
   | WateringSuccess
@@ -80,7 +84,7 @@ view state =
                             else if c.waterable then Button.button [ Button.outlineSecondary, Button.onClick (WaterUser c.username) ] [text "💦"]
                             else text "(ma mar megontozted)"
                         ]
-            ] |> Table.tr (if not c.waterable then [Table.rowSuccess] else [])
+            ] |> Table.tr ((if not c.waterable then [Table.rowSuccess] else []) ++ [Table.rowAttr (onClick <| SwitchToEggView c)])
         )
         |> Table.tbody []
       }
