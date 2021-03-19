@@ -1,8 +1,11 @@
 module Settings exposing (path, version)
 
 -- TODO this should be false when releasing!!!
+{- Elcsesztem:
+  * 2021.03.18 - 0.6.0
+-}
 debug : Bool
-debug = True
+debug = False
 
 path : String
 path =

@@ -43,12 +43,25 @@ type Message
   | SwitchToLoginView
   | Register
 
+isValidName : String -> Bool
+isValidName = not << String.isEmpty << String.trim
+
 view : ViewState -> Html Message
 view state =
   [ [ h1 [] [text "2021 Húsvéti játékok"]
       , h2 [] [text "Regisztrálás"]
       , text "Gazda neve"
-      , Input.text [Input.value state.username, Input.onInput UsernameFieldChange]
+      , Input.text
+      [ Input.value state.username
+      , Input.onInput UsernameFieldChange
+      , if isValidName state.username then Input.success else Input.danger
+      ]
+      , text "Tojás Neve"
+      , Input.text
+      [ Input.value state.eggname
+      , Input.onInput EggnameFieldChange
+      , if isValidName state.eggname then Input.success else Input.danger
+      ]
       , text "Jelszó"
       , Input.text
       [ Input.value state.password1
@@ -58,12 +71,11 @@ view state =
       , Input.text
       [ Input.value state.password2
       , Input.onInput Password2FieldChange
-      , if state.password1 /= state.password2 || state.password1 == "" then Input.danger else Input.success
+      , if state.password1 /= state.password2 || String.isEmpty state.password1 then Input.danger else Input.success
       ]
-      , text "Tojás Neve"
-      , Input.text [Input.value state.eggname, Input.onInput EggnameFieldChange]
       , Button.button
       [ Button.primary
+      , Button.disabled (state.password1 /= state.password2 || not (isValidName state.username) || not (isValidName state.eggname) || String.isEmpty state.password1)
       , Button.attrs [ Spacing.m2 ]
       , Button.onClick Register
       ] [text "Regisztrálás!"]
