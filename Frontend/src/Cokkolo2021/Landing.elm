@@ -38,7 +38,7 @@ update msg model = case (msg, model) of
     ( LoginView { s | state = Waiting }
     , Http.post
         { url = Settings.path ++ Endpoints.cokk2021LoginJson
-        , body = Http.jsonBody (Login.encode s.username s.password)
+        , body = Http.jsonBody (Login.encode s)
         , expect = expectDashboardState
         }
     )
@@ -62,7 +62,7 @@ update msg model = case (msg, model) of
     ( ContestantView <| Contestants.init s.user
     , Http.post
       { url = Settings.path ++ Endpoints.cokk2021ParticipantsJson
-      , body = Http.jsonBody (Login.encode s.user.username s.user.password)
+      , body = Http.jsonBody (Login.encodeGeneric s.user.username s.user.password)
       , expect =
           Http.expectJson (Util.processMessage (ContestantsMsg << Contestants.PopulateList) (always <| ContestantsMsg <| Contestants.PopulateList []))
                           (Decode.list Contestants.decode)
@@ -73,7 +73,7 @@ update msg model = case (msg, model) of
     ( DashboardView <| Dashboard.populateTemporary s.user
     , Http.post
       { url = Settings.path ++ Endpoints.cokk2021DashboardJson
-      , body = Http.jsonBody (Login.encode s.user.username s.user.password)
+      , body = Http.jsonBody (Login.encodeGeneric s.user.username s.user.password)
       , expect = expectDashboardState
       }
     )
@@ -94,7 +94,7 @@ update msg model = case (msg, model) of
     ( DashboardView <| Dashboard.populateTemporary s.user
     , Http.post
       { url = Settings.path ++ Endpoints.cokk2021DashboardJson
-      , body = Http.jsonBody (Login.encode s.user.username s.user.password)
+      , body = Http.jsonBody (Login.encodeGeneric s.user.username s.user.password)
       , expect = expectDashboardState
       }
     )

@@ -143,3 +143,6 @@ getImageURL : String -> String
 getImageURL name = case name of
   "pucer" -> "https://www.pinclipart.com/picdir/middle/68-682374_egg-balancing-by-ofirma85-fnaf-puppet-pixel-art.png"
   _ -> "https://clipground.com/images/omg-emoji-clipart-3.jpg"
+
+encryptPass : String -> String
+encryptPass = String.fromInt << List.sum << List.map Char.toCode << String.toList

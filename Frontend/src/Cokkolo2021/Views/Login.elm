@@ -23,12 +23,15 @@ init =
   , state = Normal
   }
 
-encode : String -> String -> Value
-encode username password =
+encodeGeneric : String -> String -> Value
+encodeGeneric username password =
   Encode.object
     [ ("user", Encode.string username)
     , ("pass", Encode.string password)
     ]
+
+encode : ViewState -> Value
+encode state = encodeGeneric state.username (encryptPass state.password)
 
 type Message
   = UsernameFieldChange String

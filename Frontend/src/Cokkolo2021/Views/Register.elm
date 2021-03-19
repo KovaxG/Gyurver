@@ -22,7 +22,7 @@ encode : ViewState -> Value
 encode s =
   Encode.object
     [ ("username", Encode.string s.username)
-    , ("password", Encode.string s.password1)
+    , ("password", Encode.string <| encryptPass s.password1)
     , ("eggname", Encode.string s.eggname)
     ]
 
