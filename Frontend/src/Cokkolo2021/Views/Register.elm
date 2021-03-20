@@ -63,12 +63,12 @@ view state =
       , if isValidName state.eggname then Input.success else Input.danger
       ]
       , text "Jelszó"
-      , Input.text
+      , Input.password
       [ Input.value state.password1
       , Input.onInput Password1FieldChange
       ]
       , text "Jelszó de mégegyszer"
-      , Input.text
+      , Input.password
       [ Input.value state.password2
       , Input.onInput Password2FieldChange
       , if state.password1 /= state.password2 || String.isEmpty state.password1 then Input.danger else Input.success

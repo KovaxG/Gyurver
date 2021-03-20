@@ -52,6 +52,7 @@ view : ViewState -> Html Message
 view state =
   [ [ h2 [] [text <| state.user.eggName]
     , displayImage state.user.image 250 250
+    , br [] []
     , Button.button
       [ Button.outlinePrimary
       , Button.attrs [ Spacing.m2 ]

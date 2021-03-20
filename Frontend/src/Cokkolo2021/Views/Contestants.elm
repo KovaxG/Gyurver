@@ -87,7 +87,7 @@ view state =
                               [ Button.outlineSecondary
                               , Button.onClick (WaterUser c.username)
                               ] [text "💦"]
-                            else text "(ma mar megontozted)"
+                            else text "(ma már megöntözted)"
                         ]
             ] |> Table.tr (if not c.waterable then [Table.rowSuccess] else [])
         )
