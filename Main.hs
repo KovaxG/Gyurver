@@ -1,4 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TupleSections #-}
 module Main where
 
 import Prelude hiding (log)
@@ -20,10 +21,11 @@ import qualified Events.Cokk2021.User as Cokk2021User
 import qualified Events.Cokk2021.Login as Cokk2021Login
 import qualified Events.Cokk2021.Skills as Cokk2021Skills
 import qualified Events.Cokk2021.WaterLog as Cokk2021WaterLog
-import qualified Events.Cokk2021.IncSkillRequest as Cokk2021IncSkillRequest
 import qualified Events.Cokk2021.Registration as Cokk2021Registration
 import qualified Events.Cokk2021.WaterRequest as Cokk2021WaterRequest
 import qualified Events.Cokk2021.DashboardData as Cokk2021DashboardData
+import qualified Events.Cokk2021.IncSkillRequest as Cokk2021IncSkillRequest
+import qualified Events.Cokk2021.ChangeEggnameRequest as Cokk2021ChangeEggnameRequest
 
 import Gyurver.Html
 import Gyurver.Request
@@ -331,6 +333,27 @@ process tojasDB
                     return $ makeResponse OK "OK Boomer"
               )
               skillOpt
+          )
+          userOpt
+
+    PostCokk2021ChangeEggname -> do
+      Logger.info log "[API] change egg name"
+      processJsonBody Cokk2021ChangeEggnameRequest.decode $ \req -> do
+        users <- DB.everythingList cokk2021UserDB
+        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ChangeEggnameRequest.toLogin req) users
+        maybe
+          (return $ makeResponse Unauthorized "Bad Credentials")
+          (\user -> do
+            let eggs = map Cokk2021User.eggname users
+            let newEggname = Cokk2021ChangeEggnameRequest.newEggname req
+            if newEggname `elem` eggs
+            then return $ makeResponse Forbidden "Egg already exists!"
+            else do
+              DB.modifyData cokk2021UserDB
+                $ (, ()) . Utils.mapIf
+                  (\u -> Cokk2021User.username u == Cokk2021User.username user)
+                  (\u -> u { Cokk2021User.eggname = Cokk2021ChangeEggnameRequest.newEggname req })
+              return $ makeResponse OK "Bad Credentials"
           )
           userOpt
 
