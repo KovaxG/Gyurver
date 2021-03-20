@@ -1,31 +1,40 @@
 module Cokkolo2021.Views.Dashboard exposing (..)
 
 import Html exposing (Html, div, text, h2, br)
+import Html.Events exposing (onMouseOver, onMouseLeave, onClick)
 import Bootstrap.Grid as Grid
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
 import Bootstrap.Utilities.Spacing as Spacing
 
 import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode exposing (Value)
 import List.Extra as List
 
 import Types.DateTime as DateTime exposing (DateTime)
 import Cokkolo2021.Common exposing (..)
+import Bootstrap.Popover exposing (onHover)
 
 type alias ViewState =
   { user : User
   , logs : List Log
+  , showEggnameEdit : Bool
+  , eggNameInput : Maybe String
+  , eggNameInputError : String
   }
 
 decode : Decoder ViewState
 decode =
-  Decode.map2
+  Decode.map5
     ViewState
     (Decode.field "user" userDecoder)
     (Decode.field "events" <| Decode.list log)
+    (Decode.succeed False)
+    (Decode.succeed Nothing)
+    (Decode.succeed "")
 
 populateTemporary : User -> ViewState
-populateTemporary user = { user = user, logs = [] }
+populateTemporary user = { user = user, logs = [], showEggnameEdit = False, eggNameInput = Nothing, eggNameInputError = "" }
 
 type alias Log =
   { source : String
@@ -41,16 +50,42 @@ log =
     (Decode.field "target" Decode.string)
     (Decode.field "time" DateTime.decode)
 
+encodeEggnameChangeRequest : ViewState -> String -> Value
+encodeEggnameChangeRequest state newName = Encode.object
+  [ ("username", Encode.string state.user.username)
+  , ("password", Encode.string state.user.password)
+  , ("newEggname", Encode.string newName)
+  ]
+
 type Message
   = FetchSuccess ViewState
   | FetchFailure String
   | Logout
   | SwitchToContestantView
   | SwitchToSkillsView
+  | HoweringOverEggName Bool
+  | EditEggName (Maybe String)
+  | ChangeEggnameRequest String
+  | ChangeEggnameSuccess String
+  | ChangeEggnameFailure String
 
 view : ViewState -> Html Message
 view state =
-  [ [ h2 [] [text <| state.user.eggName]
+  [ [ case state.eggNameInput of
+        Nothing ->
+          h2 [ onMouseOver <| HoweringOverEggName True
+             , onMouseLeave <| HoweringOverEggName False
+             , onClick <| EditEggName <| Just state.user.eggName
+             ]
+             [ text <| state.user.eggName ++ if state.showEggnameEdit then " ✍️" else "" ]
+        Just en ->
+          div
+            []
+            [ Input.text [Input.value en, Input.onInput <| EditEggName << Just]
+            , Button.button [Button.outlineSuccess, Button.onClick <| ChangeEggnameRequest en] [text "✔️"]
+            , Button.button [Button.outlineDanger, Button.onClick <| EditEggName Nothing ] [text "❌"]
+            , text state.eggNameInputError
+            ]
     , displayImage state.user.image 250 250
     , br [] []
     , Button.button

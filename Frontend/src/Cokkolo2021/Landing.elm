@@ -90,6 +90,18 @@ update msg model = case (msg, model) of
   (DashboardMsg (Dashboard.FetchSuccess dashboardState), DashboardView s) -> (DashboardView dashboardState, Cmd.none)
   (DashboardMsg (Dashboard.FetchFailure errorMessage), DashboardView s) -> (DashboardView s, Cmd.none)
   (DashboardMsg Dashboard.SwitchToSkillsView, DashboardView s) -> (SkillsView <| Skills.init s.user, Cmd.none)
+  (DashboardMsg (Dashboard.HoweringOverEggName b), DashboardView s) -> (DashboardView { s | showEggnameEdit = b }, Cmd.none)
+  (DashboardMsg (Dashboard.EditEggName en), DashboardView s) -> (DashboardView { s | eggNameInput = en, showEggnameEdit = False }, Cmd.none)
+  (DashboardMsg (Dashboard.ChangeEggnameSuccess en), DashboardView s) -> let user = s.user in (DashboardView { s | user = { user | eggName = en }, eggNameInput = Nothing, showEggnameEdit = False }, Cmd.none)
+  (DashboardMsg (Dashboard.ChangeEggnameFailure er), DashboardView s) -> (DashboardView { s | eggNameInputError = er }, Cmd.none)
+  (DashboardMsg (Dashboard.ChangeEggnameRequest en), DashboardView s) ->
+    (DashboardView s
+    , Http.post
+      { url = Settings.path ++ Endpoints.updateEggNameJson
+      , body = Http.jsonBody <| Dashboard.encodeEggnameChangeRequest s en
+      , expect = Http.expectWhatever <| Util.processMessage (\_ -> DashboardMsg <| Dashboard.ChangeEggnameSuccess en) (DashboardMsg << Dashboard.ChangeEggnameFailure)
+      }
+    )
   (SkillsMsg Skills.SwitchToDashboard, SkillsView s) ->
     ( DashboardView <| Dashboard.populateTemporary s.user
     , Http.post
