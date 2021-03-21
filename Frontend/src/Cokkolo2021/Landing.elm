@@ -9,6 +9,7 @@ import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Cokkolo2021.Views.Egg as Egg
 import Cokkolo2021.Views.Login as Login
+import Cokkolo2021.Views.Store as Store
 import Cokkolo2021.Views.Skills as Skills
 import Cokkolo2021.Views.Register as Register
 import Cokkolo2021.Views.Dashboard as Dashboard
@@ -90,6 +91,7 @@ update msg model = case (msg, model) of
   (DashboardMsg (Dashboard.FetchSuccess dashboardState), DashboardView s) -> (DashboardView dashboardState, Cmd.none)
   (DashboardMsg (Dashboard.FetchFailure errorMessage), DashboardView s) -> (DashboardView s, Cmd.none)
   (DashboardMsg Dashboard.SwitchToSkillsView, DashboardView s) -> (SkillsView <| Skills.init s.user, Cmd.none)
+  (DashboardMsg Dashboard.SwitchToStoreView, DashboardView s) -> (StoreView <| Store.init s.user, Cmd.none)
   (DashboardMsg (Dashboard.HoweringOverEggName b), DashboardView s) -> (DashboardView { s | showEggnameEdit = b }, Cmd.none)
   (DashboardMsg (Dashboard.EditEggName en), DashboardView s) -> (DashboardView { s | eggNameInput = en, showEggnameEdit = False }, Cmd.none)
   (DashboardMsg (Dashboard.ChangeEggnameSuccess en), DashboardView s) -> let user = s.user in (DashboardView { s | user = { user | eggName = en }, eggNameInput = Nothing, showEggnameEdit = False }, Cmd.none)
@@ -121,6 +123,14 @@ update msg model = case (msg, model) of
   (SkillsMsg (Skills.IncSkillSuccess skill cost), SkillsView s) -> (SkillsView <| Skills.update skill cost s, Cmd.none)
   (SkillsMsg (Skills.IncSkillFailure _), SkillsView s) -> (SkillsView s, Cmd.none)
   (EggMsg Egg.SwitchToContestantsView, EggView s) -> (ContestantView s.contestantsState, Cmd.none)
+  (StoreMsg Store.SwitchToDashboard, StoreView s) ->
+    ( DashboardView <| Dashboard.populateTemporary s.user
+    , Http.post
+      { url = Settings.path ++ Endpoints.cokk2021DashboardJson
+      , body = Http.jsonBody (Login.encodeGeneric s.user.username s.user.password)
+      , expect = expectDashboardState
+      }
+    )
   _ -> (LoginView Login.init, Cmd.none)
 
 expectDashboardState : Http.Expect Msg
@@ -137,6 +147,7 @@ view model =
       , case model of
           EggView state -> Html.map EggMsg <| Egg.view state
           LoginView state -> Html.map LoginMsg <| Login.view state
+          StoreView state -> Html.map StoreMsg <| Store.view state
           SkillsView state -> Html.map SkillsMsg <| Skills.view state
           RegisterView state -> Html.map RegisterMsg <| Register.view state
           DashboardView state -> Html.map DashboardMsg <| Dashboard.view state

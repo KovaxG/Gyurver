@@ -63,6 +63,7 @@ type Message
   | Logout
   | SwitchToContestantView
   | SwitchToSkillsView
+  | SwitchToStoreView
   | HoweringOverEggName Bool
   | EditEggName (Maybe String)
   | ChangeEggnameRequest String
@@ -93,6 +94,11 @@ view state =
       , Button.attrs [ Spacing.m2 ]
       , Button.onClick SwitchToSkillsView
       ] [text "Tulajdonságok"]
+    , Button.button
+      [ Button.outlinePrimary
+      , Button.attrs [ Spacing.m2 ]
+      , Button.onClick SwitchToStoreView
+      ] [text "Üzlet"]
     ] |> Grid.col []
   , [ Button.button
       [ Button.primary
