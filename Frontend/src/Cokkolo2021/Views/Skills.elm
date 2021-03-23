@@ -67,7 +67,7 @@ view state =
         { options = [ Table.striped ]
         , thead =
             Table.simpleThead
-                [ Table.th [] [text "Elnevezes"]
+                [ Table.th [] [text "Elnevezés"]
                 , Table.th [] [text "Pontok"]
                 , Table.th [] [text "Ár"]
                 , Table.th [] []

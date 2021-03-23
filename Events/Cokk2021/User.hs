@@ -10,6 +10,8 @@ import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 import           Events.Cokk2021.Skills (Skills)
 import qualified Events.Cokk2021.Skills as Skills
+import           Events.Cokk2021.Item (Item)
+import qualified Events.Cokk2021.Item as Item
 import qualified Utils
 
 data User = User
@@ -17,8 +19,9 @@ data User = User
   , passwordHash :: String
   , eggname :: String
   , perfume :: Int
-  , image :: String
+  , base :: Item
   , skills :: Skills
+  , items :: [Int]
   }
 
 encode :: User -> Json
@@ -27,8 +30,9 @@ encode user = JsonObject
   , ("password", JsonString $ passwordHash user)
   , ("eggname", JsonString $ eggname user)
   , ("perfume", JsonNumber $ fromIntegral $ perfume user)
-  , ("image", JsonString $ image user)
+  , ("base", Item.encode $ base user)
   , ("skills", Skills.encode $ skills user)
+  , ("items", JsonArray $ map (JsonNumber . fromIntegral) $ items user)
   ]
 
 decode :: Decoder User
@@ -37,8 +41,9 @@ decode =
        <*> Decoder.field "password" Decoder.string
        <*> Decoder.field "eggname" Decoder.string
        <*> Decoder.field "perfume" Decoder.int
-       <*> Decoder.field "image" Decoder.string
+       <*> Decoder.field "base" Item.decode
        <*> Decoder.field "skills" Skills.decode
+       <*> Decoder.field "items" (Decoder.list Decoder.int)
 
 instance DBFormat User where
   encode = Text.pack . show . Events.Cokk2021.User.encode
@@ -55,8 +60,7 @@ toListItemJson :: Bool -> User -> Json
 toListItemJson b u = JsonObject
   [ ("username", JsonString $ username u)
   , ("eggname", JsonString $ eggname u)
-  , ("image", JsonString $ image u)
+  , ("image", Item.encode $ base u)
   , ("waterable", JsonBool b)
   , ("skills", Skills.encode $ skills u)
   ]
-

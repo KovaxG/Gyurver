@@ -2,9 +2,10 @@ module Events.Cokk2021.Registration where
 
 import           Events.Cokk2021.User (User(User))
 import qualified Events.Cokk2021.User as User
-import qualified Events.Cokk2021.Skills as Skills
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
+import qualified Events.Cokk2021.Skills as Skills
+import qualified Events.Cokk2021.Item as Item
 
 
 data Registration = Registration
@@ -25,6 +26,7 @@ toUser reg = User
   , User.passwordHash = password reg
   , User.eggname = eggName reg
   , User.perfume = 0
-  , User.image = "pucer"
+  , User.base = Item.initialBase
   , User.skills = Skills.initial
+  , User.items = []
   }

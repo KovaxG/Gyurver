@@ -68,3 +68,4 @@ defaultSettings = Settings
 - `/api/cokk2021/dashboard` refresh dashboard for 2021 Cokkoles (Post)
 - `/api/cokk2021/skills/inc` increase skill endpoint for 2021 Cokkoles (Post)
 - `/api/cokk2021/update/eggname` ability to change egg name for 2021 Cokkoles (Post)
+- `/api/cokk2021/items` get list of items for 2021 Cokkoles (Get)

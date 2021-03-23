@@ -18,6 +18,7 @@ import qualified Data.Maybe as Maybe
 
 import qualified Events.Cokk2020 as Cokk2020
 import qualified Events.Cokk2021.User as Cokk2021User
+import qualified Events.Cokk2021.Item as Cokk2021Item
 import qualified Events.Cokk2021.Login as Cokk2021Login
 import qualified Events.Cokk2021.Skills as Cokk2021Skills
 import qualified Events.Cokk2021.WaterLog as Cokk2021WaterLog
@@ -53,15 +54,17 @@ main = do
 
   tojasDB <- DB.getHandle "cokkolo2020"
   vidsDB <- DB.getHandle "vids"
+
   cokk2021UserDB <- DB.getHandle "cokk2021User"
   cokk2021WaterDB <- DB.getHandle "cokk2021Water"
+  cokk2021ItemDB <- DB.getHandle "cokk2021Item"
 
   settings <- readSettings log
   Logger.info log (show settings)
   runServer log
             (settings & hostAddress)
             (settings & port)
-            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB settings)
+            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB settings)
 
 readSettings :: Logger -> IO Settings
 readSettings log =
@@ -90,6 +93,7 @@ process :: DBHandle Cokk2020.Tojas
         -> DBHandle Video
         -> DBHandle Cokk2021User.User
         -> DBHandle Cokk2021WaterLog.WaterLog
+        -> DBHandle Cokk2021Item.Item
         -> Settings
         -> Request
         -> IO Response
@@ -97,6 +101,7 @@ process tojasDB
         vidsDB
         cokk2021UserDB
         cokk2021WaterDB
+        cokk2021ItemDB
         settings
         Request{requestType, path, content} = do
   let
@@ -209,6 +214,11 @@ process tojasDB
         Nothing -> do
           Logger.warn log $ "No such resource: " ++ path
           return badRequest
+
+    GetCokk2021Items -> do
+      Logger.info log "[API] Requested items"
+      items <- DB.everythingList cokk2021ItemDB
+      return $ makeResponse OK $ map Cokk2021Item.encode items
 
     PostVideo -> do
       Logger.info log "[API] Adding new video to list."

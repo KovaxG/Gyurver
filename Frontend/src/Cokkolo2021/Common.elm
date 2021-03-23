@@ -13,20 +13,41 @@ type alias User =
   , password : String
   , eggName : String
   , perfume : Int
-  , image : String
+  , base : Item
   , skills : Skills
+  , items : List Int
   }
+
+type alias Item =
+  { index : Int
+  , name : String
+  , image : String
+  , cost : Int
+  }
+
+itemDecoder : Decoder Item
+itemDecoder =
+  Decode.map4
+    Item
+    (Decode.field "index" Decode.int)
+    (Decode.field "name" Decode.string)
+    (Decode.field "image" Decode.string)
+    (Decode.field "cost" Decode.int)
+
+itemsDecoder : Decoder (List Item)
+itemsDecoder = Decode.list itemDecoder
 
 userDecoder : Decoder User
 userDecoder =
-  Decode.map6
+  Decode.map7
     User
     (Decode.field "username" Decode.string)
     (Decode.field "password" Decode.string)
     (Decode.field "eggname" Decode.string)
     (Decode.field "perfume" Decode.int)
-    (Decode.field "image" Decode.string)
+    (Decode.field "base" itemDecoder)
     (Decode.field "skills" skillsDecoder)
+    (Decode.field "items" (Decode.list Decode.int))
 
 type alias Skills =
   { kemenyseg : Int
