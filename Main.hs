@@ -26,6 +26,7 @@ import qualified Events.Cokk2021.Registration as Cokk2021Registration
 import qualified Events.Cokk2021.WaterRequest as Cokk2021WaterRequest
 import qualified Events.Cokk2021.DashboardData as Cokk2021DashboardData
 import qualified Events.Cokk2021.IncSkillRequest as Cokk2021IncSkillRequest
+import qualified Events.Cokk2021.BuyItemRequest as Cokk2021BuyItemRequest
 import qualified Events.Cokk2021.ChangeEggnameRequest as Cokk2021ChangeEggnameRequest
 
 import Gyurver.Html
@@ -363,7 +364,39 @@ process tojasDB
                 $ (, ()) . Utils.mapIf
                   (\u -> Cokk2021User.username u == Cokk2021User.username user)
                   (\u -> u { Cokk2021User.eggname = Cokk2021ChangeEggnameRequest.newEggname req })
-              return $ makeResponse OK "Bad Credentials"
+              return $ makeResponse OK "Ok Boomer"
+          )
+          userOpt
+
+    PostCokk2021BuyItem -> do
+      Logger.info log "[API] buy request"
+      processJsonBody Cokk2021BuyItemRequest.decode $ \req -> do
+        users <- DB.everythingList cokk2021UserDB
+        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021BuyItemRequest.toLogin req) users
+        maybe
+          (return $ makeResponse Unauthorized "Bad Credentials")
+          (\user -> do
+            items <- DB.everythingList cokk2021ItemDB
+            let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021BuyItemRequest.index req) items
+            maybe
+              (return $ makeResponse BadRequest "This item does not exist!")
+              (\item -> do
+                if Cokk2021Item.index item `elem` Cokk2021User.items user
+                then return $ makeResponse BadRequest "Item is already owned!"
+                else if Cokk2021User.perfume user < Cokk2021Item.cost item
+                then return $ makeResponse PaymentRequired "Not enough perfume"
+                else do
+                  DB.modifyData cokk2021UserDB
+                    $ (, ()) . Utils.mapIf
+                      (\u -> Cokk2021User.username u == Cokk2021User.username user)
+                      (\u -> u { Cokk2021User.perfume = Cokk2021User.perfume user - Cokk2021Item.cost item
+                               , Cokk2021User.items = Cokk2021Item.index item : Cokk2021User.items user
+                               , Cokk2021User.base = item
+                               }
+                      )
+                  return $ makeResponse OK "Ok Boomer"
+              )
+              itemOpt
           )
           userOpt
 
