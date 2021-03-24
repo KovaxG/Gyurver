@@ -60,7 +60,7 @@ toListItemJson :: Bool -> User -> Json
 toListItemJson b u = JsonObject
   [ ("username", JsonString $ username u)
   , ("eggname", JsonString $ eggname u)
-  , ("image", Item.encode $ base u)
+  , ("base", Item.encode $ base u)
   , ("waterable", JsonBool b)
   , ("skills", Skills.encode $ skills u)
   ]

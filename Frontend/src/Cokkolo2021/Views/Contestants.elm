@@ -21,7 +21,7 @@ type alias ViewState =
 type alias Contestant =
   { username : String
   , eggname : String
-  , image : String
+  , base : Item
   , waterable : Bool
   , skills : Skills
   }
@@ -32,7 +32,7 @@ decode =
     Contestant
     (Decode.field "username" Decode.string)
     (Decode.field "eggname" Decode.string)
-    (Decode.field "image" Decode.string)
+    (Decode.field "base" itemDecoder)
     (Decode.field "waterable" Decode.bool)
     (Decode.field "skills" skillsDecoder)
 
@@ -77,7 +77,7 @@ view state =
       , tbody =
         state.items
         |> List.map (\c ->
-            [ Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ displayImage c.image 50 50 ]
+            [ Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ displayImage c.base.image 50 50 ]
             , Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ text c.eggname ]
             , Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ text c.username ]
             , Table.td [] [ if c.username == state.user.username

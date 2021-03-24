@@ -33,7 +33,7 @@ view state =
     , h2 [] [text <| state.contestant.eggname]
     , text <| "Gazda: " ++ state.contestant.username
     , br [] []
-    , displayImage state.contestant.image 250 250
+    , displayImage state.contestant.base.image 250 250
     ] |> Grid.col []
   , [ Table.table
         { options = [ Table.striped ]
