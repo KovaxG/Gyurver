@@ -153,17 +153,12 @@ skillsDecoder =
   |> Decode.andMap (Decode.field "edzettseg" Decode.int)
 
 displayImage : String -> Int -> Int -> Html a
-displayImage image width height = img
-  [ src <| getImageURL image
+displayImage url width height = img
+  [ src url
   , alt "Jaj ne nem töltödött be a kép! Most mi lesz 😢 Pls szólj Gyurinak"
   , style "height" (String.fromInt height ++ "px")
   , style "width" (String.fromInt width ++ "px")
   ] []
-
-getImageURL : String -> String
-getImageURL name = case name of
-  "pucer" -> "https://www.pinclipart.com/picdir/middle/68-682374_egg-balancing-by-ofirma85-fnaf-puppet-pixel-art.png"
-  _ -> "https://clipground.com/images/omg-emoji-clipart-3.jpg"
 
 encryptPass : String -> String
 encryptPass = String.fromInt << List.sum << List.map Char.toCode << String.toList
