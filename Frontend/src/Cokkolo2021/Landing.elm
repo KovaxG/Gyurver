@@ -142,7 +142,7 @@ update msg model = case (msg, model) of
     ( StoreView s
     , Http.post
       { url = Settings.path ++ Endpoints.cokk2021BuyItemJson
-      , body = Http.jsonBody <| Store.encodeBuyRequest index s
+      , body = Http.jsonBody <| Store.encodeItemRequest index s
       , expect =
           Http.expectString
           <| Util.processMessage
@@ -152,6 +152,20 @@ update msg model = case (msg, model) of
     )
   (StoreMsg Store.BuyFailure, StoreView s) -> (StoreView s, Cmd.none)
   (StoreMsg (Store.BuySuccess index), StoreView s) -> (StoreView <| Store.bought index s, Cmd.none)
+  (StoreMsg (Store.EquipItem index), StoreView s) ->
+    ( StoreView s
+    , Http.post
+      { url = Settings.path ++ Endpoints.cokk2021EquipItemJson
+      , body = Http.jsonBody <| Store.encodeItemRequest index s
+      , expect =
+          Http.expectString
+          <| Util.processMessage
+            (always <| StoreMsg <| Store.EquipSuccess index)
+            (always <| StoreMsg <| Store.EquipFailure)
+      }
+    )
+  (StoreMsg Store.EquipFailure, StoreView s) -> (StoreView s, Cmd.none)
+  (StoreMsg (Store.EquipSuccess index), StoreView s) -> (StoreView <| Store.equipped index s, Cmd.none)
   _ -> (LoginView Login.init, Cmd.none)
 
 expectDashboardState : Http.Expect Msg

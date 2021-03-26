@@ -32,6 +32,9 @@ type Message
   | BuyItem Int
   | BuySuccess Int
   | BuyFailure
+  | EquipItem Int
+  | EquipSuccess Int
+  | EquipFailure
 
 init : User -> ViewState
 init user =
@@ -39,8 +42,8 @@ init user =
   , items = [user.base]
   }
 
-encodeBuyRequest : Int -> ViewState -> Value
-encodeBuyRequest index s = Encode.object
+encodeItemRequest : Int -> ViewState -> Value
+encodeItemRequest index s = Encode.object
   [ ("username", Encode.string s.user.username)
   , ("password", Encode.string s.user.password)
   , ("index", Encode.int index)
@@ -55,6 +58,13 @@ bought index state =
       | items = user.items ++ [index]
       , base = state.items |> List.find (\i -> i.index == index) |> Maybe.withDefault user.base
       }
+     }
+
+equipped : Int -> ViewState -> ViewState
+equipped index state =
+  let user = state.user
+  in { state
+     | user = { user | base = state.items |> List.find (\i -> i.index == index) |> Maybe.withDefault user.base }
      }
 
 view : ViewState -> Html Message
@@ -89,6 +99,6 @@ itemToRow user item =
     <| if item.index == user.base.index
        then []
        else if List.member item.index (user.items ++ [user.base.index])
-       then [Button.button [Button.primary] [text "Equip"]]
+       then [Button.button [Button.primary, Button.onClick (EquipItem item.index)] [text "Equip"]]
        else [Button.button [Button.success, Button.onClick (BuyItem item.index)] [text "Buy!"]]
   ] |> Table.tr []

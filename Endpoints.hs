@@ -32,6 +32,7 @@ data Endpoint
   | PostCokk2021ChangeEggname
   | GetCokk2021Items
   | PostCokk2021BuyItem
+  | PostCokk2021EquipItem
   | GetVideosPage
   | GetVideosJSON
   | GetVideoJSON Int
@@ -110,6 +111,7 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "POST /api/cokk2021/update/eggname" $> PostCokk2021ChangeEggname
         , Parsec.string "GET /api/cokk2021/items" $> GetCokk2021Items
         , Parsec.string "POST /api/cokk2021/items/buy" $> PostCokk2021BuyItem
+        , Parsec.string "POST /api/cokk2021/items/equip" $> PostCokk2021EquipItem
 
         , Parsec.string "GET /cv" $> GetCV
         , Parsec.string "GET /favicon.ico" $> GetFavicon

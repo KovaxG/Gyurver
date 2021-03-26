@@ -22,11 +22,11 @@ import qualified Events.Cokk2021.Item as Cokk2021Item
 import qualified Events.Cokk2021.Login as Cokk2021Login
 import qualified Events.Cokk2021.Skills as Cokk2021Skills
 import qualified Events.Cokk2021.WaterLog as Cokk2021WaterLog
+import qualified Events.Cokk2021.ItemRequest as Cokk2021ItemRequest
 import qualified Events.Cokk2021.Registration as Cokk2021Registration
 import qualified Events.Cokk2021.WaterRequest as Cokk2021WaterRequest
 import qualified Events.Cokk2021.DashboardData as Cokk2021DashboardData
 import qualified Events.Cokk2021.IncSkillRequest as Cokk2021IncSkillRequest
-import qualified Events.Cokk2021.BuyItemRequest as Cokk2021BuyItemRequest
 import qualified Events.Cokk2021.ChangeEggnameRequest as Cokk2021ChangeEggnameRequest
 
 import Gyurver.Html
@@ -370,14 +370,14 @@ process tojasDB
 
     PostCokk2021BuyItem -> do
       Logger.info log "[API] buy request"
-      processJsonBody Cokk2021BuyItemRequest.decode $ \req -> do
+      processJsonBody Cokk2021ItemRequest.decode $ \req -> do
         users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021BuyItemRequest.toLogin req) users
+        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
         maybe
           (return $ makeResponse Unauthorized "Bad Credentials")
           (\user -> do
             items <- DB.everythingList cokk2021ItemDB
-            let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021BuyItemRequest.index req) items
+            let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
             maybe
               (return $ makeResponse BadRequest "This item does not exist!")
               (\item -> do
@@ -394,6 +394,32 @@ process tojasDB
                                , Cokk2021User.base = item
                                }
                       )
+                  return $ makeResponse OK "Ok Boomer"
+              )
+              itemOpt
+          )
+          userOpt
+
+    PostCokk2021EquipItem -> do
+      Logger.info log "[API] requested equip item endpoint"
+      processJsonBody Cokk2021ItemRequest.decode $ \req -> do
+        users <- DB.everythingList cokk2021UserDB
+        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
+        maybe
+          (return $ makeResponse Unauthorized "Bad Credentials")
+          (\user -> do
+            items <- DB.everythingList cokk2021ItemDB
+            let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
+            maybe
+              (return $ makeResponse BadRequest "This item does not exist!")
+              (\item -> do
+                if Cokk2021Item.index item == Cokk2021Item.index (Cokk2021User.base user)
+                then return $ makeResponse OK "The item is already equiped, but Ok."
+                else do
+                  DB.modifyData cokk2021UserDB
+                    $ (, ()) . Utils.mapIf
+                      (\u -> Cokk2021User.username u == Cokk2021User.username user)
+                      (\u -> u { Cokk2021User.base = item })
                   return $ makeResponse OK "Ok Boomer"
               )
               itemOpt
