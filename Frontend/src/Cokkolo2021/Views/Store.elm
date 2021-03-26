@@ -8,6 +8,9 @@ import Bootstrap.Card.Block as Block
 import Bootstrap.Button as Button
 import Bootstrap.Card as Card
 import Bootstrap.Utilities.Spacing as Spacing
+import List.Extra as List
+
+import Json.Encode as Encode exposing (Value)
 
 import Cokkolo2021.Common exposing (..)
 
@@ -26,12 +29,33 @@ type alias Item =
 type Message
   = SwitchToDashboard
   | PopulateItems (List Item)
+  | BuyItem Int
+  | BuySuccess Int
+  | BuyFailure
 
 init : User -> ViewState
 init user =
   { user = user
   , items = [user.base]
   }
+
+encodeBuyRequest : Int -> ViewState -> Value
+encodeBuyRequest index s = Encode.object
+  [ ("username", Encode.string s.user.username)
+  , ("password", Encode.string s.user.password)
+  , ("index", Encode.int index)
+  ]
+
+bought : Int -> ViewState -> ViewState
+bought index state =
+  let user = state.user
+  in { state
+     | user =
+      { user
+      | items = user.items ++ [index]
+      , base = state.items |> List.find (\i -> i.index == index) |> Maybe.withDefault user.base
+      }
+     }
 
 view : ViewState -> Html Message
 view state =
@@ -66,5 +90,5 @@ itemToRow user item =
        then []
        else if List.member item.index (user.items ++ [user.base.index])
        then [Button.button [Button.primary] [text "Equip"]]
-       else [Button.button [Button.success] [text "Buy"]]
+       else [Button.button [Button.success, Button.onClick (BuyItem item.index)] [text "Buy!"]]
   ] |> Table.tr []

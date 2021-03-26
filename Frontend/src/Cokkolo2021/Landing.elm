@@ -138,6 +138,20 @@ update msg model = case (msg, model) of
       , expect = expectDashboardState
       }
     )
+  (StoreMsg (Store.BuyItem index), StoreView s) ->
+    ( StoreView s
+    , Http.post
+      { url = Settings.path ++ Endpoints.cokk2021BuyItemJson
+      , body = Http.jsonBody <| Store.encodeBuyRequest index s
+      , expect =
+          Http.expectString
+          <| Util.processMessage
+            (always <| StoreMsg <| Store.BuySuccess index)
+            (always <| StoreMsg <| Store.BuyFailure)
+      }
+    )
+  (StoreMsg Store.BuyFailure, StoreView s) -> (StoreView s, Cmd.none)
+  (StoreMsg (Store.BuySuccess index), StoreView s) -> (StoreView <| Store.bought index s, Cmd.none)
   _ -> (LoginView Login.init, Cmd.none)
 
 expectDashboardState : Http.Expect Msg
