@@ -25,26 +25,35 @@ type alias Contestant =
   , base : Item
   , waterable : Bool
   , skills : Skills
+  , ontoztek : Int
+  , ontozott : Int
   }
 
-userToContestant : User -> Contestant
-userToContestant user =
-  { username = user.username
-  , eggname = user.eggName
-  , base = user.base
-  , waterable = True
-  , skills = user.skills
-  }
+userToContestant : User -> List Contestant -> Contestant
+userToContestant user cs =
+  cs
+  |> List.find (\c -> c.username == user.username)
+  |> Maybe.withDefault
+    { username = user.username
+    , eggname = user.eggName
+    , base = user.base
+    , waterable = True
+    , skills = user.skills
+    , ontoztek = -1
+    , ontozott = -1
+    }
 
 decode : Decoder Contestant
 decode =
-  Decode.map5
+  Decode.map7
     Contestant
     (Decode.field "username" Decode.string)
     (Decode.field "eggname" Decode.string)
     (Decode.field "base" itemDecoder)
     (Decode.field "waterable" Decode.bool)
     (Decode.field "skills" skillsDecoder)
+    (Decode.field "ontoztek" Decode.int)
+    (Decode.field "ontozott" Decode.int)
 
 init : User -> ViewState
 init u =
@@ -87,7 +96,7 @@ view state =
       , tbody =
         state.items
         |> List.filterNot (\i -> i.username == state.user.username)
-        |> (\list -> userToContestant state.user :: list)
+        |> (\list -> userToContestant state.user state.items :: list)
         |> List.map (\c ->
             [ Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ displayImage c.base.image 50 50 ]
             , Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ text c.eggname ]

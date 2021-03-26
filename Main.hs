@@ -169,10 +169,11 @@ process tojasDB
     GetCokk2021Participants  -> do
       Logger.info log "[API] Requested participants list"
       users <- DB.everythingList cokk2021UserDB
+      waterLogs <- DB.everythingList cokk2021WaterDB
       return
         $ addHeaders [("Content-Type", "application/json")]
         $ makeResponse OK
-        $ map (Cokk2021User.toListItemJson True) users
+        $ map (Cokk2021User.toListItemJson waterLogs True) users
 
     PostCokk2021ParticipantsForUser -> do
       Logger.info log "[API] Requested user participation list"
@@ -197,7 +198,7 @@ process tojasDB
             return
               $ addHeaders [("Content-Type", "application/json")]
               $ makeResponse OK
-              $ map (uncurry Cokk2021User.toListItemJson) nusers
+              $ map (uncurry $ Cokk2021User.toListItemJson waterLogs) nusers
           )
           userOpt
 

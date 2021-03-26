@@ -12,6 +12,8 @@ import           Events.Cokk2021.Skills (Skills)
 import qualified Events.Cokk2021.Skills as Skills
 import           Events.Cokk2021.Item (Item)
 import qualified Events.Cokk2021.Item as Item
+import           Events.Cokk2021.WaterLog (WaterLog)
+import qualified Events.Cokk2021.WaterLog as WaterLog
 import qualified Utils
 
 data User = User
@@ -56,11 +58,16 @@ instance DBFormat User where
 addPerfume :: Int -> User -> User
 addPerfume p u = u { perfume = perfume u + p }
 
-toListItemJson :: Bool -> User -> Json
-toListItemJson b u = JsonObject
+toListItemJson :: [WaterLog] -> Bool -> User -> Json
+toListItemJson wlogs b u = JsonObject
   [ ("username", JsonString $ username u)
   , ("eggname", JsonString $ eggname u)
   , ("base", Item.encode $ base u)
   , ("waterable", JsonBool b)
   , ("skills", Skills.encode $ skills u)
+  , ("ontozott", JsonNumber $ fromIntegral ontozott)
+  , ("ontoztek", JsonNumber $ fromIntegral ontoztek)
   ]
+  where
+    ontozott = Utils.count (\wl -> WaterLog.wlSource wl == username u) wlogs
+    ontoztek = Utils.count (\wl -> WaterLog.wlTarget wl == username u) wlogs

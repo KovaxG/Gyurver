@@ -62,3 +62,6 @@ readText = read . Text.unpack
 safeLast :: [a] -> Maybe a
 safeLast [] = Nothing
 safeLast xs = Just $ last xs
+
+count :: (a -> Bool) -> [a] -> Int
+count p = length . filter p

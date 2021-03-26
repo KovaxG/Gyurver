@@ -34,6 +34,10 @@ view state =
     , text <| "Gazda: " ++ state.contestant.username
     , br [] []
     , displayImage state.contestant.base.image 250 250
+    , br [] []
+    , text <| "Ennyiszer öntözték meg: " ++ String.fromInt state.contestant.ontoztek
+    , br [] []
+    , text <| "Ennyiszer öntözött másokat: " ++ String.fromInt state.contestant.ontozott
     ] |> Grid.col []
   , [ Table.table
         { options = [ Table.striped ]
