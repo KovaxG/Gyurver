@@ -7,6 +7,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
 import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Table as Table
+import List.Extra as List
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
@@ -24,6 +25,15 @@ type alias Contestant =
   , base : Item
   , waterable : Bool
   , skills : Skills
+  }
+
+userToContestant : User -> Contestant
+userToContestant user =
+  { username = user.username
+  , eggname = user.eggName
+  , base = user.base
+  , waterable = True
+  , skills = user.skills
   }
 
 decode : Decoder Contestant
@@ -76,6 +86,8 @@ view state =
               ]
       , tbody =
         state.items
+        |> List.filterNot (\i -> i.username == state.user.username)
+        |> (\list -> userToContestant state.user :: list)
         |> List.map (\c ->
             [ Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ displayImage c.base.image 50 50 ]
             , Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ text c.eggname ]
