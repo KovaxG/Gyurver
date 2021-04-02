@@ -44,6 +44,6 @@ initialBase :: Item
 initialBase = Item
   { index = 0
   , name = "Pucér"
-  , image = "https://www.pinclipart.com/picdir/middle/68-682374_egg-balancing-by-ofirma85-fnaf-puppet-pixel-art.png"
+  , image = "pucer.jpg"
   , cost = 0
   }

@@ -14,6 +14,7 @@ import List.Extra as List
 import Types.DateTime as DateTime exposing (DateTime)
 import Cokkolo2021.Common exposing (..)
 import Bootstrap.Popover exposing (onHover)
+import Settings
 
 type alias ViewState =
   { user : User
@@ -93,7 +94,7 @@ view state =
               , Button.button [Button.outlineDanger, Button.onClick <| EditEggName Nothing ] [text "❌"]
               , text state.eggNameInputError
               ]
-      , displayImage state.user.base.image 250 250
+      , displayImage (Settings.path ++ "/res/" ++ state.user.base.image) 250 250
       , br [] []
       , Button.button
         [ Button.outlinePrimary
