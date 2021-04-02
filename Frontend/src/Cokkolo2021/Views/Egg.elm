@@ -8,6 +8,7 @@ import Bootstrap.Utilities.Spacing as Spacing
 
 import Cokkolo2021.Common exposing (..)
 import Cokkolo2021.Views.Contestants as Contestants exposing (Contestant)
+import Settings
 
 type alias ViewState =
   { contestant : Contestant
@@ -33,7 +34,7 @@ view state =
     , h2 [] [text <| state.contestant.eggname]
     , text <| "Gazda: " ++ state.contestant.username
     , br [] []
-    , displayImage state.contestant.base.image 250 250
+    , displayImage (Settings.path ++ "/res/" ++ state.contestant.base.image) 250 250
     , br [] []
     , text <| "Ennyiszer öntözték meg: " ++ String.fromInt state.contestant.ontoztek
     , br [] []

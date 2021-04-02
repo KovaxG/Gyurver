@@ -79,7 +79,7 @@ view state =
         , Button.onClick SwitchToDashboard
         ] [text "Vissza"]
       , br [] []
-      , displayImage state.user.base.image 250 250
+      , displayImage (Settings.path ++ "/res/" ++ state.user.base.image) 250 250
       ] |> Grid.col [Col.xs4]
     , [ Table.table
           { options = [ Table.striped ]
