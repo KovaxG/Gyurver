@@ -1,7 +1,9 @@
 module Cokkolo2021.Views.Login exposing (..)
 
-import Html exposing (Html, text, h1, h2)
+import Html exposing (Html, text, h1, h2, br, div, a)
+import Html.Attributes exposing (href, align)
 import Bootstrap.Grid as Grid
+import Bootstrap.Grid.Col as Col
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
 import Bootstrap.Utilities.Spacing as Spacing
@@ -9,6 +11,7 @@ import Bootstrap.Utilities.Spacing as Spacing
 import Json.Encode as Encode exposing (Value)
 
 import Cokkolo2021.Common exposing (..)
+import Settings
 
 type alias ViewState =
   { username : String
@@ -42,25 +45,58 @@ type Message
 view : ViewState -> Html Message
 view state =
   [ [ h1 [] [text "2021 Húsvéti játékok"]
-    , text "Itt kene legyen a leiras"
+    , description
     , h2 [] [text "Belépés"]
     , text "Gazda"
     , Input.text [Input.value state.username, Input.onInput UsernameFieldChange]
     , text "Jelszó"
     , Input.password [Input.value state.password, Input.onInput PasswordFieldChange]
-    , Button.button
-    [ Button.primary
-    , Button.attrs [ Spacing.m2 ]
-    , Button.onClick Login
-    ] [text "Engeddj be!"]
-    , Button.button
-    [ Button.secondary
-    , Button.attrs [ Spacing.m2 ]
-    , Button.onClick SwitchToRegisterView
-    ] [text "Én is akarok tojást!"]
     , case state.state of
-        Problem str -> text str
-        Waiting -> text "waiting..."
+        Problem str -> div [] [text str]
+        Waiting -> div [] [text "Lássuk csak..."]
         Normal -> text ""
+    , Button.button
+      [ Button.primary
+      , Button.attrs [ Spacing.m2 ]
+      , Button.onClick Login
+      ] [text "Engeddj be!"]
+    , Button.button
+      [ Button.secondary
+      , Button.attrs [ Spacing.m2 ]
+      , Button.onClick SwitchToRegisterView
+      ] [text "Én is akarok tojást!"]
+    , description2
     ] |> Grid.col []
   ] |> Grid.row []
+
+description : Html Message
+description =
+  [ [ [ div [align "center"] [ displayImage cokk2021logo 0 0] ] |> Grid.col [Col.xs4]
+    , [ [ text "Kellemes ünnepeket! Üdv az második online cökkölési versenyen."
+        , br [] []
+        , br [] []
+        , text "Mi az a cökkölés? Egyesek "
+        , a [href kocogtatasLink] [text "kocogtatásnak"]
+        , text " nevezik, de egy játék, ahol két résztvevő egy-egy húsvéti tojást kiválaszt és a két tojást összeütik. Akinek eltörik a tojása, az veszít. Mivel mostanság nem nagyon mehetünk ki, gondoltam hogy az online világba viszem ezt a játékot (másodjára)."
+        ] |> div []
+      ] |> Grid.col []
+    ] |> Grid.row []
+  , br [] []
+  , br [] []
+  ] |> div []
+
+description2 : Html Message
+description2 =
+  [ h2 [] [text "Részletek"]
+  , text "Nos, mostantól egész Április nemtommeddig fel lehet íratkozni egy tojással, azt ki lehet fejleszteni meg felszerelni, majd Április valahányodikán egy tournament stílusban összecökkennek a tojások (digitálisan) amíg egy nyertes marad."
+  , br [] []
+  , br [] []
+  , text "Mi a nyeremény? Hát, legyen egy hivatalosan aláírt bizonyitvány, hogy a 2021 Cökkölési verseny nyertese vagy, és hogy neked volt a legügyesebb tojásod. Ezt linkelheted a LinkedInes profilodra. Ha akarod."
+  , br [] []
+  , br [] []
+  , br [] []
+  , br [] []
+  ] |> div []
+
+kocogtatasLink = "https://mek.oszk.hu/02100/02115/html/5-683.html"
+cokk2021logo = Settings.path ++ "/res/cokk2021logo.png"

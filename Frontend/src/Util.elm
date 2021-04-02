@@ -13,7 +13,7 @@ showError error = case error of
   NetworkError -> "Network Error. Lol the description says that it means the user turned off their wifi, went in a cave, etc. :))"
   BadStatus code ->
     if code == 401
-    then "Incorrect Password!"
+    then "Téves jelszó vagy felhasználónév. Vigyázat mert számítanak a kis-nagybetűk a névben is!"
     else "Bad Status with code: " ++ String.fromInt code
   BadBody str -> "Bad Body: " ++ str
 

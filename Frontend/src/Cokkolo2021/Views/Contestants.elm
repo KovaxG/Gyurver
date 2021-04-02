@@ -1,6 +1,6 @@
 module Cokkolo2021.Views.Contestants exposing (..)
 
-import Html exposing (Html, text, h1)
+import Html exposing (Html, text, h1, div, br)
 import Html.Events exposing (onClick)
 import Bootstrap.Grid as Grid
 import Bootstrap.Button as Button
@@ -79,8 +79,9 @@ type Message
 view : ViewState -> Html Message
 view state =
   [ [ h1 [] [text "Résztvevők"]
+      , description
       , Button.button
-      [ Button.primary
+      [ Button.outlineSecondary
       , Button.attrs [ Spacing.m2 ]
       , Button.onClick SwitchToDashboardView
       ] [text "Vissza"]
@@ -116,3 +117,15 @@ view state =
       }
       ] |> Grid.col []
   ] |> Grid.row []
+
+description : Html Message
+description =
+  [ text "Itt van az összes versenyző, egyszer egy nap megöntözheted őket (ami neked nem kerül semmibe) és ők kapnak egy kölnit. Persze ha mások téged megöntöznek akkor te kapsz egy kölnit."
+  , br [] []
+  , br [] []
+  , text "Ráklikkelhetsz egy tojásra, hogy lássad milyen felszerelése és milyen tulajdonságai vannak annak a tojásnak. Azt is látod, hogy hányan öntözték meg azt a gazdit, és hányat öntözött meg az a gazdi."
+  , br [] []
+  , br [] []
+  , text "Kölcsön kenyér vissza jár, tehát azt javasolom, hogy ne spórolj az öntözéssel :)"
+  , br [] []
+  ] |> div []

@@ -156,8 +156,8 @@ displayImage : String -> Int -> Int -> Html a
 displayImage url width height = img
   [ src url
   , alt "Jaj ne nem töltödött be a kép! Most mi lesz 😢 Pls szólj Gyurinak"
-  , style "height" (String.fromInt height ++ "px")
-  , style "width" (String.fromInt width ++ "px")
+  , style "height" <| if height > 0 then (String.fromInt height ++ "px") else "100%"
+  , style "width" <| if width > 0 then (String.fromInt width ++ "px") else "100%"
   ] []
 
 encryptPass : String -> String

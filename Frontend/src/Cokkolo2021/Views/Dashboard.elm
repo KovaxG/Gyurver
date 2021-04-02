@@ -1,6 +1,6 @@
 module Cokkolo2021.Views.Dashboard exposing (..)
 
-import Html exposing (Html, div, text, h2, br)
+import Html exposing (Html, div, text, h1, h2, h3, br)
 import Html.Events exposing (onMouseOver, onMouseLeave, onClick)
 import Bootstrap.Grid as Grid
 import Bootstrap.Button as Button
@@ -72,51 +72,56 @@ type Message
 
 view : ViewState -> Html Message
 view state =
-  [ [ case state.eggNameInput of
-        Nothing ->
-          h2 [ onMouseOver <| HoweringOverEggName True
-             , onMouseLeave <| HoweringOverEggName False
-             , onClick <| EditEggName <| Just state.user.eggName
-             ]
-             [ text <| state.user.eggName ++ if state.showEggnameEdit then " ✍️" else "" ]
-        Just en ->
-          div
-            []
-            [ Input.text [Input.value en, Input.onInput <| EditEggName << Just]
-            , Button.button [Button.outlineSuccess, Button.onClick <| ChangeEggnameRequest en] [text "✔️"]
-            , Button.button [Button.outlineDanger, Button.onClick <| EditEggName Nothing ] [text "❌"]
-            , text state.eggNameInputError
-            ]
-    , displayImage state.user.base.image 250 250
-    , br [] []
-    , Button.button
-      [ Button.outlinePrimary
-      , Button.attrs [ Spacing.m2 ]
-      , Button.onClick SwitchToSkillsView
-      ] [text "Tulajdonságok"]
-    , Button.button
-      [ Button.outlinePrimary
-      , Button.attrs [ Spacing.m2 ]
-      , Button.onClick SwitchToStoreView
-      ] [text "Üzlet"]
-    ] |> Grid.col []
-  , [ Button.button
-      [ Button.primary
-      , Button.attrs [ Spacing.m2 ]
-      , Button.onClick Logout
-      ] [text "Logout"]
-      , br [] []
-      , text <| "Kölni: " ++ String.fromInt state.user.perfume ++ " 💦"
+  [ h1 [] [text "Tojásgarázs"]
+  , [ [ Button.button
+        [ Button.outlineSecondary
+        , Button.attrs [ Spacing.m2 ]
+        , Button.onClick Logout
+        ] [text "Kilépés"]
+      , case state.eggNameInput of
+          Nothing ->
+            h2 [ onMouseOver <| HoweringOverEggName True
+              , onMouseLeave <| HoweringOverEggName False
+              , onClick <| EditEggName <| Just state.user.eggName
+              ]
+              [ text <| state.user.eggName ++ if state.showEggnameEdit then " ✍️" else "" ]
+          Just en ->
+            div
+              []
+              [ Input.text [Input.value en, Input.onInput <| EditEggName << Just]
+              , Button.button [Button.outlineSuccess, Button.onClick <| ChangeEggnameRequest en] [text "✔️"]
+              , Button.button [Button.outlineDanger, Button.onClick <| EditEggName Nothing ] [text "❌"]
+              , text state.eggNameInputError
+              ]
+      , displayImage state.user.base.image 250 250
       , br [] []
       , Button.button
-      [ Button.outlineSecondary
-      , Button.attrs [ Spacing.m2 ]
-      , Button.onClick SwitchToContestantView
-      ] [text "Résztvevők"]
-      , br [] []
-      , displayLogs state.user.username state.logs
+        [ Button.outlinePrimary
+        , Button.attrs [ Spacing.m2 ]
+        , Button.onClick SwitchToSkillsView
+        ] [text "Tulajdonságok"]
+      , Button.button
+        [ Button.outlinePrimary
+        , Button.attrs [ Spacing.m2 ]
+        , Button.onClick SwitchToStoreView
+        ] [text "Üzlet"]
       ] |> Grid.col []
-  ] |> Grid.row []
+    , [  br [] []
+      , h2 [] [text <| "Kölni: " ++ String.fromInt state.user.perfume ++ " 💦"]
+      , br [] []
+      , Button.button
+        [ Button.primary
+        , Button.onClick SwitchToContestantView
+        ] [text "Lássam a résztvevőket!"]
+      , br [] []
+      , br [] []
+      , h3 [] [text "Öntözőnapló"]
+      , if List.isEmpty state.logs
+        then text "Még semmi aktivitás. Öntözzél meg gazdikat a résztvevőlistában, talán ők is megöntöznek téged :)"
+        else displayLogs state.user.username state.logs
+      ] |> Grid.col []
+    ] |> Grid.row []
+  ] |> div []
 
 displayLogs : String -> List Log -> Html Message
 displayLogs username logs =
@@ -168,16 +173,16 @@ showMonthAndDay dt = monthToString dt.month ++ " " ++ String.fromInt dt.day
 
 monthToString : Int -> String
 monthToString m = case m of
-  1 -> "Jan"
-  2 -> "Feb"
-  3 -> "Mar"
-  4 -> "Apr"
-  5 -> "Maj"
-  6 -> "Jun"
-  7 -> "Jul"
-  8 -> "Aug"
-  9 -> "Sep"
-  10 -> "Nov"
-  11 -> "Okt"
-  12 -> "Dec"
-  _ -> "HOPSZ"
+  1 -> "Január"
+  2 -> "Február"
+  3 -> "Március"
+  4 -> "Április"
+  5 -> "Május"
+  6 -> "Június"
+  7 -> "Július"
+  8 -> "Augusztus"
+  9 -> "Szeptember"
+  10 -> "November"
+  11 -> "Október"
+  12 -> "December"
+  _ -> "Hiba"

@@ -136,7 +136,7 @@ view model =
     Articles articles -> Articles.view articles |> liftDocument model ArticlesMsg
     VideoAdd videoAdd -> VideoAdd.view videoAdd |> liftDocument model VideoAddMsg
     VideoList videoList -> VideoList.view videoList |> liftDocument model VideoListMsg
-    Loading -> { title = "Loading", body = [text "Loading..."]}
+    Loading -> { title = "Loading", body = [text "If you see this just hit refresh :D #developer"]}
     Test msg -> { title = "Test", body = [text msg] }
     Invalid md ms ->
       { title = "Error"

@@ -1,6 +1,6 @@
 module Cokkolo2021.Views.Skills exposing (..)
 
-import Html exposing (Html, text, h2)
+import Html exposing (Html, text, h2, div, br)
 import Bootstrap.Grid as Grid
 import Bootstrap.Table as Table
 import Bootstrap.Button as Button
@@ -56,13 +56,14 @@ view state =
         , Table.td [] button
         ] |> Table.tr []
   in
-    [ [ h2 [] [text "Képességek"]
+    [ [ h2 [] [text "A tojásod tulajdonságai"]
+      , description
       , Button.button
         [ Button.outlineSecondary
         , Button.attrs [ Spacing.m2 ]
         , Button.onClick SwitchToDashboard
         ] [text "Vissza"]
-      , text <| "Kölni: " ++ String.fromInt state.user.perfume ++ " 💦"
+      , h2 [] [text <| "Kölni: " ++ String.fromInt state.user.perfume ++ " 💦"]
       , Table.table
         { options = [ Table.striped ]
         , thead =
@@ -100,3 +101,9 @@ view state =
         }
       ] |> Grid.col []
     ] |> Grid.row []
+
+description : Html Message
+description =
+  [ text "A bajnokság napján a tojásod tulajdonságaik döntik el, ha nyer vagy veszít egy meccset. Persze a tojás keménysége nem minden, ezért nagyon sokfajta megközelítéssel lehet elönyt szerezni."
+  , br [] []
+  ] |> div []

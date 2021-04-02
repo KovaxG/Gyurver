@@ -5,7 +5,7 @@ module Settings exposing (path, version)
   * 2021.03.18 - 0.6.0
 -}
 debug : Bool
-debug = False
+debug = True
 
 path : String
 path =
@@ -14,4 +14,4 @@ path =
   else "http://totallysafelink.xyz"
 
 version : String
-version = "0.6.1-beta"
+version = "0.6.2"
