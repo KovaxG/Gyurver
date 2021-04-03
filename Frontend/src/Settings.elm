@@ -5,7 +5,7 @@ module Settings exposing (path, version)
   * 2021.03.18 - 0.6.0
 -}
 debug : Bool
-debug = True
+debug = False
 
 path : String
 path =
