@@ -94,7 +94,7 @@ view state =
               , Button.button [Button.outlineDanger, Button.onClick <| EditEggName Nothing ] [text "❌"]
               , text state.eggNameInputError
               ]
-      , displayImage (Settings.path ++ "/res/" ++ state.user.base.image) 250 250
+      , displayEgg state.user.base.image
       , br [] []
       , Button.button
         [ Button.outlinePrimary

@@ -79,7 +79,7 @@ view state =
         , Button.onClick SwitchToDashboard
         ] [text "Vissza"]
       , br [] []
-      , displayImage (Settings.path ++ "/res/" ++ state.user.base.image) 250 250
+      , displayEgg state.user.base.image
       ] |> Grid.col [Col.xs4]
     , [ Table.table
           { options = [ Table.striped ]
@@ -97,7 +97,7 @@ view state =
 
 itemToRow : User -> Item -> Table.Row Message
 itemToRow user item =
-  [ Table.td [] [displayImage (Settings.path ++ "/res/" ++ item.image) 100 100, text item.name]
+  [ Table.td [] [displayImage (Settings.path ++ "/res/" ++ item.image) 123 165, text item.name]
   , Table.td [] [text <| String.fromInt item.cost ++ " 💦"]
   , Table.td []
     <| if item.index == user.base.index

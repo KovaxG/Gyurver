@@ -34,7 +34,7 @@ view state =
     , h2 [] [text <| state.contestant.eggname]
     , text <| "Gazda: " ++ state.contestant.username
     , br [] []
-    , displayImage (Settings.path ++ "/res/" ++ state.contestant.base.image) 250 250
+    , displayEgg state.contestant.base.image
     , br [] []
     , text <| "Ennyiszer öntözték meg: " ++ String.fromInt state.contestant.ontoztek
     , br [] []

@@ -5,6 +5,7 @@ import Html.Attributes exposing (src, alt, style)
 import Json.Decode as Decode exposing (Decoder)
 import Types.Decode as Decode
 import Util
+import Settings
 
 type ViewStatus = Normal | Waiting | Problem String
 
@@ -159,6 +160,9 @@ displayImage url width height = img
   , style "height" <| if height > 0 then (String.fromInt height ++ "px") else "100%"
   , style "width" <| if width > 0 then (String.fromInt width ++ "px") else "100%"
   ] []
+
+displayEgg : String -> Html a
+displayEgg name = displayImage (Settings.path ++ "/res/" ++ name) 250 333
 
 encryptPass : String -> String
 encryptPass = String.fromInt << List.sum << List.map Char.toCode << String.toList

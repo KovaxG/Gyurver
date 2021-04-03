@@ -44,6 +44,6 @@ initialBase :: Item
 initialBase = Item
   { index = 0
   , name = "Pucér"
-  , image = "pucer.jpg"
-  , cost = 0
+  , image = "pp.png"
+  , cost = 2
   }
