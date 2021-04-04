@@ -100,7 +100,7 @@ view state =
         |> List.filterNot (\i -> i.username == state.user.username)
         |> (\list -> userToContestant state.user state.items :: list)
         |> List.map (\c ->
-            [ Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ displayImage (Settings.path ++ "/res/" ++ c.base.image) 61 82 ]
+            [ Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ displayImage c.base.image 61 82 ]
             , Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ text c.eggname ]
             , Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ text c.username ]
             , Table.td [] [ if c.username == state.user.username

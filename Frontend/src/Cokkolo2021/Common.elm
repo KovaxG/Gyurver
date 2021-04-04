@@ -161,8 +161,12 @@ displayImage url width height = img
   , style "width" <| if width > 0 then (String.fromInt width ++ "px") else "100%"
   ] []
 
+-- TODO use this after the event is over
+displayEggLocal : String -> Html a
+displayEggLocal name = displayImage (Settings.path ++ "/res/" ++ name) 250 333
+
 displayEgg : String -> Html a
-displayEgg name = displayImage (Settings.path ++ "/res/" ++ name) 250 333
+displayEgg name = displayImage name 250 333
 
 encryptPass : String -> String
 encryptPass = String.fromInt << List.sum << List.map Char.toCode << String.toList

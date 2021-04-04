@@ -40,10 +40,11 @@ instance DBFormat Item where
     . Json.parseJson
     . Text.unpack
 
+-- TODO just take the first item in the DB
 initialBase :: Item
 initialBase = Item
   { index = 0
   , name = "Pucér"
-  , image = "pp.png"
+  , image = "https://i.postimg.cc/050KpBJb/pp.png"
   , cost = 2
   }
