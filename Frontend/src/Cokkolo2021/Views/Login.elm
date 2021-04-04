@@ -72,7 +72,7 @@ view state =
 description : Html Message
 description =
   [ [ [ div [align "center"] [ displayImage cokk2021logo 0 0] ] |> Grid.col [Col.xs4]
-    , [ [ text "Kellemes ünnepeket! Üdv az második online cökkölési versenyen."
+    , [ [ text "Kellemes ünnepeket! Üdv a második online cökkölési versenyen."
         , br [] []
         , br [] []
         , text "Mi az a cökkölés? Egyesek "
@@ -88,7 +88,7 @@ description =
 description2 : Html Message
 description2 =
   [ h2 [] [text "Részletek"]
-  , text "Nos, mostantól egész Április nemtommeddig fel lehet íratkozni egy tojással, azt ki lehet fejleszteni meg felszerelni, majd Április valahányodikán egy tournament stílusban összecökkennek a tojások (digitálisan) amíg egy nyertes marad."
+  , text "Nos, mostantól egész Április 11-ig fel lehet íratkozni egy tojással, azt ki lehet fejleszteni meg felszerelni, majd egy tournament stílusban összecökkennek a tojások (digitálisan) amíg egy nyertes marad."
   , br [] []
   , br [] []
   , text "Mi a nyeremény? Hát, legyen egy hivatalosan aláírt bizonyitvány, hogy a 2021 Cökkölési verseny nyertese vagy, és hogy neked volt a legügyesebb tojásod. Ezt linkelheted a LinkedInes profilodra. Ha akarod."

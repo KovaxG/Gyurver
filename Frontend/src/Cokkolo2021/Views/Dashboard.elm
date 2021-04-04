@@ -90,7 +90,7 @@ view state =
             div
               []
               [ Input.text [Input.value en, Input.onInput <| EditEggName << Just]
-              , Button.button [Button.outlineSuccess, Button.onClick <| ChangeEggnameRequest en] [text "✔️"]
+              , Button.button [Button.outlineSuccess, Button.disabled (String.isEmpty en), Button.onClick <| ChangeEggnameRequest en] [text "✔️"]
               , Button.button [Button.outlineDanger, Button.onClick <| EditEggName Nothing ] [text "❌"]
               , text state.eggNameInputError
               ]

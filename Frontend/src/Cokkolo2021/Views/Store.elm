@@ -1,7 +1,7 @@
 module Cokkolo2021.Views.Store exposing (..)
 
 import Html exposing (Html, text, h2, h3, br, div)
-import Html.Attributes exposing (style, class, src)
+import Html.Attributes exposing (style, class, src, attribute)
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Table as Table
@@ -80,6 +80,9 @@ view state =
         ] [text "Vissza"]
       , br [] []
       , displayEgg state.user.base.image
+      , br [] []
+      , br [] []
+      , h2 [] [text <| "Kölni: " ++ String.fromInt state.user.perfume ++ " 💦"]
       ] |> Grid.col [Col.xs4]
     , [ Table.table
           { options = [ Table.striped ]
@@ -104,7 +107,7 @@ itemToRow user item =
        then []
        else if List.member item.index (user.items ++ [user.base.index])
        then [Button.button [Button.primary, Button.onClick (EquipItem item.index)] [text "Felszerel"]]
-       else [Button.button [Button.success, Button.onClick (BuyItem item.index)] [text "Megveszem"]]
+       else [Button.button [Button.success, Button.onClick (BuyItem item.index), Button.disabled (user.perfume < item.cost)] [text "Megveszem"]]
   ] |> Table.tr []
 
 description : Html Message
