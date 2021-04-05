@@ -253,7 +253,9 @@ process tojasDB
             waterLogs <- DB.everythingList cokk2021WaterDB
             let dashboardData = Cokk2021DashboardData.make user waterLogs
             Logger.info log $ "Login success for \"" ++ Cokk2021Login.user login ++ "\"."
-            a <- makeResponse OK $ Cokk2021DashboardData.encode dashboardData
+            let b = Cokk2021DashboardData.encode dashboardData
+            Logger.info log $ show b
+            a <- makeResponse OK b
             Logger.info log $ show a
             return a
           )
