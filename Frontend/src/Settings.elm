@@ -14,4 +14,4 @@ path =
   else "http://totallysafelink.xyz"
 
 version : String
-version = "0.6.3"
+version = "0.6.4"
