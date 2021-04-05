@@ -3,6 +3,7 @@ module Component.Json where
 import Data.Bifunctor
 import qualified Data.List as List
 import Text.Parsec
+import Text.Printf
 
 import Utils (($>))
 
@@ -21,7 +22,8 @@ instance Show Json where
   show JsonNull = "null"
   show (JsonBool True) = "true"
   show (JsonBool False) = "false"
-  show (JsonNumber num) = show num
+  -- This was added because JsonNumber 0.0000001 produces stuff like 1e-10 or something :[]
+  show (JsonNumber num) = printf "%f" num
   show (JsonString str) = stringify str
   show (JsonArray jsons) = show jsons
   show (JsonObject assocList) =
