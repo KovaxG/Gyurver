@@ -277,7 +277,7 @@ process tojasDB
 
           let illegal =
                 wLogs
-                  & filter (\l -> Cokk2021WaterLog.wlSource l == Cokk2021WaterLog.wlSource wLog && Cokk2021WaterLog.wlTarget l == Cokk2021WaterLog.wlTarget l)
+                  & filter (\l -> Cokk2021WaterLog.wlSource l == Cokk2021WaterLog.wlSource wLog && Cokk2021WaterLog.wlTarget l == Cokk2021WaterLog.wlTarget wLog)
                   & map (DateTime.toDate . Cokk2021WaterLog.wlDateTime)
                   & any (\d -> d == DateTime.toDate (Cokk2021WaterLog.wlDateTime wLog))
 
