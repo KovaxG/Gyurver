@@ -9,8 +9,9 @@ module Gyurver.Response
   , success
   ) where
 
-import Data.ByteString.Char8 (ByteString)
+import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.Time as Time
 
 import Gyurver.Html (Document)
 import Component.Json
@@ -51,16 +52,23 @@ toByteString Response{content, status, headers} =
 addHeaders :: [(String, String)] -> Response -> Response
 addHeaders hs r = r { headers = headers r ++ hs }
 
-makeResponse :: CanSend a => Status -> a -> Response
-makeResponse status content = Response
-  { status = status
-  , address = "localhost"
-  , headers = []
-  , content = toBytes content
-  }
+makeResponse :: CanSend a => Status -> a -> IO Response
+makeResponse status content = do
+  now <- Time.getCurrentTime
+  let payload = toBytes content
+  return $ Response
+    { status = status
+    , address = "localhost"
+    , headers =
+      [ ("Date", show now)
+      , ("Server", "Gyurver") -- TODO maybe add the version here?
+      , ("Content-Length", show $ BS.length payload)
+      ]
+    , content = payload
+    }
 
-success :: Response
-success = makeResponse OK ""
+success :: IO Response
+success = makeResponse OK "OK Boomer"
 
 class CanSend a where
   toBytes :: a -> ByteString

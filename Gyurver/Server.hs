@@ -30,19 +30,19 @@ processConnection log processRequest (connectionSocket, _) = do
     handleFailure error =
       case error of
         FailedReceive -> do
-          sendResponse (return receiveFailedResponse)
+          sendResponse receiveFailedResponse
           Log.warn log "I got a connection, but did not receive any message!"
         FailedParse msg -> do
-          sendResponse (return parseFailedResponse)
+          sendResponse parseFailedResponse
           Log.error log $ "Failed to parse request with message: \"" ++ msg ++ "\""
 
     sendResponse :: IO Response -> IO ()
     sendResponse responseIO =
       responseIO >>= send connectionSocket . toByteString
 
-parseFailedResponse :: Response
+parseFailedResponse :: IO Response
 parseFailedResponse = makeResponse BadRequest "Failed to decode request!"
 
-receiveFailedResponse :: Response
+receiveFailedResponse :: IO Response
 receiveFailedResponse =
   makeResponse BadRequest "I got a connection but no message... Not sure if anyone will ever see this :D"
