@@ -99,4 +99,4 @@ description2 =
   ] |> div []
 
 kocogtatasLink = "https://mek.oszk.hu/02100/02115/html/5-683.html"
-cokk2021logo = Settings.path ++ "/res/cokk2021logo.png"
+cokk2021logo = "https://i.postimg.cc/0yVj7HkG/cokk2021logo.png"

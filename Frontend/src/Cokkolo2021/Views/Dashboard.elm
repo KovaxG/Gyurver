@@ -81,19 +81,18 @@ view state =
         ] [text "Kilépés"]
       , case state.eggNameInput of
           Nothing ->
-            h2 [ onMouseOver <| HoweringOverEggName True
+            h2
+              [ onMouseOver <| HoweringOverEggName True
               , onMouseLeave <| HoweringOverEggName False
               , onClick <| EditEggName <| Just state.user.eggName
               ]
               [ text <| state.user.eggName ++ if state.showEggnameEdit then " ✍️" else "" ]
           Just en ->
-            div
-              []
-              [ Input.text [Input.value en, Input.onInput <| EditEggName << Just]
-              , Button.button [Button.outlineSuccess, Button.disabled (String.isEmpty en), Button.onClick <| ChangeEggnameRequest en] [text "✔️"]
-              , Button.button [Button.outlineDanger, Button.onClick <| EditEggName Nothing ] [text "❌"]
-              , text state.eggNameInputError
-              ]
+            [ Input.text [Input.value en, Input.onInput <| EditEggName << Just]
+            , Button.button [Button.outlineSuccess, Button.disabled <| String.isEmpty <| String.trim en, Button.onClick <| ChangeEggnameRequest en] [text "✔️"]
+            , Button.button [Button.outlineDanger, Button.onClick <| EditEggName Nothing ] [text "❌"]
+            , text state.eggNameInputError
+            ] |> div []
       , displayEgg state.user.base.image
       , br [] []
       , Button.button

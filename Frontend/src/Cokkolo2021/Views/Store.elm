@@ -107,7 +107,14 @@ itemToRow user item =
        then []
        else if List.member item.index (user.items ++ [user.base.index])
        then [Button.button [Button.primary, Button.onClick (EquipItem item.index)] [text "Felszerel"]]
-       else [Button.button [Button.success, Button.onClick (BuyItem item.index), Button.disabled (user.perfume < item.cost)] [text "Megveszem"]]
+       else
+        let cantBuy = user.perfume < item.cost
+        in [ Button.button
+              [ if cantBuy then Button.secondary else Button.success
+              , Button.onClick (BuyItem item.index)
+              , Button.disabled cantBuy
+              ] [text "Megveszem"]
+           ]
   ] |> Table.tr []
 
 description : Html Message
