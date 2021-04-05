@@ -63,6 +63,7 @@ makeResponse status content = do
       [ ("Date", show now)
       , ("Server", "Gyurver") -- TODO maybe add the version here?
       , ("Content-Length", show $ BS.length payload)
+      , ("Connection", "close")
       ]
     , content = payload
     }
