@@ -6,7 +6,7 @@ import qualified Component.Decoder as Decoder
 import qualified Data.Time as Time
 import qualified Data.Time.Calendar as Calendar
 
-data Date = Date Int Int Int deriving (Read, Show)
+data Date = Date Int Int Int deriving (Read, Show, Eq)
 
 toJson :: Date -> Json
 toJson (Date y m d) = JsonObject

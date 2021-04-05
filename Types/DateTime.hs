@@ -33,6 +33,9 @@ decoder =
            <*> Decoder.field "minutes" Decoder.int
            <*> Decoder.field "seconds" Decoder.double
 
+toDate :: DateTime -> Date
+toDate (DateTime y m d _ _ _) = Date y m d
+
 getCurrentDateTime :: IO DateTime
 getCurrentDateTime = do
   now <- DTime.getCurrentTime

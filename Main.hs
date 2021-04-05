@@ -272,33 +272,44 @@ process tojasDB
         if Cokk2021WaterRequest.source req == Cokk2021WaterRequest.target req
         then return $ makeResponse BadRequest "Nem ontozheted meg magad! >:|"
         else do
-          result <- DB.modifyData cokk2021UserDB $ \users ->
-            let
-              targetUserOpt = List.find (\u -> Cokk2021WaterRequest.target req == Cokk2021User.username u) users
-              sourceUserOpt = List.find (\u -> Cokk2021WaterRequest.source req == Cokk2021User.username u
-                                            && Cokk2021WaterRequest.sourcePass req == Cokk2021User.passwordHash u) users
-              sourceUserNotFound = (users, Just "Bocs, de rossz a jelszo/felhasznalo")
-              targetUserNotFound = (users, Just "Bocs de nem letezik az akit meg akarsz ontozni")
-            in case sourceUserOpt of
-                Nothing -> sourceUserNotFound
-                Just _ ->
-                  case targetUserOpt of
-                    Nothing -> targetUserNotFound
-                    Just targetUser ->
-                      let newData =
-                            Utils.mapIf
-                              (\u -> Cokk2021User.username u == Cokk2021WaterRequest.target req)
-                              (Cokk2021User.addPerfume 1)
-                              users
-                      in (newData, Nothing)
+          wLogs <- DB.everythingList cokk2021WaterDB
+          wLog <- Cokk2021WaterLog.make (Cokk2021WaterRequest.source req) (Cokk2021WaterRequest.target req)
 
-          maybe (do
-                  wLog <- Cokk2021WaterLog.make (Cokk2021WaterRequest.source req) (Cokk2021WaterRequest.target req)
-                  DB.insert cokk2021WaterDB wLog
-                  return $ makeResponse OK "Success"
-                )
-                (return . makeResponse BadRequest)
-                result
+          let illegal =
+                wLogs
+                  & filter (\l -> Cokk2021WaterLog.wlSource l == Cokk2021WaterLog.wlSource wLog && Cokk2021WaterLog.wlTarget l == Cokk2021WaterLog.wlTarget l)
+                  & map (DateTime.toDate . Cokk2021WaterLog.wlDateTime)
+                  & any (\d -> d == DateTime.toDate (Cokk2021WaterLog.wlDateTime wLog))
+
+          if illegal
+          then return $ makeResponse Forbidden "🖕"
+          else do
+            result <- DB.modifyData cokk2021UserDB $ \users ->
+              let
+                targetUserOpt = List.find (\u -> Cokk2021WaterRequest.target req == Cokk2021User.username u) users
+                sourceUserOpt = List.find (\u -> Cokk2021WaterRequest.source req == Cokk2021User.username u
+                                              && Cokk2021WaterRequest.sourcePass req == Cokk2021User.passwordHash u) users
+                sourceUserNotFound = (users, Just "Bocs, de rossz a jelszo/felhasznalo")
+                targetUserNotFound = (users, Just "Bocs de nem letezik az akit meg akarsz ontozni")
+              in case sourceUserOpt of
+                  Nothing -> sourceUserNotFound
+                  Just _ ->
+                    case targetUserOpt of
+                      Nothing -> targetUserNotFound
+                      Just targetUser ->
+                        let newData =
+                              Utils.mapIf
+                                (\u -> Cokk2021User.username u == Cokk2021WaterRequest.target req)
+                                (Cokk2021User.addPerfume 1)
+                                users
+                        in (newData, Nothing)
+
+            maybe (do
+                    DB.insert cokk2021WaterDB wLog
+                    return $ makeResponse OK "Success"
+                  )
+                  (return . makeResponse BadRequest)
+                  result
 
     PostCokk2021DashboardRefresh -> do
       Logger.info log "[API] refreshing dashboard"
