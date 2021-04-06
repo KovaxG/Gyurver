@@ -55,6 +55,7 @@ main = do
 
   tojasDB <- DB.getHandle "cokkolo2020"
   vidsDB <- DB.getHandle "vids"
+  suggestionBoxDB <- DB.getHandle "suggestionBox"
 
   cokk2021UserDB <- DB.getHandle "cokk2021User"
   cokk2021WaterDB <- DB.getHandle "cokk2021Water"
@@ -65,7 +66,7 @@ main = do
   runServer log
             (settings & hostAddress)
             (settings & port)
-            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB settings)
+            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB suggestionBoxDB settings)
 
 readSettings :: Logger -> IO Settings
 readSettings log =
@@ -95,6 +96,7 @@ process :: DBHandle Cokk2020.Tojas
         -> DBHandle Cokk2021User.User
         -> DBHandle Cokk2021WaterLog.WaterLog
         -> DBHandle Cokk2021Item.Item
+        -> DBHandle String
         -> Settings
         -> Request
         -> IO Response
@@ -103,6 +105,7 @@ process tojasDB
         cokk2021UserDB
         cokk2021WaterDB
         cokk2021ItemDB
+        suggestionBoxDB
         settings
         Request{requestType, path, content} = do
   let
@@ -170,6 +173,11 @@ process tojasDB
       waterLogs <- DB.everythingList cokk2021WaterDB
       addHeaders [("Content-Type", "application/json")]
         <$> makeResponse OK (map (Cokk2021User.toListItemJson waterLogs True) users)
+
+    PostSuggestion -> do
+      Logger.info log "New suggestion!"
+      DB.insert suggestionBoxDB $ "---\n" ++ content
+      success
 
     PostCokk2021ParticipantsForUser -> do
       Logger.info log "[API] Requested user participation list"

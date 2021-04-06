@@ -8,6 +8,7 @@
 -}
 
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Component.Database (DBHandle, getHandle, insert, insertWithIndex, repsertWithIndex, everythingList, everything, get, delete, modifyData, DBFormat(..)) where
 
 import           Data.Map (Map)
@@ -25,6 +26,10 @@ import Utils (safeReadTextFile, safeWriteTextFile, readText, mapIf)
 class DBFormat a where
   encode :: a -> Text
   decode :: Text -> Maybe a
+
+instance DBFormat String where
+  encode = Text.pack
+  decode = Just . Text.unpack
 
 data DBHandle a = DBHandle
   { semaphore :: Semaphore

@@ -3,8 +3,10 @@ module Cokkolo2021.Views.Dashboard exposing (..)
 import Html exposing (Html, div, text, h1, h2, h3, br)
 import Html.Events exposing (onMouseOver, onMouseLeave, onClick)
 import Bootstrap.Grid as Grid
+import Bootstrap.Modal as Modal
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
+import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Utilities.Spacing as Spacing
 
 import Json.Decode as Decode exposing (Decoder)
@@ -22,20 +24,32 @@ type alias ViewState =
   , showEggnameEdit : Bool
   , eggNameInput : Maybe String
   , eggNameInputError : String
+  , suggestionBoxVisibility : Modal.Visibility
+  , suggestion : String
   }
 
 decode : Decoder ViewState
 decode =
-  Decode.map5
+  Decode.map7
     ViewState
     (Decode.field "user" userDecoder)
     (Decode.field "events" <| Decode.list log)
     (Decode.succeed False)
     (Decode.succeed Nothing)
     (Decode.succeed "")
+    (Decode.succeed Modal.hidden)
+    (Decode.succeed "")
 
 populateTemporary : User -> ViewState
-populateTemporary user = { user = user, logs = [], showEggnameEdit = False, eggNameInput = Nothing, eggNameInputError = "" }
+populateTemporary user =
+  { user = user
+  , logs = []
+  , showEggnameEdit = False
+  , eggNameInput = Nothing
+  , eggNameInputError = ""
+  , suggestionBoxVisibility = Modal.hidden
+  , suggestion = ""
+  }
 
 type alias Log =
   { source : String
@@ -70,6 +84,10 @@ type Message
   | ChangeEggnameRequest String
   | ChangeEggnameSuccess String
   | ChangeEggnameFailure String
+  | ShowSuggestionBox
+  | CloseSuggestionBox
+  | UpdateSuggestion String
+  | SendSuggestion String
 
 view : ViewState -> Html Message
 view state =
@@ -105,6 +123,40 @@ view state =
         , Button.attrs [ Spacing.m2 ]
         , Button.onClick SwitchToStoreView
         ] [text "Üzlet"]
+      , br [] []
+      , br [] []
+      , Button.button
+        [ Button.outlineInfo
+        , Button.attrs [ Spacing.m2 ]
+        , Button.onClick ShowSuggestionBox
+        ] [text "Javaslati Doboz"]
+      , Modal.config CloseSuggestionBox
+        |> Modal.small
+        |> Modal.hideOnBackdropClick True
+        |> Modal.h3 [] [ text "Javaslati Doboz" ]
+        |> Modal.body []
+          [ div []
+            [ text "Mi a javaslatod?"
+            , Textarea.textarea
+              [ Textarea.rows 5
+              , Textarea.value state.suggestion
+              , Textarea.onInput UpdateSuggestion
+              ]
+            ]
+          ]
+        |> Modal.footer []
+          [ Button.button
+            [ Button.outlineSuccess
+            , Button.attrs [ onClick <| SendSuggestion state.suggestion]
+            ]
+            [ text "Küldés" ]
+          , Button.button
+            [ Button.outlineDanger
+            , Button.attrs [ onClick CloseSuggestionBox ]
+            ]
+            [ text "Mégse" ]
+          ]
+        |> Modal.view state.suggestionBoxVisibility
       ] |> Grid.col []
     , [  br [] []
       , h2 [] [text <| "Kölni: " ++ String.fromInt state.user.perfume ++ " 💦"]
@@ -138,6 +190,7 @@ displayLogs username logs =
         div []
         <| (++) [text <| showMonthAndDay sortedByDayEx.datetime]
         <| List.map (\l -> div [] [text <| logToText username l])
+        <| List.reverse
         <| List.sortWith (compareOn <| \a -> toFloat (a.datetime.hours * 10000 + a.datetime.minutes * 100) + a.datetime.seconds)
         <| sortedByDayEx :: sortedByDays
       )

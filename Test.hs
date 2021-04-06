@@ -71,6 +71,8 @@ tests =
   , test "2021 buy cokk item" $ parseEndpoint "POST /api/cokk2021/items/buy" === PostCokk2021BuyItem
   , test "2021 equip cokk item" $ parseEndpoint "POST /api/cokk2021/items/equip" === PostCokk2021EquipItem
 
+  , test "suggestion box" $ parseEndpoint "POST /api/suggestionbox" === PostSuggestion
+
   , test "videos page EN" $ parseEndpoint "GET /videos" === GetVideosPage
   , test "videos page HU" $ parseEndpoint "GET /videok" === GetVideosPage
   , test "videos page RO" $ parseEndpoint "GET /videouri" === GetVideosPage

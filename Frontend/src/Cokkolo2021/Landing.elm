@@ -5,6 +5,8 @@ import Html
 import Http as Http
 import Json.Decode as Decode exposing (Decoder)
 
+import Bootstrap.Modal as Modal
+
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Cokkolo2021.Views.Egg as Egg
@@ -102,6 +104,17 @@ update msg model = case (msg, model) of
   (DashboardMsg (Dashboard.EditEggName en), DashboardView s) -> (DashboardView { s | eggNameInput = en, showEggnameEdit = False }, Cmd.none)
   (DashboardMsg (Dashboard.ChangeEggnameSuccess en), DashboardView s) -> let user = s.user in (DashboardView { s | user = { user | eggName = en }, eggNameInput = Nothing, showEggnameEdit = False }, Cmd.none)
   (DashboardMsg (Dashboard.ChangeEggnameFailure er), DashboardView s) -> (DashboardView { s | eggNameInputError = er }, Cmd.none)
+  (DashboardMsg Dashboard.ShowSuggestionBox, DashboardView s) -> (DashboardView { s | suggestionBoxVisibility = Modal.shown }, Cmd.none)
+  (DashboardMsg Dashboard.CloseSuggestionBox, DashboardView s) -> (DashboardView { s | suggestionBoxVisibility = Modal.hidden, suggestion = "" }, Cmd.none)
+  (DashboardMsg (Dashboard.UpdateSuggestion sug), DashboardView s) -> (DashboardView { s | suggestion = sug }, Cmd.none)
+  (DashboardMsg (Dashboard.SendSuggestion sug), DashboardView s) ->
+    ( DashboardView s
+    , Http.post
+      { url = Settings.path ++ Endpoints.suggestionBox
+      , body = Http.stringBody "application/text" sug
+      , expect = Http.expectWhatever (\_ -> DashboardMsg Dashboard.CloseSuggestionBox)
+      }
+    )
   (DashboardMsg (Dashboard.ChangeEggnameRequest en), DashboardView s) ->
     (DashboardView s
     , Http.post
