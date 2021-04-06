@@ -253,16 +253,12 @@ process tojasDB
             waterLogs <- DB.everythingList cokk2021WaterDB
             let dashboardData = Cokk2021DashboardData.make user waterLogs
             Logger.info log $ "Login success for \"" ++ Cokk2021Login.user login ++ "\"."
-            let b = Cokk2021DashboardData.encode dashboardData
-            Logger.info log $ show b
-            a <- makeResponse OK b
-            Logger.info log $ show a
-            return a
+            makeResponse OK $ Cokk2021DashboardData.encode dashboardData
           )
           userOpt
 
     PostCokk2021Register -> do
-      Logger.info log "[API] Registration attempt"
+      Logger.info log $ "[API] Registration attempt with body: " ++ content
       processJsonBody Cokk2021Registration.decode $ \registration -> do
         let user = Cokk2021Registration.toUser registration
         users <- DB.everythingList cokk2021UserDB
@@ -277,7 +273,7 @@ process tojasDB
             makeResponse OK $ Cokk2021DashboardData.encode dashboardData
 
     PostCokk2021Water -> do
-      Logger.info log "[API] Watering!"
+      Logger.info log $ "[API] Watering with body: " ++ content
       processJsonBody Cokk2021WaterRequest.decode $ \req ->
         if Cokk2021WaterRequest.source req == Cokk2021WaterRequest.target req
         then makeResponse BadRequest "Nem ontozheted meg magad! >:|"
@@ -322,7 +318,7 @@ process tojasDB
                   result
 
     PostCokk2021DashboardRefresh -> do
-      Logger.info log "[API] refreshing dashboard"
+      Logger.info log $ "[API] refreshing dashboard with body: " ++ content
       processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
         let userOpt = List.find (Cokk2021Login.matchesLogin login) users
@@ -336,7 +332,7 @@ process tojasDB
           userOpt
 
     PostCokk2021IncSkill -> do
-      Logger.info log "[API] increase skill"
+      Logger.info log $ "[API] increase skill with body: " ++ content
       processJsonBody Cokk2021IncSkillRequest.decode $ \req -> do
         users <- DB.everythingList cokk2021UserDB
         let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021IncSkillRequest.toLogin req) users
@@ -370,7 +366,7 @@ process tojasDB
           userOpt
 
     PostCokk2021ChangeEggname -> do
-      Logger.info log "[API] change egg name"
+      Logger.info log $ "[API] change egg name with body: " ++ content
       processJsonBody Cokk2021ChangeEggnameRequest.decode $ \req -> do
         users <- DB.everythingList cokk2021UserDB
         let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ChangeEggnameRequest.toLogin req) users
@@ -391,7 +387,7 @@ process tojasDB
           userOpt
 
     PostCokk2021BuyItem -> do
-      Logger.info log "[API] buy request"
+      Logger.info log $ "[API] buy request with body: " ++ content
       processJsonBody Cokk2021ItemRequest.decode $ \req -> do
         users <- DB.everythingList cokk2021UserDB
         let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
@@ -423,7 +419,7 @@ process tojasDB
           userOpt
 
     PostCokk2021EquipItem -> do
-      Logger.info log "[API] requested equip item endpoint"
+      Logger.info log $ "[API] requested equip item endpoint with content: " ++ content
       processJsonBody Cokk2021ItemRequest.decode $ \req -> do
         users <- DB.everythingList cokk2021UserDB
         let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
