@@ -39,6 +39,14 @@ view state =
     , text <| "Ennyiszer öntözték meg: " ++ String.fromInt state.contestant.ontoztek
     , br [] []
     , text <| "Ennyiszer öntözött másokat: " ++ String.fromInt state.contestant.ontozott
+    , br [] []
+    , br [] []
+    , Button.button
+      [ Button.outlineDanger
+      , Button.attrs [ Spacing.m2 ]
+      , Button.disabled True
+      --, Button.onClick SwitchToContestantsView
+      ] [text "Összecökkentés (hamarosan)"]
     ] |> Grid.col []
   , [ Table.table
         { options = [ Table.striped ]

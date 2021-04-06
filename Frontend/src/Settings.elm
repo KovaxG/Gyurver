@@ -3,10 +3,10 @@ module Settings exposing (path, version)
 -- TODO this should be false when releasing!!!
 {- Elcsesztem:
   * 2021.03.18 - 0.6.0
-  * 2021.04.05 - 0.6.4git add Ty
+  * 2021.04.05 - 0.6.4
 -}
 debug : Bool
-debug = True
+debug = False
 
 path : String
 path =
@@ -15,4 +15,4 @@ path =
   else "http://totallysafelink.xyz"
 
 version : String
-version = "0.6.4"
+version = "0.6.5"

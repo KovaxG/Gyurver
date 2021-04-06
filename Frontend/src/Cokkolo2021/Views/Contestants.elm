@@ -91,28 +91,30 @@ view state =
       , thead =
           Table.simpleThead
               [ Table.th [] []
+              , Table.th [] []
               , Table.th [] [text "Tojás"]
               , Table.th [] [text "Gazda"]
               , Table.th [] []
               ]
       , tbody =
         state.items
-        |> List.filterNot (\i -> i.username == state.user.username)
+        |> List.filterNot (\contestant -> contestant.username == state.user.username)
         |> (\list -> userToContestant state.user state.items :: list)
-        |> List.map (\c ->
-            [ Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ displayImage c.base.image 61 82 ]
-            , Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ text c.eggname ]
-            , Table.td [Table.cellAttr (onClick <| SwitchToEggView c)] [ text c.username ]
-            , Table.td [] [ if c.username == state.user.username
+        |> List.indexedMap (\index contestant ->
+            [ Table.td [Table.cellAttr (onClick <| SwitchToEggView contestant)] [ text <| String.fromInt (index + 1) ]
+            , Table.td [Table.cellAttr (onClick <| SwitchToEggView contestant)] [ displayImage contestant.base.image 61 82 ]
+            , Table.td [Table.cellAttr (onClick <| SwitchToEggView contestant)] [ text contestant.eggname ]
+            , Table.td [Table.cellAttr (onClick <| SwitchToEggView contestant)] [ text contestant.username ]
+            , Table.td [] [ if contestant.username == state.user.username
                             then text "(te vagy)"
-                            else if c.waterable
+                            else if contestant.waterable
                             then Button.button
                               [ Button.outlineSecondary
-                              , Button.onClick (WaterUser c.username)
+                              , Button.onClick (WaterUser contestant.username)
                               ] [text "💦"]
                             else text "(ma már megöntözted)"
                         ]
-            ] |> Table.tr (if not c.waterable then [Table.rowSuccess] else [])
+            ] |> Table.tr (if not contestant.waterable then [Table.rowSuccess] else [])
         )
         |> Table.tbody []
       }
