@@ -65,3 +65,6 @@ safeLast xs = Just $ last xs
 
 count :: (a -> Bool) -> [a] -> Int
 count p = length . filter p
+
+finiteIterateM :: Monad m => (s -> m (Either r s)) -> s -> m r
+finiteIterateM f s0 = f s0 >>= either return (finiteIterateM f)

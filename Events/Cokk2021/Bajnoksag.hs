@@ -1,13 +1,17 @@
 module Events.Cokk2021.Bajnoksag where
 
-import           Data.Map (Map)
-import qualified Data.Map as Map
-import qualified Data.List as List
+import qualified Data.Bifunctor as Bifunctor
+import qualified Data.Maybe as Maybe
+import qualified Data.Tuple as Tuple
 import           Events.Cokk2021.Skills (Skills)
 import qualified Events.Cokk2021.Skills as Skills
+import qualified System.Random as Random
 import           Utils ((+:))
+import qualified Utils
 
 type Nev = String
+type HP = Int
+type DMG = Int
 
 data Tojas = Tojas
   { nev :: Nev
@@ -17,35 +21,83 @@ data Tojas = Tojas
 mkTojas :: String -> Tojas
 mkTojas name = Tojas name Skills.initial
 
-data MeccsEredmeny = ME (Nev, Int) (Nev, Int) [String] deriving (Show)
+data Result = Result Nev Nev [Log] deriving (Show)
+data State = State (Tojas, HP) (Tojas, HP) [Log] deriving (Show)
 
-versenyzok = [(\t -> t { skills = (skills t) {Skills.erosseg = 1} }) $ mkTojas "tojgli", (\t -> t { skills = (skills t) { Skills.kemenyseg = 1 } }) $ mkTojas "gulu", mkTojas "mojgli"]
+data Effect
+  = ZsirossagCheck
+  | BajCheck
+  | RegeneracioCheck
+  | HumorCheck
+  | FurfangossagCheck
+  | MuveszlelekCheck
+  | SettenkedesCheck
+  deriving (Show)
 
-fuss :: [Tojas] -> (Map Nev Int, [MeccsEredmeny])
-fuss versenyzok = (vegsoEredmenyek, meccsEredmenyek)
+data Log
+  = StartFight (Nev, HP) (Nev, HP)
+  | Win Nev
+  | Damage (Nev, DMG, HP, [Effect]) (Nev, DMG, HP, [Effect])
+  deriving (Show)
+
+fight :: (Tojas, Tojas) -> IO Result
+fight ts = prefight ts >>= Utils.finiteIterateM fightLoop
+
+prefight :: (Tojas, Tojas) -> IO State
+prefight tt = do
+  priorityA <- Random.randomIO :: IO Int
+  priorityB <- Random.randomIO :: IO Int
+  let (a, b) = Bifunctor.bimap initialHealth initialHealth $ if priorityA > priorityB then tt else Tuple.swap tt
+  return $ State a b [StartFight (Bifunctor.first nev a) (Bifunctor.first nev b)]
+
+initialHealth :: Tojas -> (Tojas, Int)
+initialHealth t = (t, max 1 (startingHP + kemenysegBonus - szivarozasBonus))
   where
-    meccsek = filter (uncurry (/=)) $ map (\[a, b] -> (a, b)) $ List.nub $ map List.sort $ sequence [versenyzok, versenyzok]
-    meccsEredmenyek = map jatek meccsek
-    vegsoEredmenyek = Map.fromListWith (+) $ meccsEredmenyek >>= eredmenyek
+    startingHP = 40
+    kemenysegBonus = Skills.kemenyseg (skills t) * 5
+    szivarozasBonus = Skills.szivarozas (skills t) * 3
 
-    eredmenyek :: MeccsEredmeny -> [(Nev, Int)]
-    eredmenyek (ME ae be _) = [ae, be]
+fightLoop :: State -> IO (Either Result State)
+fightLoop (State (ta, hpa) (tb, hpb) log)
+  | hpa <= 0 && hpb <= 0 && hpa > hpb  = return $ Left $ Result (nev ta) (nev tb) (log +: Win (nev ta))
+  | hpa <= 0 && hpb <= 0 && hpa < hpb  = return $ Left $ Result (nev tb) (nev ta) (log +: Win (nev tb))
+  | hpa <= 0 && hpb <= 0 && hpa == hpb = return $ Left undefined
+  | hpa <= 0 && hpb > 0 = return $ Left $ Result (nev tb) (nev ta) (log +: Win (nev tb))
+  | hpa > 0 && hpb <= 0 = return $ Left $ Result (nev ta) (nev tb) (log +: Win (nev ta))
+  | hpa > 0 && hpb > 0 = do
 
-jatek :: (Tojas, Tojas) -> MeccsEredmeny
-jatek (a, b) =
-  let startingHP = 40
-      ahp = startingHP + Skills.kemenyseg (skills a)
-      bhp = startingHP + Skills.kemenyseg (skills b)
-  in fight (a, ahp) (b, bhp) ["Elkezdodott a meccs " ++ nev a ++ "(" ++ show ahp ++ ") vs " ++ nev b ++ "(" ++ show bhp ++ ")"]
+    bajCheckB <- probability BajCheck (Skills.baj (skills tb) + Skills.izles (skills ta)) (Skills.szerencse (skills tb))
 
-fight :: (Tojas, Int) -> (Tojas, Int) -> [String] -> MeccsEredmeny
-fight (a, hpa) (b, hpb) story
-  | hpa <= 0 && hpb <= 0 = ME (nev a, 1) (nev b, 1) (story +: "egyenlo")
-  | hpa <= 0 = ME (nev a, 0) (nev b, 3) (story +: nev b ++ " nyert!")
-  | hpb <= 0 = ME (nev a, 3) (nev b, 0) (story +: nev a ++ " nyert!")
-  | otherwise =
-    let defaultDMG = 3
-        dmg = defaultDMG + Skills.erosseg (skills a)
-    in fight (b, hpb - dmg)
-             (a, hpa)
-             (story +: nev a ++ "(" ++ show hpa ++ ") tamad, " ++ nev b ++ " " ++ show dmg ++ " pontot sebzodik")
+    zsirossagCheckA <- probability ZsirossagCheck ((Skills.zsirossag (skills ta) - Skills.tisztasagmania (skills ta)) * 5) (Skills.szerencse (skills ta))
+    let dmgA = if Maybe.isJust zsirossagCheckA then 0 else Skills.hegyesseg (skills tb)
+
+    settenkedesCheckA <- probability SettenkedesCheck (Skills.settenkedes (skills ta) * 5) (Skills.szerencse (skills ta))
+    muveszlelekCheckA <- probability MuveszlelekCheck (Skills.muveszlelek (skills ta) * 2) (- Skills.szerencse (skills ta))
+    zsirossagCheckB <- probability ZsirossagCheck ((Skills.zsirossag (skills tb) - Skills.tisztasagmania (skills tb)) * 5) (Skills.szerencse (skills tb))
+    let damage = (if Maybe.isJust settenkedesCheckA then 2 else 1) * (if Maybe.isJust muveszlelekCheckA then 0 else 3)
+    let dmgB = if Maybe.isJust zsirossagCheckB then 0 else damage + Skills.erosseg (skills ta)
+
+    let hpA = hpa - dmgA
+
+    regeneracioCheckB <- probability RegeneracioCheck (Skills.regeneracio (skills tb) * 5) (Skills.szerencse (skills tb))
+    let hpB = hpb - dmgB + if Maybe.isJust regeneracioCheckB then 5 else 0
+
+    humorCheckB <- probability HumorCheck (Skills.humorerzek (skills tb)) (Skills.szerencse (skills tb))
+
+    furfangossagB <- probability FurfangossagCheck (Skills.furfangossag (skills tb) * 5) (Skills.szerencse (skills tb))
+
+    let (hpAF, hpBF) = if Maybe.isJust furfangossagB && hpB < hpA then (hpB, hpA) else (hpA, hpB)
+
+    let newLog =
+          if Maybe.isJust bajCheckB
+          then Damage (nev ta, 0, hpa, Maybe.catMaybes [bajCheckB])
+                      (nev tb, 0, hpb, [])
+          else Damage (nev ta, dmgA, hpAF, Maybe.catMaybes [zsirossagCheckA, muveszlelekCheckA])
+                      (nev tb, dmgB, hpBF, Maybe.catMaybes [zsirossagCheckB, regeneracioCheckB, humorCheckB, furfangossagB, settenkedesCheckA])
+
+    return $ Right $ State (tb, hpB) (ta, hpA) (log +: newLog)
+
+probability :: a -> Int -> Int -> IO (Maybe a)
+probability a p pp = do
+  n <- Random.randomRIO (0, 100)
+  return $ if p + (pp * 5) > n then Just a else Nothing
