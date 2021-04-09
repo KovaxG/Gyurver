@@ -46,6 +46,7 @@ cokk2021Water = "/api/cokk2021/water"
 cokk2021Items = "/api/cokk2021/items"
 cokk2021BuyItemJson = "/api/cokk2021/items/buy"
 cokk2021EquipItemJson = "/api/cokk2021/items/equip"
+cokk2021FightJson = "/api/cokk2021/fight"
 suggestionBox = "/api/suggestionbox"
 
 cv = "/cv"

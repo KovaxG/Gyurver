@@ -71,3 +71,4 @@ defaultSettings = Settings
 - `/api/cokk2021/items` get list of items for 2021 Cokkoles (Get)
 - `/api/cokk2021/items/buy` buy item endpoint for 2021 Cokkoles (Post)
 - `/api/cokk2021/items/equip` equip item endpoint for 2021 Cokkoles (Post)
+- `/api/cokk2021/fight` run a match between 2 eggs for 2021 Cokkoles (Post)

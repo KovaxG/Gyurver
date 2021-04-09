@@ -10,6 +10,7 @@ import Bootstrap.Modal as Modal
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Cokkolo2021.Views.Egg as Egg
+import Cokkolo2021.Views.Fight as Fight
 import Cokkolo2021.Views.Login as Login
 import Cokkolo2021.Views.Store as Store
 import Cokkolo2021.Views.Skills as Skills
@@ -89,7 +90,7 @@ update msg model = case (msg, model) of
       }
     )
   (ContestantsMsg Contestants.WateringSuccess, ContestantView s) -> (ContestantView s, Cmd.none)
-  (ContestantsMsg (Contestants.SwitchToEggView contestant), ContestantView s) -> (EggView <| Egg.init s contestant, Cmd.none)
+  (ContestantsMsg (Contestants.SwitchToEggView contestant), ContestantView s) -> (EggView <| Egg.init s s.user contestant, Cmd.none)
   (DashboardMsg (Dashboard.FetchSuccess dashboardState), DashboardView s) -> (DashboardView dashboardState, Cmd.none)
   (DashboardMsg (Dashboard.FetchFailure errorMessage), DashboardView s) -> (DashboardView s, Cmd.none)
   (DashboardMsg Dashboard.SwitchToSkillsView, DashboardView s) -> (SkillsView <| Skills.init s.user, Cmd.none)
@@ -142,6 +143,16 @@ update msg model = case (msg, model) of
   (SkillsMsg (Skills.IncSkillSuccess skill cost), SkillsView s) -> (SkillsView <| Skills.update skill cost s, Cmd.none)
   (SkillsMsg (Skills.IncSkillFailure _), SkillsView s) -> (SkillsView s, Cmd.none)
   (EggMsg Egg.SwitchToContestantsView, EggView s) -> (ContestantView s.contestantsState, Cmd.none)
+  (EggMsg (Egg.FightRequest user contestant), EggView s) ->
+    ( EggView s
+    , Http.post
+      { url = Settings.path ++ Endpoints.cokk2021FightJson
+      , body = Http.jsonBody (Contestants.encodeWaterBody contestant.username user)
+      , expect = Http.expectJson (Util.processMessage (EggMsg << Egg.FightRequestSuccess) (EggMsg << Egg.FightRequestFailure)) Fight.decoder
+      }
+    )
+  (EggMsg (Egg.FightRequestFailure _), EggView s) -> (EggView s, Cmd.none)
+  (EggMsg (Egg.FightRequestSuccess logs), EggView s) -> (FightView <| Fight.init s.contestantsState s.user s.contestant logs, Cmd.none)
   (StoreMsg (Store.PopulateItems items), StoreView s) -> (StoreView { s | items = items }, Cmd.none)
   (StoreMsg Store.SwitchToDashboard, StoreView s) ->
     ( DashboardView <| Dashboard.populateTemporary s.user
@@ -194,6 +205,7 @@ view model =
     [ [ CDN.stylesheet
       , case model of
           EggView state -> Html.map EggMsg <| Egg.view state
+          FightView state -> Html.map FightMsg <| Fight.view state
           LoginView state -> Html.map LoginMsg <| Login.view state
           StoreView state -> Html.map StoreMsg <| Store.view state
           SkillsView state -> Html.map SkillsMsg <| Skills.view state

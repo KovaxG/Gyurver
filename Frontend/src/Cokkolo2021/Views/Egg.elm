@@ -8,21 +8,27 @@ import Bootstrap.Utilities.Spacing as Spacing
 
 import Cokkolo2021.Common exposing (..)
 import Cokkolo2021.Views.Contestants as Contestants exposing (Contestant)
+import Cokkolo2021.Views.Fight as Fight
 import Settings
 
 type alias ViewState =
-  { contestant : Contestant
+  { user : User
+  , contestant : Contestant
   , contestantsState : Contestants.ViewState
   }
 
-init : Contestants.ViewState -> Contestant -> ViewState
-init cState contestant =
-  { contestant = contestant
+init : Contestants.ViewState -> User -> Contestant -> ViewState
+init cState user contestant =
+  { user = user
+  , contestant = contestant
   , contestantsState = cState
   }
 
 type Message
   = SwitchToContestantsView
+  | FightRequest User Contestant
+  | FightRequestFailure String
+  | FightRequestSuccess (List Fight.FightLog)
 
 view : ViewState -> Html Message
 view state =
@@ -44,9 +50,8 @@ view state =
     , Button.button
       [ Button.outlineDanger
       , Button.attrs [ Spacing.m2 ]
-      , Button.disabled True
-      --, Button.onClick SwitchToContestantsView
-      ] [text "Összecökkentés (hamarosan)"]
+      , Button.onClick <| FightRequest state.user state.contestant
+      ] [text "Összecökkentés"]
     ] |> Grid.col []
   , [ Table.table
         { options = [ Table.striped ]
