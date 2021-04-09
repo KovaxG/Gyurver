@@ -70,6 +70,7 @@ tests =
   , test "2021 cokk items API" $ parseEndpoint "GET /api/cokk2021/items" === GetCokk2021Items
   , test "2021 buy cokk item" $ parseEndpoint "POST /api/cokk2021/items/buy" === PostCokk2021BuyItem
   , test "2021 equip cokk item" $ parseEndpoint "POST /api/cokk2021/items/equip" === PostCokk2021EquipItem
+  , test "2021 fight cokk" $ parseEndpoint "POST /api/cokk2021/fight" === PostCokk2021Fight
 
   , test "suggestion box" $ parseEndpoint "POST /api/suggestionbox" === PostSuggestion
 

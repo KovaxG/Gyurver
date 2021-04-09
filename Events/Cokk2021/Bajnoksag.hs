@@ -6,6 +6,8 @@ import           Data.Functor ((<&>))
 import qualified Data.Tuple as Tuple
 import           Events.Cokk2021.Skills (Skills)
 import qualified Events.Cokk2021.Skills as Skills
+import           Component.Json (Json(..))
+import qualified Component.Json as Json
 import qualified System.Random as Random
 import           Utils ((+:))
 import qualified Utils
@@ -19,10 +21,14 @@ data Tojas = Tojas
   , skills :: Skills
   } deriving (Show, Eq, Ord)
 
-mkTojas :: String -> Tojas
-mkTojas name = Tojas name Skills.initial
+mkTojas :: String -> Skills -> Tojas
+mkTojas = Tojas
 
 data Result = Result Nev Nev [Log] deriving (Show)
+
+logs :: Result -> [Log]
+logs (Result _ _ ls) = ls
+
 data State = State (Tojas, HP) (Tojas, HP) [Log] deriving (Show)
 
 data Effect
@@ -128,3 +134,26 @@ probability :: a -> Int -> Int -> IO (Maybe a)
 probability a p pp = do
   n <- Random.randomRIO (0, 100)
   return $ if p + (pp * 5) > n then Just a else Nothing
+
+encodeLog :: Log -> Json
+encodeLog log = case log of
+  Win name -> JsonObject [("type", JsonString "win"), ("winner", JsonString name)]
+  Effect eff -> JsonObject [("type", JsonString "eff"), ("effect", JsonString $ show eff)]
+  StartFight (na, hpa) (nb, hpb) ->
+    JsonObject
+      [ ("type", JsonString "start")
+      , ("nameA", JsonString na), ("hpA", JsonNumber $ fromIntegral hpa)
+      , ("nameB", JsonString nb), ("hpB", JsonNumber $ fromIntegral hpb)
+      ]
+  Damage (na, dmgA, hpA, effsA) (nb, dmgB, hpB, effsB) ->
+    JsonObject
+      [ ("type", JsonString "damage")
+      , ("nameA", JsonString na)
+      , ("dmgA", JsonNumber $ fromIntegral dmgA)
+      , ("hpA", JsonNumber $ fromIntegral hpA)
+      , ("effsA", JsonArray $ map (JsonString . show) effsA)
+      , ("nameB", JsonString nb)
+      , ("dmgB", JsonNumber $ fromIntegral dmgB)
+      , ("hpB", JsonNumber $ fromIntegral hpB)
+      , ("effsB", JsonArray $ map (JsonString . show) effsB)
+      ]

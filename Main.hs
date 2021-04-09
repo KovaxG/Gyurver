@@ -25,6 +25,7 @@ import qualified Events.Cokk2021.WaterLog as Cokk2021WaterLog
 import qualified Events.Cokk2021.ItemRequest as Cokk2021ItemRequest
 import qualified Events.Cokk2021.Registration as Cokk2021Registration
 import qualified Events.Cokk2021.WaterRequest as Cokk2021WaterRequest
+import qualified Events.Cokk2021.FightRequest as Cokk2021FightRequest
 import qualified Events.Cokk2021.DashboardData as Cokk2021DashboardData
 import qualified Events.Cokk2021.IncSkillRequest as Cokk2021IncSkillRequest
 import qualified Events.Cokk2021.ChangeEggnameRequest as Cokk2021ChangeEggnameRequest
@@ -204,6 +205,22 @@ process tojasDB
               <$> makeResponse OK (map (uncurry $ Cokk2021User.toListItemJson waterLogs) nusers)
           )
           userOpt
+
+    PostCokk2021Fight -> do
+      Logger.info log $ "[API] Fight with body: " ++ content
+      processJsonBody Cokk2021FightRequest.decode $ \req -> do
+        users <- DB.everythingList cokk2021UserDB
+        let targetUserOpt = List.find (\u -> Cokk2021FightRequest.target req == Cokk2021User.username u) users
+        let sourceUserOpt = List.find (\u -> Cokk2021FightRequest.source req == Cokk2021User.username u
+                                          && Cokk2021FightRequest.sourcePass req == Cokk2021User.passwordHash u) users
+        case sourceUserOpt of
+            Nothing -> makeResponse Unauthorized "Bocs, de rossz a jelszo/felhasznalo"
+            Just sourceUser ->
+              case targetUserOpt of
+                Nothing -> makeResponse BadRequest "Bocs de nem letezik az akit meg akarsz ontozni"
+                Just targetUser -> do
+                  fightResult <- Cokk2021FightRequest.runFight sourceUser targetUser
+                  makeResponse OK fightResult
 
     GetVideosAddPage -> do
       Logger.info log "Requested video add page."
