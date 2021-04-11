@@ -10,6 +10,8 @@ import Json.Encode as Encode exposing (Value)
 import Json.Decode as Decode exposing (Decoder)
 
 import Cokkolo2021.Common exposing (..)
+import Types.EventState as EventState
+import Settings
 
 type alias ViewState = { user : User }
 
@@ -44,7 +46,7 @@ view state =
           tooExpensive = levelCost > state.user.perfume
           buttonStyle = if tooExpensive then Button.outlineSecondary else Button.outlineSuccess
           (cost, button) =
-            if level >= 10
+            if level >= 10 || Settings.cokk2021 == EventState.Blocked
             then ("", [])
             else ( String.fromInt levelCost ++ " 💦"
                  , [Button.button [buttonStyle, Button.onClick <| IncSkill name levelCost, Button.disabled tooExpensive] [text "➕"]]

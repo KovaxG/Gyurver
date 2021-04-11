@@ -14,6 +14,7 @@ import List.Extra as List
 import Json.Encode as Encode exposing (Value)
 
 import Cokkolo2021.Common exposing (..)
+import Types.EventState as EventState
 import Settings
 
 type alias ViewState =
@@ -109,12 +110,16 @@ itemToRow user item =
        then [Button.button [Button.primary, Button.onClick (EquipItem item.index)] [text "Felszerel"]]
        else
         let cantBuy = user.perfume < item.cost
-        in [ Button.button
-              [ if cantBuy then Button.secondary else Button.success
-              , Button.onClick (BuyItem item.index)
-              , Button.disabled cantBuy
-              ] [text "Megveszem"]
-           ]
+        in
+          if Settings.cokk2021 == EventState.Blocked
+          then []
+          else
+            [ Button.button
+                [ if cantBuy then Button.secondary else Button.success
+                , Button.onClick (BuyItem item.index)
+                , Button.disabled cantBuy
+                ] [text "Megveszem"]
+            ]
   ] |> Table.tr []
 
 description : Html Message

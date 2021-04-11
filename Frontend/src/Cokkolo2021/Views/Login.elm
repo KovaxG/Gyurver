@@ -11,6 +11,7 @@ import Bootstrap.Utilities.Spacing as Spacing
 
 import Json.Encode as Encode exposing (Value)
 
+import Types.EventState as EventState
 import Cokkolo2021.Common exposing (..)
 import Settings
 
@@ -61,11 +62,14 @@ view state =
       , Button.attrs [ Spacing.m2 ]
       , Button.onClick Login
       ] [text "Engeddj be!"]
-    , Button.button
-      [ Button.secondary
-      , Button.attrs [ Spacing.m2 ]
-      , Button.onClick SwitchToRegisterView
-      ] [text "Én is akarok tojást!"]
+    , if Settings.cokk2021 == EventState.Running
+      then
+      Button.button
+        [ Button.secondary
+        , Button.attrs [ Spacing.m2 ]
+        , Button.onClick SwitchToRegisterView
+        ] [text "Én is akarok tojást!"]
+      else text ""
     , description2
     ] |> Grid.col []
   ] |> Grid.row []
@@ -81,7 +85,8 @@ description =
         , text " nevezik, de egy játék, ahol két résztvevő egy-egy húsvéti tojást kiválaszt és a két tojást összeütik. Akinek eltörik a tojása, az veszít. Mivel mostanság nem nagyon mehetünk ki, gondoltam hogy az online világba viszem ezt a játékot (másodjára)."
         , br [] []
         , br [] []
-        , Alert.simpleDanger [] [text "Április 11-én egy hiba csúszott a rendszerbe és emiatt mindenkinek eltüntek a fejlesztései és a díszei. Szerencsére épp annyi nem veszlődött el, mert még megvan hogy ki kit öntözött, ezért mindenki visszakaja az összes kölnit amit a héten összegyüjtött és ezeket újra be lehet fektetni amibe csak akarja."]
+        , Alert.simpleDanger [] [text "Április 11-én egy hiba csúszott a rendszerbe és emiatt mindenkinek eltüntek a fejlesztései és a díszei. Szerencsére épp annyi nem veszlődött el, mert még megvan hogy ki kit öntözött, ezért mindenki visszakapja az összes kölnit amit a héten összegyüjtött és ezeket újra be lehet fektetni amibe csak akarja."]
+        , Alert.simpleDanger [] [text "Ha a regisztrálássan vannak gondok engem el lehet érni facebookon vagy emailen."]
         ] |> div []
       ] |> Grid.col []
     ] |> Grid.row []

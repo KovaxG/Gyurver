@@ -14,6 +14,7 @@ import Json.Encode as Encode exposing (Value)
 
 import Cokkolo2021.Types.Fight as Fight
 import Cokkolo2021.Common exposing (..)
+import Types.EventState as EventState
 import Settings
 
 type alias ViewState =
@@ -112,6 +113,8 @@ view state =
             , Table.td [Table.cellAttr (onClick <| SwitchToEggView contestant)] [ text contestant.username ]
             , Table.td [] [ if contestant.username == state.user.username
                             then text "(te vagy)"
+                            else if Settings.cokk2021 == EventState.Blocked
+                            then text ""
                             else if contestant.waterable
                             then Button.button
                               [ Button.outlineSecondary

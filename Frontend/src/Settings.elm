@@ -1,4 +1,6 @@
-module Settings exposing (path, version)
+module Settings exposing (path, version, cokk2021)
+
+import Types.EventState exposing (EventState(..))
 
 -- TODO this should be false when releasing!!!
 {- Elcsesztem:
@@ -7,6 +9,9 @@ module Settings exposing (path, version)
 -}
 debug : Bool
 debug = False
+
+cokk2021 : EventState
+cokk2021 = Locked
 
 path : String
 path =
