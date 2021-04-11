@@ -184,6 +184,7 @@ process tojasDB
       Logger.info log "[API] Requested user participation list"
       processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
+        Logger.info log $ "Got " ++ show (length users) ++ " users."
         let userOpt = List.find (Cokk2021Login.matchesLogin login) users
         maybe
           (makeResponse Unauthorized "Bad Credentials")
@@ -200,6 +201,8 @@ process tojasDB
                     , u
                     )
                   ) users
+
+            Logger.info log "Sending users!"
 
             addHeaders [("Content-Type", "application/json")]
               <$> makeResponse OK (map (uncurry $ Cokk2021User.toListItemJson waterLogs) nusers)
