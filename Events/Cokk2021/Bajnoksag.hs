@@ -2,7 +2,6 @@ module Events.Cokk2021.Bajnoksag where
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Maybe as Maybe
-import           Data.Functor ((<&>))
 import qualified Data.Tuple as Tuple
 import           Events.Cokk2021.Skills (Skills)
 import qualified Events.Cokk2021.Skills as Skills
