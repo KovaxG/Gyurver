@@ -11,6 +11,7 @@ import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Cokkolo2021.Views.Egg as Egg
 import Cokkolo2021.Views.Fight as Fight
+import Cokkolo2021.Types.Fight as Fight
 import Cokkolo2021.Views.Login as Login
 import Cokkolo2021.Views.Store as Store
 import Cokkolo2021.Views.Skills as Skills
@@ -89,10 +90,20 @@ update msg model = case (msg, model) of
       , expect = Http.expectWhatever (always <| ContestantsMsg Contestants.WateringSuccess)
       }
     )
-  (ContestantsMsg Contestants.WateringSuccess, ContestantView s) -> (ContestantView s, Cmd.none)
+  (ContestantsMsg Contestants.WateringSuccess, s) -> (s, Cmd.none)
   (ContestantsMsg (Contestants.SwitchToEggView contestant), ContestantView s) -> (EggView <| Egg.init s s.user contestant, Cmd.none)
+  (ContestantsMsg (Contestants.FightRequest user contestant), s) ->
+    ( s
+    , Http.post
+      { url = Settings.path ++ Endpoints.cokk2021FightJson
+      , body = Http.jsonBody (Contestants.encodeWaterBody contestant.username user)
+      , expect = Http.expectJson (Util.processMessage (ContestantsMsg << Contestants.FightRequestSuccess contestant) (ContestantsMsg << Contestants.FightRequestFailure)) Fight.decoder
+      }
+    )
+  (ContestantsMsg (Contestants.FightRequestFailure _), ContestantView s) -> (ContestantView s, Cmd.none)
+  (ContestantsMsg (Contestants.FightRequestSuccess logs contestant), ContestantView s) -> (FightView <| Fight.init s s.user logs contestant, Cmd.none)
   (DashboardMsg (Dashboard.FetchSuccess dashboardState), DashboardView s) -> (DashboardView dashboardState, Cmd.none)
-  (DashboardMsg (Dashboard.FetchFailure errorMessage), DashboardView s) -> (DashboardView s, Cmd.none)
+  (DashboardMsg (Dashboard.FetchFailure errorMessage), s) -> (s, Cmd.none)
   (DashboardMsg Dashboard.SwitchToSkillsView, DashboardView s) -> (SkillsView <| Skills.init s.user, Cmd.none)
   (DashboardMsg Dashboard.SwitchToStoreView, DashboardView s) ->
     ( StoreView <| Store.init s.user
@@ -153,6 +164,8 @@ update msg model = case (msg, model) of
     )
   (EggMsg (Egg.FightRequestFailure _), EggView s) -> (EggView s, Cmd.none)
   (EggMsg (Egg.FightRequestSuccess logs), EggView s) -> (FightView <| Fight.init s.contestantsState s.user s.contestant logs, Cmd.none)
+  (FightMsg Fight.NextMessage, FightView s) -> (FightView <| Fight.cycle s, Cmd.none)
+  (FightMsg Fight.SwitchToContestantsView, FightView s) -> (ContestantView s.contestantsState, Cmd.none)
   (StoreMsg (Store.PopulateItems items), StoreView s) -> (StoreView { s | items = items }, Cmd.none)
   (StoreMsg Store.SwitchToDashboard, StoreView s) ->
     ( DashboardView <| Dashboard.populateTemporary s.user

@@ -7,8 +7,8 @@ import Bootstrap.Button as Button
 import Bootstrap.Utilities.Spacing as Spacing
 
 import Cokkolo2021.Common exposing (..)
+import Cokkolo2021.Types.Fight as Fight
 import Cokkolo2021.Views.Contestants as Contestants exposing (Contestant)
-import Cokkolo2021.Views.Fight as Fight
 import Settings
 
 type alias ViewState =

@@ -12,6 +12,7 @@ import List.Extra as List
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 
+import Cokkolo2021.Types.Fight as Fight
 import Cokkolo2021.Common exposing (..)
 import Settings
 
@@ -76,6 +77,9 @@ type Message
   | PopulateList (List Contestant)
   | WaterUser String
   | WateringSuccess
+  | FightRequest User Contestant
+  | FightRequestFailure String
+  | FightRequestSuccess Contestant (List Fight.FightLog)
 
 view : ViewState -> Html Message
 view state =
@@ -94,6 +98,7 @@ view state =
               , Table.th [] []
               , Table.th [] [text "Tojás"]
               , Table.th [] [text "Gazda"]
+              , Table.th [] []
               , Table.th [] []
               ]
       , tbody =
@@ -114,6 +119,11 @@ view state =
                               ] [text "💦"]
                             else text "(ma már megöntözted)"
                         ]
+            , Table.td []
+              [Button.button
+                [ Button.outlineSecondary
+                , Button.onClick (FightRequest state.user contestant)
+                ] [text "🤜🤛"]]
             ] |> Table.tr (if not contestant.waterable then [Table.rowSuccess] else [])
         )
         |> Table.tbody []
