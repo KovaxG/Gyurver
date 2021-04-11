@@ -4,6 +4,7 @@ import Html exposing (Html, text, h1, h2, br, div, a)
 import Html.Attributes exposing (href, align)
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
+import Bootstrap.Alert as Alert
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
 import Bootstrap.Utilities.Spacing as Spacing
@@ -78,6 +79,9 @@ description =
         , text "Mi az a cökkölés? Egyesek "
         , a [href kocogtatasLink] [text "kocogtatásnak"]
         , text " nevezik, de egy játék, ahol két résztvevő egy-egy húsvéti tojást kiválaszt és a két tojást összeütik. Akinek eltörik a tojása, az veszít. Mivel mostanság nem nagyon mehetünk ki, gondoltam hogy az online világba viszem ezt a játékot (másodjára)."
+        , br [] []
+        , br [] []
+        , Alert.simpleDanger [] [text "Április 11-én egy hiba csúszott a rendszerbe és emiatt mindenkinek eltüntek a fejlesztései és a díszei. Szerencsére épp annyi nem veszlődött el, mert még megvan hogy ki kit öntözött, ezért mindenki visszakaja az összes kölnit amit a héten összegyüjtött és ezeket újra be lehet fektetni amibe csak akarja."]
         ] |> div []
       ] |> Grid.col []
     ] |> Grid.row []

@@ -120,10 +120,14 @@ view state =
                             else text "(ma már megöntözted)"
                         ]
             , Table.td []
-              [Button.button
-                [ Button.outlineSecondary
-                , Button.onClick (FightRequest state.user contestant)
-                ] [text "🤜🤛"]]
+              [ if contestant.username == state.user.username
+                then text ""
+                else
+                  Button.button
+                    [ Button.outlineSecondary
+                    , Button.onClick (FightRequest state.user contestant)
+                    ] [text "🤜🤛"]
+              ]
             ] |> Table.tr (if not contestant.waterable then [Table.rowSuccess] else [])
         )
         |> Table.tbody []

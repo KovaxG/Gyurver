@@ -3,6 +3,7 @@ module Cokkolo2021.Views.Dashboard exposing (..)
 import Html exposing (Html, div, text, h1, h2, h3, br)
 import Html.Events exposing (onMouseOver, onMouseLeave, onClick)
 import Bootstrap.Grid as Grid
+import Bootstrap.Alert as Alert
 import Bootstrap.Modal as Modal
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
@@ -157,6 +158,7 @@ view state =
             [ text "Mégse" ]
           ]
         |> Modal.view state.suggestionBoxVisibility
+      , Alert.simpleDanger [] [text "Április 11-én egy hiba csúszott a rendszerbe és emiatt mindenkinek eltüntek a fejlesztései és a díszei. Szerencsére épp annyi nem veszlődött el, mert még megvan hogy ki kit öntözött, ezért mindenki visszakaja az összes kölnit amit a héten összegyüjtött és ezeket újra be lehet fektetni amibe csak akarja."]
       ] |> Grid.col []
     , [  br [] []
       , h2 [] [text <| "Kölni: " ++ String.fromInt state.user.perfume ++ " 💦"]

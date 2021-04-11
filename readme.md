@@ -17,6 +17,7 @@ host_address 0.0.0.0
 port 80
 password very_safe_password
 mode prod
+cokk2021 blocked
 ```
 
 The settings are loaded in the following object:
@@ -26,6 +27,7 @@ data Settings = Settings
   , port :: Port
   , password :: String
   , mode :: Mode
+  , cokk2021 :: EventMode
   } deriving (Show)
 ```
 
@@ -36,6 +38,7 @@ defaultSettings = Settings
   , port = Port 8080
   , password = "nincs jelszo"
   , mode = Dev
+  , cokk2021 = Blocked
   }
 ```
 ## Endpoints

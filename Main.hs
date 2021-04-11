@@ -36,6 +36,7 @@ import Gyurver.Response
 import Gyurver.Server
 import           Gyurver.Logger (Logger(..))
 import qualified Gyurver.Logger as Logger
+import qualified Types.Common as Types
 import qualified Types.DateTime as DateTime
 import           Types.Video (Video)
 import qualified Types.Video as Video
@@ -184,7 +185,6 @@ process tojasDB
       Logger.info log "[API] Requested user participation list"
       processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
-        Logger.info log $ "Got " ++ show (length users) ++ " users."
         let userOpt = List.find (Cokk2021Login.matchesLogin login) users
         maybe
           (makeResponse Unauthorized "Bad Credentials")
@@ -201,8 +201,6 @@ process tojasDB
                     , u
                     )
                   ) users
-
-            Logger.info log "Sending users!"
 
             addHeaders [("Content-Type", "application/json")]
               <$> makeResponse OK (map (uncurry $ Cokk2021User.toListItemJson waterLogs) nusers)
@@ -287,63 +285,74 @@ process tojasDB
 
     PostCokk2021Register -> do
       Logger.info log $ "[API] Registration attempt with body: " ++ content
-      processJsonBody Cokk2021Registration.decode $ \registration -> do
-        let user = Cokk2021Registration.toUser registration
-        users <- DB.everythingList cokk2021UserDB
-        if Cokk2021User.username user `elem` map Cokk2021User.username users
-        then makeResponse BadRequest "Felhasznalonev nem egyedi."
-        else
-          if Cokk2021User.eggname user `elem` map Cokk2021User.eggname users
-          then makeResponse BadRequest "Tojasnev nem egyedi."
-          else do
-            DB.insert cokk2021UserDB user
-            let dashboardData = Cokk2021DashboardData.make user []
-            makeResponse OK $ Cokk2021DashboardData.encode dashboardData
+      if (settings & Settings.cokk2021) == Types.Running
+      then
+        processJsonBody Cokk2021Registration.decode $ \registration -> do
+          let user = Cokk2021Registration.toUser registration
+          users <- DB.everythingList cokk2021UserDB
+          if Cokk2021User.username user `elem` map Cokk2021User.username users
+          then makeResponse BadRequest "Felhasznalonev nem egyedi."
+          else
+            if Cokk2021User.eggname user `elem` map Cokk2021User.eggname users
+            then makeResponse BadRequest "Tojasnev nem egyedi."
+            else do
+              DB.insert cokk2021UserDB user
+              let dashboardData = Cokk2021DashboardData.make user []
+              makeResponse OK $ Cokk2021DashboardData.encode dashboardData
+      else do
+        Logger.info log "[API] The event is not running anymore! "
+        makeResponse Forbidden "The event is not running anymore!"
 
     PostCokk2021Water -> do
       Logger.info log $ "[API] Watering with body: " ++ content
-      processJsonBody Cokk2021WaterRequest.decode $ \req ->
-        if Cokk2021WaterRequest.source req == Cokk2021WaterRequest.target req
-        then makeResponse BadRequest "Nem ontozheted meg magad! >:|"
-        else do
-          wLogs <- DB.everythingList cokk2021WaterDB
-          wLog <- Cokk2021WaterLog.make (Cokk2021WaterRequest.source req) (Cokk2021WaterRequest.target req)
 
-          let illegal =
-                wLogs
-                  & filter (\l -> Cokk2021WaterLog.wlSource l == Cokk2021WaterLog.wlSource wLog && Cokk2021WaterLog.wlTarget l == Cokk2021WaterLog.wlTarget wLog)
-                  & map (DateTime.toDate . Cokk2021WaterLog.wlDateTime)
-                  & any (\d -> d == DateTime.toDate (Cokk2021WaterLog.wlDateTime wLog))
-
-          if illegal
-          then makeResponse Forbidden "🖕"
+      if (settings & cokk2021) == Types.Blocked
+      then do
+        Logger.info log "Event is locked!"
+        makeResponse Forbidden "Event is locked!"
+      else do
+        processJsonBody Cokk2021WaterRequest.decode $ \req ->
+          if Cokk2021WaterRequest.source req == Cokk2021WaterRequest.target req
+          then makeResponse BadRequest "Nem ontozheted meg magad! >:|"
           else do
-            result <- DB.modifyData cokk2021UserDB $ \users ->
-              let
-                targetUserOpt = List.find (\u -> Cokk2021WaterRequest.target req == Cokk2021User.username u) users
-                sourceUserOpt = List.find (\u -> Cokk2021WaterRequest.source req == Cokk2021User.username u
-                                              && Cokk2021WaterRequest.sourcePass req == Cokk2021User.passwordHash u) users
-                sourceUserNotFound = (users, Just "Bocs, de rossz a jelszo/felhasznalo")
-                targetUserNotFound = (users, Just "Bocs de nem letezik az akit meg akarsz ontozni")
-              in case sourceUserOpt of
-                  Nothing -> sourceUserNotFound
-                  Just _ ->
-                    case targetUserOpt of
-                      Nothing -> targetUserNotFound
-                      Just targetUser ->
-                        let newData =
-                              Utils.mapIf
-                                (\u -> Cokk2021User.username u == Cokk2021WaterRequest.target req)
-                                (Cokk2021User.addPerfume 1)
-                                users
-                        in (newData, Nothing)
+            wLogs <- DB.everythingList cokk2021WaterDB
+            wLog <- Cokk2021WaterLog.make (Cokk2021WaterRequest.source req) (Cokk2021WaterRequest.target req)
 
-            maybe (do
-                    DB.insert cokk2021WaterDB wLog
-                    makeResponse OK "Success"
-                  )
-                  (makeResponse BadRequest)
-                  result
+            let illegal =
+                  wLogs
+                    & filter (\l -> Cokk2021WaterLog.wlSource l == Cokk2021WaterLog.wlSource wLog && Cokk2021WaterLog.wlTarget l == Cokk2021WaterLog.wlTarget wLog)
+                    & map (DateTime.toDate . Cokk2021WaterLog.wlDateTime)
+                    & any (\d -> d == DateTime.toDate (Cokk2021WaterLog.wlDateTime wLog))
+
+            if illegal
+            then makeResponse Forbidden "🖕"
+            else do
+              result <- DB.modifyData cokk2021UserDB $ \users ->
+                let
+                  targetUserOpt = List.find (\u -> Cokk2021WaterRequest.target req == Cokk2021User.username u) users
+                  sourceUserOpt = List.find (\u -> Cokk2021WaterRequest.source req == Cokk2021User.username u
+                                                && Cokk2021WaterRequest.sourcePass req == Cokk2021User.passwordHash u) users
+                  sourceUserNotFound = (users, Just "Bocs, de rossz a jelszo/felhasznalo")
+                  targetUserNotFound = (users, Just "Bocs de nem letezik az akit meg akarsz ontozni")
+                in case sourceUserOpt of
+                    Nothing -> sourceUserNotFound
+                    Just _ ->
+                      case targetUserOpt of
+                        Nothing -> targetUserNotFound
+                        Just targetUser ->
+                          let newData =
+                                Utils.mapIf
+                                  (\u -> Cokk2021User.username u == Cokk2021WaterRequest.target req)
+                                  (Cokk2021User.addPerfume 1)
+                                  users
+                          in (newData, Nothing)
+
+              maybe (do
+                      DB.insert cokk2021WaterDB wLog
+                      makeResponse OK "Success"
+                    )
+                    (makeResponse BadRequest)
+                    result
 
     PostCokk2021DashboardRefresh -> do
       Logger.info log $ "[API] refreshing dashboard with body: " ++ content
@@ -361,116 +370,139 @@ process tojasDB
 
     PostCokk2021IncSkill -> do
       Logger.info log $ "[API] increase skill with body: " ++ content
-      processJsonBody Cokk2021IncSkillRequest.decode $ \req -> do
-        users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021IncSkillRequest.toLogin req) users
-        maybe
-          (makeResponse Unauthorized "Bad Credentials")
-          (\user -> do
-            let skillOpt = Cokk2021Skills.parse $ Cokk2021IncSkillRequest.skill req
-            maybe
-              (makeResponse BadRequest "No such skill exists!")
-              (\skill -> do
-                let level = skill $ Cokk2021User.skills user
-                if level >= 10
-                then makeResponse Forbidden "You can't increase skill level above 10!"
-                else
-                  if Cokk2021User.perfume user < level + 1
-                  then makeResponse PaymentRequired "Not enough perfume!"
-                  else do
-                    let updatedUser = user
-                          { Cokk2021User.perfume = Cokk2021User.perfume user - (level + 1)
-                          , Cokk2021User.skills = Maybe.fromMaybe (Cokk2021User.skills user)
-                                                $ Cokk2021Skills.incSkill (Cokk2021IncSkillRequest.skill req) (Cokk2021User.skills user)
-                          }
-                    DB.modifyData cokk2021UserDB $ \users ->
-                      ( Utils.mapIf (\u -> Cokk2021User.username u == Cokk2021User.username user) (const updatedUser) users
-                      , ()
-                      )
-                    makeResponse OK "OK Boomer"
-              )
-              skillOpt
-          )
-          userOpt
+
+      if (settings & cokk2021) == Types.Blocked
+      then do
+        Logger.info log "Event is locked!"
+        makeResponse Forbidden "Event is locked!"
+      else do
+        processJsonBody Cokk2021IncSkillRequest.decode $ \req -> do
+          users <- DB.everythingList cokk2021UserDB
+          let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021IncSkillRequest.toLogin req) users
+          maybe
+            (makeResponse Unauthorized "Bad Credentials")
+            (\user -> do
+              let skillOpt = Cokk2021Skills.parse $ Cokk2021IncSkillRequest.skill req
+              maybe
+                (makeResponse BadRequest "No such skill exists!")
+                (\skill -> do
+                  let level = skill $ Cokk2021User.skills user
+                  if level >= 10
+                  then makeResponse Forbidden "You can't increase skill level above 10!"
+                  else
+                    if Cokk2021User.perfume user < level + 1
+                    then makeResponse PaymentRequired "Not enough perfume!"
+                    else do
+                      let updatedUser = user
+                            { Cokk2021User.perfume = Cokk2021User.perfume user - (level + 1)
+                            , Cokk2021User.skills = Maybe.fromMaybe (Cokk2021User.skills user)
+                                                  $ Cokk2021Skills.incSkill (Cokk2021IncSkillRequest.skill req) (Cokk2021User.skills user)
+                            }
+                      DB.modifyData cokk2021UserDB $ \users ->
+                        ( Utils.mapIf (\u -> Cokk2021User.username u == Cokk2021User.username user) (const updatedUser) users
+                        , ()
+                        )
+                      makeResponse OK "OK Boomer"
+                )
+                skillOpt
+            )
+            userOpt
 
     PostCokk2021ChangeEggname -> do
       Logger.info log $ "[API] change egg name with body: " ++ content
-      processJsonBody Cokk2021ChangeEggnameRequest.decode $ \req -> do
-        users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ChangeEggnameRequest.toLogin req) users
-        maybe
-          (makeResponse Unauthorized "Bad Credentials")
-          (\user -> do
-            let eggs = map Cokk2021User.eggname users
-            let newEggname = Cokk2021ChangeEggnameRequest.newEggname req
-            if newEggname `elem` eggs
-            then makeResponse Forbidden "Egg already exists!"
-            else do
-              DB.modifyData cokk2021UserDB
-                $ (, ()) . Utils.mapIf
-                  (\u -> Cokk2021User.username u == Cokk2021User.username user)
-                  (\u -> u { Cokk2021User.eggname = Cokk2021ChangeEggnameRequest.newEggname req })
-              makeResponse OK "Ok Boomer"
-          )
-          userOpt
+      if (settings & cokk2021) == Types.Blocked
+      then do
+        Logger.info log "Event is locked!"
+        makeResponse Forbidden "Event is locked!"
+      else do
+        processJsonBody Cokk2021ChangeEggnameRequest.decode $ \req -> do
+          users <- DB.everythingList cokk2021UserDB
+          let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ChangeEggnameRequest.toLogin req) users
+          maybe
+            (makeResponse Unauthorized "Bad Credentials")
+            (\user -> do
+              let eggs = map Cokk2021User.eggname users
+              let newEggname = Cokk2021ChangeEggnameRequest.newEggname req
+              if newEggname `elem` eggs
+              then makeResponse Forbidden "Egg already exists!"
+              else do
+                DB.modifyData cokk2021UserDB
+                  $ (, ()) . Utils.mapIf
+                    (\u -> Cokk2021User.username u == Cokk2021User.username user)
+                    (\u -> u { Cokk2021User.eggname = Cokk2021ChangeEggnameRequest.newEggname req })
+                makeResponse OK "Ok Boomer"
+            )
+            userOpt
 
     PostCokk2021BuyItem -> do
       Logger.info log $ "[API] buy request with body: " ++ content
-      processJsonBody Cokk2021ItemRequest.decode $ \req -> do
-        users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
-        maybe
-          (makeResponse Unauthorized "Bad Credentials")
-          (\user -> do
-            items <- DB.everythingList cokk2021ItemDB
-            let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
-            maybe
-              (makeResponse BadRequest "This item does not exist!")
-              (\item -> do
-                if Cokk2021Item.index item `elem` Cokk2021User.items user
-                then makeResponse BadRequest "Item is already owned!"
-                else if Cokk2021User.perfume user < Cokk2021Item.cost item
-                then makeResponse PaymentRequired "Not enough perfume"
-                else do
-                  DB.modifyData cokk2021UserDB
-                    $ (, ()) . Utils.mapIf
-                      (\u -> Cokk2021User.username u == Cokk2021User.username user)
-                      (\u -> u { Cokk2021User.perfume = Cokk2021User.perfume user - Cokk2021Item.cost item
-                               , Cokk2021User.items = Cokk2021Item.index item : Cokk2021User.items user
-                               , Cokk2021User.base = item
-                               }
-                      )
-                  makeResponse OK "Ok Boomer"
-              )
-              itemOpt
-          )
-          userOpt
+
+      if (settings & cokk2021) == Types.Blocked
+      then do
+        Logger.info log "Event is locked!"
+        makeResponse Forbidden "Event is locked!"
+      else do
+        processJsonBody Cokk2021ItemRequest.decode $ \req -> do
+          users <- DB.everythingList cokk2021UserDB
+          let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
+          maybe
+            (makeResponse Unauthorized "Bad Credentials")
+            (\user -> do
+              items <- DB.everythingList cokk2021ItemDB
+              let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
+              maybe
+                (makeResponse BadRequest "This item does not exist!")
+                (\item -> do
+                  if Cokk2021Item.index item `elem` Cokk2021User.items user
+                  then makeResponse BadRequest "Item is already owned!"
+                  else if Cokk2021User.perfume user < Cokk2021Item.cost item
+                  then makeResponse PaymentRequired "Not enough perfume"
+                  else do
+                    DB.modifyData cokk2021UserDB
+                      $ (, ()) . Utils.mapIf
+                        (\u -> Cokk2021User.username u == Cokk2021User.username user)
+                        (\u -> u { Cokk2021User.perfume = Cokk2021User.perfume user - Cokk2021Item.cost item
+                                , Cokk2021User.items = Cokk2021Item.index item : Cokk2021User.items user
+                                , Cokk2021User.base = item
+                                }
+                        )
+                    makeResponse OK "Ok Boomer"
+                )
+                itemOpt
+            )
+            userOpt
 
     PostCokk2021EquipItem -> do
       Logger.info log $ "[API] requested equip item endpoint with content: " ++ content
-      processJsonBody Cokk2021ItemRequest.decode $ \req -> do
-        users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
-        maybe
-          (makeResponse Unauthorized "Bad Credentials")
-          (\user -> do
-            items <- DB.everythingList cokk2021ItemDB
-            let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
-            maybe
-              (makeResponse BadRequest "This item does not exist!")
-              (\item -> do
-                if Cokk2021Item.index item == Cokk2021Item.index (Cokk2021User.base user)
-                then makeResponse OK "The item is already equiped, but Ok."
-                else do
-                  DB.modifyData cokk2021UserDB
-                    $ (, ()) . Utils.mapIf
-                      (\u -> Cokk2021User.username u == Cokk2021User.username user)
-                      (\u -> u { Cokk2021User.base = item })
-                  makeResponse OK "Ok Boomer"
-              )
-              itemOpt
-          )
-          userOpt
+
+      if (settings & cokk2021) == Types.Blocked
+      then do
+        Logger.info log "Event is locked!"
+        makeResponse Forbidden "Event is locked!"
+      else do
+        processJsonBody Cokk2021ItemRequest.decode $ \req -> do
+          users <- DB.everythingList cokk2021UserDB
+          let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
+          maybe
+            (makeResponse Unauthorized "Bad Credentials")
+            (\user -> do
+              items <- DB.everythingList cokk2021ItemDB
+              let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
+              maybe
+                (makeResponse BadRequest "This item does not exist!")
+                (\item -> do
+                  if Cokk2021Item.index item == Cokk2021Item.index (Cokk2021User.base user)
+                  then makeResponse OK "The item is already equiped, but Ok."
+                  else do
+                    DB.modifyData cokk2021UserDB
+                      $ (, ()) . Utils.mapIf
+                        (\u -> Cokk2021User.username u == Cokk2021User.username user)
+                        (\u -> u { Cokk2021User.base = item })
+                    makeResponse OK "Ok Boomer"
+                )
+                itemOpt
+            )
+            userOpt
 
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr
