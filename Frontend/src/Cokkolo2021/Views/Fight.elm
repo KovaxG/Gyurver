@@ -63,7 +63,8 @@ updateState fl s = case fl of
 
 hpBar : Fight.HP -> Fight.HP -> Html Message
 hpBar hp maxHP =
-  let p = 100 * toFloat hp / toFloat maxHP
+  let pp = 100 * toFloat hp / toFloat maxHP
+      p = if pp <= 0 then 0 else pp
   in Progress.progressMulti [[Progress.value p, Progress.success], [Progress.value (100 - p), Progress.danger]]
 
 view : ViewState -> Html Message

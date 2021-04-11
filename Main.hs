@@ -185,27 +185,26 @@ process tojasDB
       Logger.info log "[API] Requested user participation list"
       processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (Cokk2021Login.matchesLogin login) users
-        maybe
-          (makeResponse Unauthorized "Bad Credentials")
-          (\user -> do
-            waterLogs <- DB.everythingList cokk2021WaterDB
-            now <- DateTime.getCurrentDateTime
-            let relevantLines = filter (\w -> Cokk2021WaterLog.wlSource w == Cokk2021User.username user) waterLogs
-            let nusers =
-                  map (\u ->
-                    ( maybe True (flip Cokk2021WaterRequest.isWaterable now . Cokk2021WaterLog.wlDateTime)
-                        $ Utils.safeLast
-                        $ List.sortOn Cokk2021WaterLog.wlDateTime
-                        $ filter (\w -> Cokk2021WaterLog.wlTarget w == Cokk2021User.username u) relevantLines
-                    , u
-                    )
-                  ) users
+        users & List.find (Cokk2021Login.matchesLogin login)
+              & maybe
+                  (makeResponse Unauthorized "Bad Credentials")
+                  (\user -> do
+                    waterLogs <- DB.everythingList cokk2021WaterDB
+                    now <- DateTime.getCurrentDateTime
+                    let relevantLines = filter (\w -> Cokk2021WaterLog.wlSource w == Cokk2021User.username user) waterLogs
+                    let nusers =
+                          map (\u ->
+                            ( maybe True (flip Cokk2021WaterRequest.isWaterable now . Cokk2021WaterLog.wlDateTime)
+                                $ Utils.safeLast
+                                $ List.sortOn Cokk2021WaterLog.wlDateTime
+                                $ filter (\w -> Cokk2021WaterLog.wlTarget w == Cokk2021User.username u) relevantLines
+                            , u
+                            )
+                          ) users
 
-            addHeaders [("Content-Type", "application/json")]
-              <$> makeResponse OK (map (uncurry $ Cokk2021User.toListItemJson waterLogs) nusers)
-          )
-          userOpt
+                    addHeaders [("Content-Type", "application/json")]
+                      <$> makeResponse OK (map (uncurry $ Cokk2021User.toListItemJson waterLogs) nusers)
+                  )
 
     PostCokk2021Fight -> do
       Logger.info log $ "[API] Fight with body: " ++ content
@@ -269,19 +268,18 @@ process tojasDB
       Logger.info log $ "[API] Login attempt with body " ++ content
       processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (Cokk2021Login.matchesLogin login) users
-        maybe
-          (do
-            Logger.warn log $ "User \"" ++ Cokk2021Login.user login ++ "\" not found!"
-            makeResponse Unauthorized "Bad Credentials"
-          )
-          (\user -> do
-            waterLogs <- DB.everythingList cokk2021WaterDB
-            let dashboardData = Cokk2021DashboardData.make user waterLogs
-            Logger.info log $ "Login success for \"" ++ Cokk2021Login.user login ++ "\"."
-            makeResponse OK $ Cokk2021DashboardData.encode dashboardData
-          )
-          userOpt
+        users & List.find (Cokk2021Login.matchesLogin login)
+              & maybe
+                  (do
+                    Logger.warn log $ "User \"" ++ Cokk2021Login.user login ++ "\" not found!"
+                    makeResponse Unauthorized "Bad Credentials"
+                  )
+                  (\user -> do
+                    waterLogs <- DB.everythingList cokk2021WaterDB
+                    let dashboardData = Cokk2021DashboardData.make user waterLogs
+                    Logger.info log $ "Login success for \"" ++ Cokk2021Login.user login ++ "\"."
+                    makeResponse OK $ Cokk2021DashboardData.encode dashboardData
+                  )
 
     PostCokk2021Register -> do
       Logger.info log $ "[API] Registration attempt with body: " ++ content
@@ -347,10 +345,7 @@ process tojasDB
                                   users
                           in (newData, Nothing)
 
-              maybe (do
-                      DB.insert cokk2021WaterDB wLog
-                      makeResponse OK "Success"
-                    )
+              maybe (DB.insert cokk2021WaterDB wLog >> makeResponse OK "Success")
                     (makeResponse BadRequest)
                     result
 
@@ -358,15 +353,15 @@ process tojasDB
       Logger.info log $ "[API] refreshing dashboard with body: " ++ content
       processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
-        let userOpt = List.find (Cokk2021Login.matchesLogin login) users
-        maybe
-          (makeResponse Unauthorized "Bad Credentials")
-          (\user -> do
-            waterLogs <- DB.everythingList cokk2021WaterDB
-            let dashboardData = Cokk2021DashboardData.make user waterLogs
-            makeResponse OK $ Cokk2021DashboardData.encode dashboardData
-          )
-          userOpt
+        users
+          & List.find (Cokk2021Login.matchesLogin login)
+          & maybe
+              (makeResponse Unauthorized "Bad Credentials")
+              (\user -> do
+                waterLogs <- DB.everythingList cokk2021WaterDB
+                let dashboardData = Cokk2021DashboardData.make user waterLogs
+                makeResponse OK $ Cokk2021DashboardData.encode dashboardData
+              )
 
     PostCokk2021IncSkill -> do
       Logger.info log $ "[API] increase skill with body: " ++ content
