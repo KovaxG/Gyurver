@@ -7,6 +7,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
 import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Table as Table
+import Bootstrap.Alert as Alert
 import List.Extra as List
 
 import Json.Decode as Decode exposing (Decoder)
@@ -86,6 +87,8 @@ view : ViewState -> Html Message
 view state =
   [ [ h1 [] [text "Résztvevők"]
       , description
+      , br [] []
+      , Alert.simpleInfo [] [text "Új! Most lehet barátságos meccseket játszani a többi tojás ellen."]
       , Button.button
       [ Button.outlineSecondary
       , Button.attrs [ Spacing.m2 ]

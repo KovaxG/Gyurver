@@ -158,6 +158,7 @@ view state =
             [ text "Mégse" ]
           ]
         |> Modal.view state.suggestionBoxVisibility
+      , Alert.simpleInfo [] [text "Véget ért a regisztrálás. Egyelőre még lehet fejleszteni a tojást és öntözgetni Szerdáig (Április 14). Ez után minden le lesz fagyasztva és csak várni lehet amig bejelentem a csoportokat. A hét végére majd a meccs eredményeket is meg a bajnokot is meg lehet nézni."]
       , Alert.simpleDanger [] [text "Április 11-én egy hiba csúszott a rendszerbe és emiatt mindenkinek eltüntek a fejlesztései és a díszei. Szerencsére épp annyi nem veszlődött el, mert még megvan hogy ki kit öntözött, ezért mindenki visszakaja az összes kölnit amit a héten összegyüjtött és ezeket újra be lehet fektetni amibe csak akarja."]
       ] |> Grid.col []
     , [  br [] []

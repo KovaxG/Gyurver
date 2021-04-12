@@ -135,6 +135,7 @@ update msg model = case (msg, model) of
       , expect = Http.expectWhatever <| Util.processMessage (\_ -> DashboardMsg <| Dashboard.ChangeEggnameSuccess en) (DashboardMsg << Dashboard.ChangeEggnameFailure)
       }
     )
+  (DashboardMsg (Dashboard.FetchSuccess dashboardState), s) -> (s, Cmd.none)
   (SkillsMsg Skills.SwitchToDashboard, SkillsView s) ->
     ( DashboardView <| Dashboard.populateTemporary s.user
     , Http.post
