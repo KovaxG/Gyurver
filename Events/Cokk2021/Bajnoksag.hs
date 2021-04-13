@@ -97,7 +97,9 @@ fightLoop (State (ta, hpa) (tb, hpb) log)
     let hpA = hpa - dmgA
 
     regeneracioCheckB <- probability RegeneracioCheck (Skills.regeneracio (skills tb) * 5) (Skills.szerencse (skills tb))
-    let hpB = hpb - dmgB + if Maybe.isJust regeneracioCheckB then 5 else 0
+    let preRegenHP = hpb - dmgB
+    let maxHPB = snd $ initialHealth tb
+    let hpB = min maxHPB (preRegenHP + if Maybe.isJust regeneracioCheckB then 3 else 0)
 
     humorCheckB <- probability HumorCheck (Skills.humorerzek (skills tb)) (Skills.szerencse (skills tb))
 
