@@ -140,7 +140,7 @@ view model =
     Test msg -> { title = "Test", body = [text msg] }
     Invalid md ms ->
       { title = "Error"
-      , body = [text <| Debug.toString md ++ " - " ++ Debug.toString ms]
+      , body = [text "mismatch"] -- <| Debug.toString md ++ " - " ++ Debug.toString ms]
       }
 
 navbar : Model -> Html Msg

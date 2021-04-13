@@ -22,6 +22,6 @@ decode =
 runFight :: User -> User -> IO [Json]
 runFight a b =
   fmap Bajnoksag.encodeLog . Bajnoksag.logs
-    <$> Bajnoksag.fight (Bajnoksag.mkTojas (User.username a) (User.skills a)
-                        , Bajnoksag.mkTojas (User.username b) (User.skills b)
+    <$> Bajnoksag.fight (Bajnoksag.mkTojas (User.eggname a) (User.skills a)
+                        , Bajnoksag.mkTojas (User.eggname b) (User.skills b)
                         )
