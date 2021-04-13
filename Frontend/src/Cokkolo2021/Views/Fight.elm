@@ -54,10 +54,10 @@ cycle state =
 updateState : Fight.FightLog -> ViewState -> ViewState
 updateState fl s = case fl of
   Fight.StartFight n1 hp1 _ hp2 ->
-    let (playerHP, enemyHP) = if n1 == s.playerEgg.username then (hp1, hp2) else (hp2, hp1)
+    let (playerHP, enemyHP) = if n1 == s.playerEgg.eggName then (hp1, hp2) else (hp2, hp1)
     in { s |  playerMaxHP = playerHP, playerHP = playerHP, enemyMaxHP = enemyHP, enemyHP = enemyHP }
   Fight.Damage n1 _ hp1 _ _ _ hp2 _ ->
-    let (playerHP, enemyHP) = if n1 == s.playerEgg.username then (hp1, hp2) else (hp2, hp1)
+    let (playerHP, enemyHP) = if n1 == s.playerEgg.eggName then (hp1, hp2) else (hp2, hp1)
     in { s |  playerHP = playerHP, enemyHP = enemyHP }
   _ -> s
 
@@ -75,7 +75,7 @@ view state =
     , Button.onClick SwitchToContestantsView
     ]
     [ text "Vissza" ]
-  , [ [ h2 [] [text state.playerEgg.username]
+  , [ [ h2 [] [text state.playerEgg.eggName]
       , displayImage state.playerEgg.base.image 0 0
       , br [] []
       , hpBar state.playerHP state.playerMaxHP
@@ -93,7 +93,7 @@ view state =
             ]
             [ text "Tovább" ]
       ] |> Grid.col []
-    , [ h2 [] [text state.enemyEgg.username]
+    , [ h2 [] [text state.enemyEgg.eggname]
       , displayImage state.enemyEgg.base.image 0 0
       , br [] []
       , hpBar state.enemyHP state.enemyMaxHP

@@ -21,7 +21,7 @@ defaultSettings = Settings
   , port = Port 8080
   , password = "nincs jelszo"
   , mode = Dev
-  , cokk2021 = Blocked
+  , cokk2021 = Locked
   }
 
 parse :: String -> Either String Settings

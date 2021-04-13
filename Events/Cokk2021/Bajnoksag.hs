@@ -109,8 +109,8 @@ fightLoop (State (ta, hpa) (tb, hpb) log)
 
     let newLog =
           if Maybe.isJust bajCheckB
-          then Damage (nev ta, 0, hpa, Maybe.catMaybes [bajCheckB])
-                      (nev tb, 0, hpb, [])
+          then Damage (nev ta, 0, hpa, [])
+                      (nev tb, 0, hpb, Maybe.catMaybes [bajCheckB])
           else Damage (nev ta, dmgA, hpAF, Maybe.catMaybes [zsirossagCheckA, muveszlelekCheckA, tuzokadasCheckA])
                       (nev tb, dmgB, hpBF, Maybe.catMaybes [zsirossagCheckB, regeneracioCheckB, humorCheckB, furfangossagB, settenkedesCheckA])
 
