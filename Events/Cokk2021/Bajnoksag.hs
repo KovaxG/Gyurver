@@ -114,7 +114,7 @@ fightLoop (State (ta, hpa) (tb, hpb) log)
           else Damage (nev ta, dmgA, hpAF, Maybe.catMaybes [zsirossagCheckA, muveszlelekCheckA, tuzokadasCheckA])
                       (nev tb, dmgB, hpBF, Maybe.catMaybes [zsirossagCheckB, regeneracioCheckB, humorCheckB, furfangossagB, settenkedesCheckA])
 
-    return $ Right $ State (tb, hpB) (ta, hpA) (log +: newLog)
+    return $ Right $ State (tb, hpBF) (ta, hpAF) (log +: newLog)
 
 gameOver :: Tojas -> Tojas -> [Log] -> IO (Either Result State)
 gameOver winner looser log = do
