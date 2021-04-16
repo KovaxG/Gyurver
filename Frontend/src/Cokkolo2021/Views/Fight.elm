@@ -82,7 +82,6 @@ view state =
       , text <| "❤️ " ++ String.fromInt state.playerHP ++ "/" ++ String.fromInt state.playerMaxHP
       ] |> Grid.col [Col.xs3]
     , [ h2 [] [text "A harc"]
-      , List.map (\l -> div [] [text <| Fight.toString l]) state.displayedLog |> div []
       , if Nothing == List.head state.fightLog
         then
           text ""
@@ -92,6 +91,7 @@ view state =
             , Button.onClick NextMessage
             ]
             [ text "Tovább" ]
+      , List.map (\l -> div [] [text <| Fight.toString l, br [] [], br [] []]) state.displayedLog |> List.reverse |> div []
       ] |> Grid.col []
     , [ h2 [] [text state.enemyEgg.eggname]
       , displayImage state.enemyEgg.base.image 0 0

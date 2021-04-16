@@ -69,7 +69,13 @@ view state =
       , Table.table
         { options = [ Table.striped ]
         , thead =
-            Table.simpleThead
+            Table.simpleThead <|
+              if Settings.cokk2021 == EventState.Blocked
+              then
+                [ Table.th [] [text "Elnevezés"]
+                , Table.th [] [text "Pontok"]
+                ]
+              else
                 [ Table.th [] [text "Elnevezés"]
                 , Table.th [] [text "Pontok"]
                 , Table.th [] [text "Ár"]

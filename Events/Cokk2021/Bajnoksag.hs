@@ -91,7 +91,7 @@ fightLoop (State (ta, hpa) (tb, hpb) log)
     tuzokadasCheckA <- probability TuzokadasCheck (Skills.tuzokadas (skills ta) * 2) (Skills.szerencse (skills ta))
     zsirossagCheckB <- probability ZsirossagCheck ((Skills.zsirossag (skills tb) - Skills.tisztasagmania (skills tb) - Skills.precizitas (skills ta)) * 5) (Skills.szerencse (skills tb))
     let damage = (if Maybe.isJust settenkedesCheckA then 2 else 1) * (if Maybe.isJust muveszlelekCheckA then 0 else 3)
-    let tuzDamage = if Maybe.isJust tuzokadasCheckA then 50 else 0
+    let tuzDamage = if Maybe.isJust tuzokadasCheckA then 30 else 0
     let dmgB = if Maybe.isJust zsirossagCheckB then 0 else damage + Skills.erosseg (skills ta) + tuzDamage
 
     let hpA = hpa - dmgA
@@ -127,14 +127,14 @@ gameOver winner looser log = do
       meggyozoeroCheckLooser
     )
     (\restart -> do
-      (State (ta, hpa) (tb, hpb) log) <- prefight (winner, looser)
+      (State (ta, hpa) (tb, hpb) nlog) <- prefight (winner, looser)
       return $ Right $ State (ta, hpa) (tb, hpb) (log +: Effect restart)
     ) diplomaciaCheckLooser
 
 probability :: a -> Int -> Int -> IO (Maybe a)
 probability a p pp = do
   n <- Random.randomRIO (0, 100)
-  return $ if p + (pp * 5) > n then Just a else Nothing
+  return $ if p + (pp * 2) > n then Just a else Nothing
 
 encodeLog :: Log -> Json
 encodeLog log = case log of

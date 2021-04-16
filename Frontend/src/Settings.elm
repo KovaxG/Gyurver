@@ -11,7 +11,7 @@ debug : Bool
 debug = False
 
 cokk2021 : EventState
-cokk2021 = Locked
+cokk2021 = Blocked
 
 path : String
 path =

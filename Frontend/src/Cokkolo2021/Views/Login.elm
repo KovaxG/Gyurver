@@ -85,8 +85,8 @@ description =
         , text " nevezik, de egy játék, ahol két résztvevő egy-egy húsvéti tojást kiválaszt és a két tojást összeütik. Akinek eltörik a tojása, az veszít. Mivel mostanság nem nagyon mehetünk ki, gondoltam hogy az online világba viszem ezt a játékot (másodjára)."
         , br [] []
         , br [] []
-        , Alert.simpleDanger [] [text "Április 11-én egy hiba csúszott a rendszerbe és emiatt mindenkinek eltüntek a fejlesztései és a díszei. Szerencsére épp annyi nem veszlődött el, mert még megvan hogy ki kit öntözött, ezért mindenki visszakapja az összes kölnit amit a héten összegyüjtött és ezeket újra be lehet fektetni amibe csak akarja."]
         , Alert.simpleDanger [] [text "Ha a regisztrálássan vannak gondok engem el lehet érni facebookon vagy emailen."]
+        , Alert.simpleInfo  [] [text "Az öntözésnek vége. Jövő héten valamikor meg fog itt jelenni a végeredményes oldal, sok sikert mindenkinek!"]
         ] |> div []
       ] |> Grid.col []
     ] |> Grid.row []
