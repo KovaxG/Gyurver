@@ -158,7 +158,11 @@ process tojasDB
              )
 
     GetCokk2020ResultsPage -> do
-      Logger.info log "Requested results."
+      Logger.info log "Requested results for 2020 Cokk."
+      sendFile mainPath
+
+    GetCokk2021ResultsPage -> do
+      Logger.info log "Requested results for 2021 Cokk."
       sendFile mainPath
 
     GetCokk2020Page -> do

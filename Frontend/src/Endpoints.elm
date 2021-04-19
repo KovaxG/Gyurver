@@ -29,6 +29,7 @@ videoJson nr = "/api/video/" ++ String.fromInt nr
 
 cokk2020Page = "/cokk2020"
 cokk2021Page = "/cokk2021"
+cokk2021ResultsPageEN = "/cokk2021/results"
 
 cokk2020ResultsPageEN = "/cokk2020/results"
 cokk2020ResultsPageHU = "/cokk2020/eredmenyek"

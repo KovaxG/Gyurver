@@ -39,6 +39,7 @@ data Endpoint
   | GetVideosJSON
   | GetVideoJSON Int
   | GetCokk2020ResultsPage
+  | GetCokk2021ResultsPage
   | GetCokk2020Page
   | GetCokk2021Page
   | GetVideosAddPage
@@ -100,6 +101,7 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "GET /cokk2020/results" $> GetCokk2020ResultsPage
         , Parsec.string "GET /cokk2020/eredmenyek" $> GetCokk2020ResultsPage
         , Parsec.string "GET /cokk2020/rezultate" $> GetCokk2020ResultsPage
+        , Parsec.string "GET /cokk2021/results" $> GetCokk2021ResultsPage
 
         , Parsec.string "GET /api/cokk2020" $> GetCokk2020JSON
 

@@ -57,6 +57,8 @@ tests =
   , test "2020 cokk results page HU" $ parseEndpoint "GET /cokk2020/eredmenyek" === GetCokk2020ResultsPage
   , test "2020 cokk results page RO" $ parseEndpoint "GET /cokk2020/rezultate" === GetCokk2020ResultsPage
 
+  , test "2021 cokk results page EN" $ parseEndpoint "GET /cokk2021/results" === GetCokk2021ResultsPage
+
   , test "2020 cokk API" $ parseEndpoint "GET /api/cokk2020" === GetCokk2020JSON
 
   , test "2021 cokk login API" $ parseEndpoint "POST /api/cokk2021/login" === PostCokk2021Login

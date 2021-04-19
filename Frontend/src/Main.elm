@@ -18,6 +18,7 @@ import Landing
 import Cokkolo2020.Landing
 import Cokkolo2020.Results
 import Cokkolo2021.Landing
+import Cokkolo2021.Results
 import Articles
 import Video.VideoAdd as VideoAdd
 import Video.Vids as VideoList
@@ -46,6 +47,7 @@ type Content
   | CokkoloLanding2020 Cokkolo2020.Landing.Model
   | CokkoloResults2020 Cokkolo2020.Results.Model
   | CokkoloLanding2021 Cokkolo2021.Landing.Model
+  | CokkoloResults2021 Cokkolo2021.Results.Model
   | Articles Articles.Model
   | VideoAdd VideoAdd.Model
   | VideoList VideoList.Model
@@ -61,6 +63,7 @@ type Msg
   | CokkoloLanding2020Msg Cokkolo2020.Landing.Msg
   | CokkoloResults2020Msg Cokkolo2020.Results.Msg
   | CokkoloLanding2021Msg Cokkolo2021.Landing.Msg
+  | CokkoloResults2021Msg Cokkolo2021.Results.Msg
   | ArticlesMsg Articles.Msg
   | VideoAddMsg VideoAdd.Msg
   | VideoListMsg VideoList.Msg
@@ -81,6 +84,7 @@ update msg model =
     (CokkoloLanding2020Msg clm, CokkoloLanding2020 cl) -> Cokkolo2020.Landing.update clm cl |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model
     (CokkoloResults2020Msg crm, CokkoloResults2020 cr) -> Cokkolo2020.Results.update crm cr |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model
     (CokkoloLanding2021Msg clm, CokkoloLanding2021 cl) -> Cokkolo2021.Landing.update clm cl |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model
+    (CokkoloResults2021Msg crm, CokkoloResults2021 cr) -> Cokkolo2021.Results.update crm cr |> liftModelCmd CokkoloResults2021 CokkoloResults2021Msg model
     (ArticlesMsg amsg, Articles a) -> Articles.update amsg a |> liftModelCmd Articles ArticlesMsg model
     (VideoAddMsg vamsg, VideoAdd va) -> VideoAdd.update vamsg va |> liftModelCmd VideoAdd VideoAddMsg model
     (VideoListMsg vlmsg, VideoList vl) -> VideoList.update vlmsg vl |> liftModelCmd VideoList VideoListMsg model
@@ -103,10 +107,11 @@ validLinks : Model -> Dict String (Model, Cmd Msg)
 validLinks model = Dict.fromList
   [ (Endpoints.landingPage, Landing.init |> liftModelCmd Landing LandingMsg model)
   , (Endpoints.cokk2020Page, Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model)
-  , (Endpoints.cokk2020ResultsPageEN, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg  model)
-  , (Endpoints.cokk2020ResultsPageHU, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg  model)
-  , (Endpoints.cokk2020ResultsPageRO, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg  model)
+  , (Endpoints.cokk2020ResultsPageEN, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model)
+  , (Endpoints.cokk2020ResultsPageHU, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model)
+  , (Endpoints.cokk2020ResultsPageRO, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model)
   , (Endpoints.cokk2021Page, Cokkolo2021.Landing.init |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model)
+  , (Endpoints.cokk2021ResultsPageEN, Cokkolo2021.Results.init |> liftModelCmd CokkoloResults2021 CokkoloResults2021Msg model)
   , (Endpoints.articlesPageEN, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
   , (Endpoints.articlesPageHU, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
   , (Endpoints.articlesPageRO, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
@@ -133,6 +138,7 @@ view model =
     CokkoloLanding2020 cl -> Cokkolo2020.Landing.view cl |> liftDocument model CokkoloLanding2020Msg
     CokkoloResults2020 cr -> Cokkolo2020.Results.view cr |> liftDocument model CokkoloResults2020Msg
     CokkoloLanding2021 cl -> Cokkolo2021.Landing.view cl |> liftDocument model CokkoloLanding2021Msg
+    CokkoloResults2021 cr -> Cokkolo2021.Results.view cr |> liftDocument model CokkoloResults2021Msg
     Articles articles -> Articles.view articles |> liftDocument model ArticlesMsg
     VideoAdd videoAdd -> VideoAdd.view videoAdd |> liftDocument model VideoAddMsg
     VideoList videoList -> VideoList.view videoList |> liftDocument model VideoListMsg
@@ -140,7 +146,7 @@ view model =
     Test msg -> { title = "Test", body = [text msg] }
     Invalid md ms ->
       { title = "Error"
-      , body = [text "mismatch"] -- <| Debug.toString md ++ " - " ++ Debug.toString ms]
+      , body = [text "mismatch"]
       }
 
 navbar : Model -> Html Msg

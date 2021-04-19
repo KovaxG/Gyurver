@@ -6,6 +6,7 @@ import Types.EventState exposing (EventState(..))
 {- Elcsesztem:
   * 2021.03.18 - 0.6.0
   * 2021.04.05 - 0.6.4
+  * 2021.04.16 - 0.6.8
 -}
 debug : Bool
 debug = False
@@ -20,4 +21,4 @@ path =
   else "http://totallysafelink.xyz"
 
 version : String
-version = "0.6.7"
+version = "0.6.9"

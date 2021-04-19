@@ -49,8 +49,10 @@ defaultSettings = Settings
 - `/videos` Get a list of embedded videos
 - `/videos/new` Add new video page
 - `/cokk2020` Landing page of 2020 Cokkoles contest
-- `/cokk2021` Landing page of 2021 Cokkoles contest
 - `/cokk2020/results` The results of the 2020 Cokkoles contest
+- `/cokk2021` Landing page of 2021 Cokkoles contest
+- `/cokk2021/results` The results of the 2021 Cokkoles contest
+
 
 ### Resources
 - `/favicon.ico` Get the favicon
