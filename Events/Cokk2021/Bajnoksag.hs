@@ -83,38 +83,40 @@ fightLoop (State (ta, hpa) (tb, hpb) log)
 
     bajCheckB <- probability BajCheck (Skills.baj (skills tb) + Skills.izles (skills ta) - Skills.intelligencia (skills ta)) (Skills.szerencse (skills tb))
 
-    zsirossagCheckA <- probability ZsirossagCheck ((Skills.zsirossag (skills ta) - Skills.tisztasagmania (skills ta) - Skills.precizitas (skills tb)) * 5) (Skills.szerencse (skills ta))
-    let dmgA = if Maybe.isJust zsirossagCheckA then 0 else Skills.hegyesseg (skills tb)
+    case bajCheckB of
+      Just bc -> do
+        let newLog = Damage (nev ta, 0, hpa, []) (nev tb, 0, hpb, Maybe.catMaybes [bajCheckB])
+        return $ Right $ State (tb, hpb) (ta, hpa) (log +: newLog)
 
-    settenkedesCheckA <- probability SettenkedesCheck (Skills.settenkedes (skills ta) * 5) (Skills.szerencse (skills ta))
-    muveszlelekCheckA <- probability MuveszlelekCheck (Skills.muveszlelek (skills ta) * 2) (- Skills.szerencse (skills ta))
-    tuzokadasCheckA <- probability TuzokadasCheck (Skills.tuzokadas (skills ta) * 2) (Skills.szerencse (skills ta))
-    zsirossagCheckB <- probability ZsirossagCheck ((Skills.zsirossag (skills tb) - Skills.tisztasagmania (skills tb) - Skills.precizitas (skills ta)) * 5) (Skills.szerencse (skills tb))
-    let damage = (if Maybe.isJust settenkedesCheckA then 2 else 1) * (if Maybe.isJust muveszlelekCheckA then 0 else 3)
-    let tuzDamage = if Maybe.isJust tuzokadasCheckA then 30 else 0
-    let dmgB = if Maybe.isJust zsirossagCheckB then 0 else damage + Skills.erosseg (skills ta) + tuzDamage
+      Nothing -> do
+        zsirossagCheckA <- probability ZsirossagCheck ((Skills.zsirossag (skills ta) - Skills.tisztasagmania (skills ta) - Skills.precizitas (skills tb)) * 5) (Skills.szerencse (skills ta))
+        let dmgA = if Maybe.isJust zsirossagCheckA then 0 else Skills.hegyesseg (skills tb)
 
-    let hpA = hpa - dmgA
+        settenkedesCheckA <- probability SettenkedesCheck (Skills.settenkedes (skills ta) * 5) (Skills.szerencse (skills ta))
+        muveszlelekCheckA <- probability MuveszlelekCheck (Skills.muveszlelek (skills ta) * 2) (- Skills.szerencse (skills ta))
+        tuzokadasCheckA <- probability TuzokadasCheck (Skills.tuzokadas (skills ta) * 2) (Skills.szerencse (skills ta))
+        zsirossagCheckB <- probability ZsirossagCheck ((Skills.zsirossag (skills tb) - Skills.tisztasagmania (skills tb) - Skills.precizitas (skills ta)) * 5) (Skills.szerencse (skills tb))
+        let damage = (if Maybe.isJust settenkedesCheckA then 2 else 1) * (if Maybe.isJust muveszlelekCheckA then 0 else 3)
+        let tuzDamage = if Maybe.isJust tuzokadasCheckA then 30 else 0
+        let dmgB = if Maybe.isJust zsirossagCheckB then 0 else damage + Skills.erosseg (skills ta) + tuzDamage
 
-    regeneracioCheckB <- probability RegeneracioCheck (Skills.regeneracio (skills tb) * 5) (Skills.szerencse (skills tb))
-    let preRegenHP = hpb - dmgB
-    let maxHPB = snd $ initialHealth tb
-    let hpB = min maxHPB (preRegenHP + if Maybe.isJust regeneracioCheckB then 3 else 0)
+        let hpA = hpa - dmgA
 
-    humorCheckB <- probability HumorCheck (Skills.humorerzek (skills tb)) (Skills.szerencse (skills tb))
+        regeneracioCheckB <- probability RegeneracioCheck (Skills.regeneracio (skills tb) * 5) (Skills.szerencse (skills tb))
+        let preRegenHP = hpb - dmgB
+        let maxHPB = snd $ initialHealth tb
+        let hpB = min maxHPB (preRegenHP + if Maybe.isJust regeneracioCheckB then 3 else 0)
 
-    furfangossagB <- probability FurfangossagCheck (Skills.furfangossag (skills tb) * 5) (Skills.szerencse (skills tb))
+        humorCheckB <- probability HumorCheck (Skills.humorerzek (skills tb)) (Skills.szerencse (skills tb))
 
-    let (hpAF, hpBF) = if Maybe.isJust furfangossagB && hpB > hpA then (hpB, hpA) else (hpA, hpB)
+        furfangossagB <- probability FurfangossagCheck (Skills.furfangossag (skills tb) * 5) (Skills.szerencse (skills tb))
 
-    let newLog =
-          if Maybe.isJust bajCheckB
-          then Damage (nev ta, 0, hpa, [])
-                      (nev tb, 0, hpb, Maybe.catMaybes [bajCheckB])
-          else Damage (nev ta, dmgA, hpAF, Maybe.catMaybes [zsirossagCheckA, muveszlelekCheckA, tuzokadasCheckA])
-                      (nev tb, dmgB, hpBF, Maybe.catMaybes [zsirossagCheckB, regeneracioCheckB, humorCheckB, furfangossagB, settenkedesCheckA])
+        let (hpAF, hpBF, furfangossagB2) = if Maybe.isJust furfangossagB && hpB < hpA then (hpB, hpA, furfangossagB) else (hpA, hpB, Nothing)
 
-    return $ Right $ State (tb, hpBF) (ta, hpAF) (log +: newLog)
+        let newLog =
+              Damage (nev ta, dmgA, hpAF, Maybe.catMaybes [zsirossagCheckA, muveszlelekCheckA, tuzokadasCheckA])
+                     (nev tb, dmgB, hpBF, Maybe.catMaybes [zsirossagCheckB, regeneracioCheckB, humorCheckB, furfangossagB2, settenkedesCheckA])
+        return $ Right $ State (tb, hpBF) (ta, hpAF) (log +: newLog)
 
 gameOver :: Tojas -> Tojas -> [Log] -> IO (Either Result State)
 gameOver winner looser log = do

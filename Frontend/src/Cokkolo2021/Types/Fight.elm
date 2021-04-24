@@ -20,9 +20,26 @@ toString : FightLog -> String
 toString fl = case fl of
   StartFight _ _ _ _ -> "Kezdődik a harc!"
   Damage n1 dmg1 hp1 eff1 n2 dmg2 hp2 eff2 ->
-    String.join "\n" (List.map (describeEffect n1 n2) eff1 ++ List.map (describeEffect n2 n1) eff2) ++ " " ++
-    n1 ++ " megcökkenti " ++ n2 ++ "-t, es sebezi " ++ String.fromInt dmg2 ++ " ponttal."
-    ++ if dmg1 > 0 then " De " ++ n2 ++ " nem hagyja magát és vissza cökkenti " ++ n1 ++ "-t, " ++ String.fromInt dmg1 ++ " ponttal sebezve." else ""
+    let
+      tamadoEffektek = List.map (describeEffect n1 n2) eff1
+      vedekezoEffektetkFurfangossakNelkul =
+        eff2
+        |> List.filter (\e -> e /= "FurfangossagCheck")
+        |> List.map (describeEffect n2 n1)
+
+      vedekezoFurfangossagCheck =
+        eff2
+        |> List.filter (\e -> e == "FurfangossagCheck")
+        |> List.map (describeEffect n2 n1)
+        |> String.concat
+    in
+      String.join
+        "\n"
+        (tamadoEffektek ++ vedekezoEffektetkFurfangossakNelkul)
+        ++ " " ++ n1 ++ " megcökkenti " ++ n2 ++ "-t, es sebezi "
+        ++ String.fromInt dmg2 ++ " ponttal. "
+        ++ if dmg1 > 0 then " De " ++ n2 ++ " nem hagyja magát és vissza cökkenti " ++ n1 ++ "-t, " ++ String.fromInt dmg1 ++ " ponttal sebezve. " else ""
+        ++ vedekezoFurfangossagCheck
   Win n -> n ++ " nyert!"
   Effect eff -> eff ++ " történt!"
 
