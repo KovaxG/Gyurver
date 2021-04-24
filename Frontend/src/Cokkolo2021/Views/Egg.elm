@@ -61,29 +61,32 @@ view state =
                 , Table.th [] [text "Szint"]
                 ]
         , tbody =
-          [ Table.tr [] [Table.td [] [text "keménység"], Table.td [] [text <| String.fromInt state.contestant.skills.kemenyseg ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "erősség"], Table.td [] [text <| String.fromInt state.contestant.skills.erosseg ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "settenkedés"], Table.td [] [text <| String.fromInt state.contestant.skills.settenkedes ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "szivarozás"], Table.td [] [text <| String.fromInt state.contestant.skills.szivarozas ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "furfangosság"], Table.td [] [text <| String.fromInt state.contestant.skills.furfangossag ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "tűzokádás"], Table.td [] [text <| String.fromInt state.contestant.skills.tuzokadas ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "zsírosság"], Table.td [] [text <| String.fromInt state.contestant.skills.zsirossag ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "intelligencia"], Table.td [] [text <| String.fromInt state.contestant.skills.intelligencia ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "diplomácia"], Table.td [] [text <| String.fromInt state.contestant.skills.diplomacia ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "hegyesség"], Table.td [] [text <| String.fromInt state.contestant.skills.hegyesseg ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "szerencse"], Table.td [] [text <| String.fromInt state.contestant.skills.szerencse ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "bájosság"], Table.td [] [text <| String.fromInt state.contestant.skills.baj ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "meggyőzőerő"], Table.td [] [text <| String.fromInt state.contestant.skills.meggyozoero ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "precízitás"], Table.td [] [text <| String.fromInt state.contestant.skills.precizitas ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "nyelvtudás"], Table.td [] [text <| String.fromInt state.contestant.skills.nyelvtudas ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "ízlés"], Table.td [] [text <| String.fromInt state.contestant.skills.izles ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "vérnyomás"], Table.td [] [text <| String.fromInt state.contestant.skills.vernyomas ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "humorérzék"], Table.td [] [text <| String.fromInt state.contestant.skills.humorerzek ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "regeneráció"], Table.td [] [text <| String.fromInt state.contestant.skills.regeneracio ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "művészlélek"], Table.td [] [text <| String.fromInt state.contestant.skills.muveszlelek ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "tisztaságmánia"], Table.td [] [text <| String.fromInt state.contestant.skills.tisztasagmania ++ "/10"]]
-          , Table.tr [] [Table.td [] [text "edzettség"], Table.td [] [text <| String.fromInt state.contestant.skills.edzettseg ++ "/10"]]
-          ] |> Table.tbody []
+          [ ("keménység", state.contestant.skills.kemenyseg)
+          , ("erősség", state.contestant.skills.erosseg)
+          , ("settenkedés", state.contestant.skills.settenkedes)
+          , ("szivarozás", state.contestant.skills.szivarozas)
+          , ("furfangosság", state.contestant.skills.furfangossag)
+          , ("tűzokádás", state.contestant.skills.tuzokadas)
+          , ("zsírosság", state.contestant.skills.zsirossag)
+          , ("intelligencia", state.contestant.skills.intelligencia)
+          , ("diplomácia", state.contestant.skills.diplomacia)
+          , ("hegyesség", state.contestant.skills.hegyesseg)
+          , ("szerencse", state.contestant.skills.szerencse)
+          , ("bájosság", state.contestant.skills.baj)
+          , ("meggyőzőerő", state.contestant.skills.meggyozoero)
+          , ("precízitás", state.contestant.skills.precizitas)
+          , ("nyelvtudás", state.contestant.skills.nyelvtudas)
+          , ("ízlés", state.contestant.skills.izles)
+          , ("vérnyomás", state.contestant.skills.vernyomas)
+          , ("humorérzék", state.contestant.skills.humorerzek)
+          , ("regeneráció", state.contestant.skills.regeneracio)
+          , ("művészlélek", state.contestant.skills.muveszlelek)
+          , ("tisztaságmánia", state.contestant.skills.tisztasagmania)
+          , ("edzettség", state.contestant.skills.edzettseg)
+          ] |> List.filter (\(_, v) -> v > 0) |> List.map tableRow |> Table.tbody []
         }
     ] |> Grid.col []
   ] |> Grid.row []
+
+tableRow : (String, Int) -> Table.Row Message
+tableRow (field, value) = Table.tr [] [Table.td [] [text field], Table.td [] [text <| String.fromInt value ++ "/10"]]

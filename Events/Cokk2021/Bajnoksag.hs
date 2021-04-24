@@ -105,7 +105,7 @@ fightLoop (State (ta, hpa) (tb, hpb) log)
 
     furfangossagB <- probability FurfangossagCheck (Skills.furfangossag (skills tb) * 5) (Skills.szerencse (skills tb))
 
-    let (hpAF, hpBF) = if Maybe.isJust furfangossagB && hpB < hpA then (hpB, hpA) else (hpA, hpB)
+    let (hpAF, hpBF) = if Maybe.isJust furfangossagB && hpB > hpA then (hpB, hpA) else (hpA, hpB)
 
     let newLog =
           if Maybe.isJust bajCheckB
@@ -158,3 +158,47 @@ encodeLog log = case log of
       , ("hpB", JsonNumber $ fromIntegral hpB)
       , ("effsB", JsonArray $ map (JsonString . show) effsB)
       ]
+
+
+{-
+  A
+    Tojika
+    Repedés
+    A Nevtelen Tojas
+
+  B
+    kismi19 Tojása
+    Már tudja a halál mi volt a nevem
+    Hezirisz Tojása
+
+  C
+    Tokmag Tojása
+    Legkemenyebb
+    bloazs Tojása
+
+  D
+    andnor Tojása
+    Agi Tojása
+    Tűnő árnyék Tojása
+
+  E
+    RETEK Tojása
+    Cartoony
+    Stay Frosty
+
+  F
+    Tojgli
+    VaranTavers Tojása
+    Összekoccanunk Tojása
+
+  G
+    Kriszti Tojása
+    Terebesi Tojása
+    Ceci Tojása
+
+  H
+    Cökkmesztőr2077
+    Tms Tojása
+    Karola Tojása
+    Mushou
+-}
