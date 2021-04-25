@@ -163,44 +163,5 @@ encodeLog log = case log of
 
 
 {-
-  A
-    Tojika
-    Repedés
-    A Nevtelen Tojas
-
-  B
-    kismi19 Tojása
-    Már tudja a halál mi volt a nevem
-    Hezirisz Tojása
-
-  C
-    Tokmag Tojása
-    Legkemenyebb
-    bloazs Tojása
-
-  D
-    andnor Tojása
-    Agi Tojása
-    Tűnő árnyék Tojása
-
-  E
-    RETEK Tojása
-    Cartoony
-    Stay Frosty
-
-  F
-    Tojgli
-    VaranTavers Tojása
-    Összekoccanunk Tojása
-
-  G
-    Kriszti Tojása
-    Terebesi Tojása
-    Ceci Tojása
-
-  H
-    Cökkmesztőr2077
-    Tms Tojása
-    Karola Tojása
-    Mushou
+  https://scorecounter.com/tournament/
 -}

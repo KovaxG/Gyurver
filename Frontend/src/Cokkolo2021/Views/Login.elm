@@ -85,8 +85,8 @@ description =
         , text " nevezik, de egy játék, ahol két résztvevő egy-egy húsvéti tojást kiválaszt és a két tojást összeütik. Akinek eltörik a tojása, az veszít. Mivel mostanság nem nagyon mehetünk ki, gondoltam hogy az online világba viszem ezt a játékot (másodjára)."
         , br [] []
         , br [] []
-        , Alert.simpleDanger [] [text "Ha a regisztrálással vannak gondok engem el lehet érni facebookon vagy emailen."]
-        , Alert.simpleInfo  [] [text "Az öntözésnek vége. Jövő héten valamikor meg fog itt jelenni a végeredményes oldal, köszönöm, hogy résztvettetek, és sok sikert mindenkinek!"]
+        , Alert.simpleDanger [] [text "Amíg a verseny be nem fejeződik addig nem lehet belépni!"]
+        , a [href <| Settings.path ++ "/cokk2021/results"] [h1 [] [text "🥚Mutasd az eredményeket!🥚"]]
         ] |> div []
       ] |> Grid.col []
     ] |> Grid.row []
