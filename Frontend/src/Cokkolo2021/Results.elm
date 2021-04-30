@@ -17,8 +17,6 @@ init = ({}, Cmd.none)
 update : Msg -> Model -> (Model, Cmd Msg)
 update _ m = (m, Cmd.none)
 
--- Asszem agi tojasnak egy hosszu leveles hagymas skinje volt
-
 view : Model -> Document Msg
 view _ =
   { title = "Cokkolo 2021 Results"
@@ -35,7 +33,7 @@ view _ =
         ] |> Grid.row []
       , [ [ csoport "C" [(pucer, "Tokmag Tojása", 0), (legke, "Legkemenyebb", 0), (pucer, "bloazs Tojása", 0)]
           ] |> Grid.col []
-        , [ csoport "D" [(pucer, "andnor Tojása", 0), (pucer, "Agi Tojása", 0), (pucer, "Tűnő árnyék Tojása", 0)]
+        , [ csoport "D" [(pucer, "andnor Tojása", 0), (sanya, "Agi Tojása", 0), (pucer, "Tűnő árnyék Tojása", 0)]
           ] |> Grid.col []
         ] |> Grid.row []
       , [ [ csoport "E" [(pucer, "RETEK Tojása", 0), (carto, "Cartoony", 0), (bimrk, "Stay Frosty", 0)]
@@ -80,4 +78,4 @@ krisz = "https://i.postimg.cc/28HqtLGY/pirosminta.png"
 sokek = "https://i.postimg.cc/prbQph74/navyblue.png"
 kehim = "https://i.postimg.cc/9fDybYHs/kekminta.png"
 kalap = "https://i.postimg.cc/9QFdRj8m/kalap.png"
-
+sanya = "https://i.postimg.cc/wjfhDbZh/hosszulevel.png"

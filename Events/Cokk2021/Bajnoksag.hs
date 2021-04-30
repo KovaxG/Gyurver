@@ -7,6 +7,8 @@ import           Events.Cokk2021.Skills (Skills)
 import qualified Events.Cokk2021.Skills as Skills
 import           Component.Json (Json(..))
 import qualified Component.Json as Json
+import           Gyurver.Logger (Logger)
+import qualified Gyurver.Logger as Logger
 import qualified System.Random as Random
 import           Utils ((+:))
 import qualified Utils
@@ -18,7 +20,10 @@ type DMG = Int
 data Tojas = Tojas
   { nev :: Nev
   , skills :: Skills
-  } deriving (Show, Eq, Ord)
+  } deriving (Eq, Ord)
+
+instance Show Tojas where
+  show = nev
 
 mkTojas :: String -> Skills -> Tojas
 mkTojas = Tojas
@@ -50,8 +55,8 @@ data Log
   | Effect Effect
   deriving (Show)
 
-fight :: (Tojas, Tojas) -> IO Result
-fight ts = prefight ts >>= Utils.finiteIterateM fightLoop
+fight :: (Tojas, Tojas) -> Logger -> IO Result
+fight ts logger = prefight ts >>= Utils.finiteIterateM (`fightLoop` logger)
 
 prefight :: (Tojas, Tojas) -> IO State
 prefight tt = do
@@ -72,8 +77,8 @@ initialHealth t = (t, max 1 (startingHP + kemenysegBonus - szivarozasBonus + ver
       let v = Skills.vernyomas (skills t)
       in if v > 5 then - (v - 5) * 2 else 0
 
-fightLoop :: State -> IO (Either Result State)
-fightLoop (State (ta, hpa) (tb, hpb) log)
+fightLoop :: State -> Logger -> IO (Either Result State)
+fightLoop (State (ta, hpa) (tb, hpb) log) logger
   | hpa <= 0 && hpb <= 0 && hpa > hpb  = gameOver ta tb log
   | hpa <= 0 && hpb <= 0 && hpa < hpb  = gameOver tb ta log
   | hpa <= 0 && hpb <= 0 && hpa == hpb = return $ Left undefined
@@ -111,12 +116,17 @@ fightLoop (State (ta, hpa) (tb, hpb) log)
 
         furfangossagB <- probability FurfangossagCheck (Skills.furfangossag (skills tb) * 5) (Skills.szerencse (skills tb))
 
-        let (hpAF, hpBF, furfangossagB2) = if Maybe.isJust furfangossagB && hpB < hpA then (hpB, hpA, furfangossagB) else (hpA, hpB, Nothing)
+        let (hpAFinal, hpBFinal, furfangossagB2) =
+              if Maybe.isJust furfangossagB && hpB < hpA
+              then (hpB, hpA, furfangossagB)
+              else (hpA, hpB, Nothing)
 
         let newLog =
-              Damage (nev ta, dmgA, hpAF, Maybe.catMaybes [zsirossagCheckA, muveszlelekCheckA, tuzokadasCheckA])
-                     (nev tb, dmgB, hpBF, Maybe.catMaybes [zsirossagCheckB, regeneracioCheckB, humorCheckB, furfangossagB2, settenkedesCheckA])
-        return $ Right $ State (tb, hpBF) (ta, hpAF) (log +: newLog)
+              Damage (nev ta, dmgA, hpAFinal, Maybe.catMaybes [zsirossagCheckA, muveszlelekCheckA, tuzokadasCheckA])
+                     (nev tb, dmgB, hpBFinal, Maybe.catMaybes [zsirossagCheckB, regeneracioCheckB, humorCheckB, furfangossagB2, settenkedesCheckA])
+        let newState = State (tb, hpBFinal) (ta, hpAFinal) (log +: newLog)
+        --Logger.debug logger newState
+        return $ Right newState
 
 gameOver :: Tojas -> Tojas -> [Log] -> IO (Either Result State)
 gameOver winner looser log = do
@@ -164,4 +174,19 @@ encodeLog log = case log of
 
 {-
   https://scorecounter.com/tournament/
+
+[DEBUG   2021-04-30 23:06:56.630984362 EEST]
+State (Tojgli,-18) (Tojika,23)
+[ StartFight ("Tojgli",50) ("Tojika",75)
+, Damage ("Tojgli",5,45,[]) ("Tojika",0,75,[ZsirossagCheck])
+, Damage ("Tojika",0,35,[ZsirossagCheck]) ("Tojgli",10,75,[FurfangossagCheck,SettenkedesCheck])
+, Damage ("Tojgli",5,70,[]) ("Tojika",5,30,[])
+, Damage ("Tojika",1,29,[TuzokadasCheck]) ("Tojgli",37,33,[])
+, Damage ("Tojgli",5,28,[]) ("Tojika",0,29,[ZsirossagCheck,SettenkedesCheck])
+, Damage ("Tojika",1,28,[]) ("Tojgli",7,24,[RegeneracioCheck])
+, Damage ("Tojgli",5,19,[]) ("Tojika",5,23,[])
+, Damage ("Tojika",0,23,[ZsirossagCheck,TuzokadasCheck]) ("Tojgli",37,-18,[])
+]
+
+
 -}

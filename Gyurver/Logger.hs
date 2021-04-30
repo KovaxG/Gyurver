@@ -1,17 +1,18 @@
-module Gyurver.Logger (Logger(..), info, error, warn) where
+module Gyurver.Logger (Logger(..), info, error, warn, debug) where
 
 import Prelude hiding (error)
 import qualified Data.Time as Time
 
 data Logger = Console | File
 
-data LogMode = Info | Warning | Error
+data LogMode = Info | Warning | Error | Debug
 
 instance Show LogMode where
   show mode = case mode of
     Info    -> "INFO   "
     Error   -> "ERROR  "
     Warning -> "WARNING"
+    Debug   -> "DEBUG  "
 
 info :: Logger -> String -> IO ()
 info = genericLog Info
@@ -21,6 +22,9 @@ warn = genericLog Warning
 
 error :: Logger -> String -> IO ()
 error = genericLog Error
+
+debug :: (Show a) => Logger -> a -> IO ()
+debug logger a = genericLog Debug logger $ show a
 
 genericLog :: LogMode -> Logger -> String -> IO ()
 genericLog logMode logger message = do

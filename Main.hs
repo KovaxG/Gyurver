@@ -223,7 +223,7 @@ process tojasDB
               case targetUserOpt of
                 Nothing -> makeResponse BadRequest "Bocs de nem letezik az akit meg akarsz ontozni"
                 Just targetUser -> do
-                  fightResult <- Cokk2021FightRequest.runFight sourceUser targetUser
+                  fightResult <- Cokk2021FightRequest.runFight sourceUser targetUser log
                   makeResponse OK fightResult
 
     GetVideosAddPage -> do

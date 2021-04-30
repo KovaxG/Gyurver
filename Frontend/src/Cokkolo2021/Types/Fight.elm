@@ -38,7 +38,7 @@ toString fl = case fl of
         (tamadoEffektek ++ vedekezoEffektetkFurfangossakNelkul)
         ++ " " ++ n1 ++ " megcökkenti " ++ n2 ++ "-t, es sebezi "
         ++ String.fromInt dmg2 ++ " ponttal. "
-        ++ if dmg1 > 0 then " De " ++ n2 ++ " nem hagyja magát és vissza cökkenti " ++ n1 ++ "-t, " ++ String.fromInt dmg1 ++ " ponttal sebezve. " else ""
+        ++ (if dmg1 > 0 then " De " ++ n2 ++ " nem hagyja magát és vissza cökkenti " ++ n1 ++ "-t, " ++ String.fromInt dmg1 ++ " ponttal sebezve. " else "")
         ++ vedekezoFurfangossagCheck
   Win n -> n ++ " nyert!"
   Effect eff -> eff ++ " történt!"
