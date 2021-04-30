@@ -131,7 +131,7 @@ fightLoop (State (ta, hpa) (tb, hpb) log) logger
 gameOver :: Tojas -> Tojas -> [Log] -> IO (Either Result State)
 gameOver winner looser log = do
   diplomaciaCheckLooser <- probability DiplomaciaCheck (Skills.diplomacia (skills looser) * 5) (Skills.szerencse (skills looser))
-  meggyozoeroCheckLooser <- probability MeggyozoeroCheck (Skills.diplomacia (skills looser) * 2) 0
+  meggyozoeroCheckLooser <- probability MeggyozoeroCheck (Skills.meggyozoero (skills looser) * 2) 0
   maybe
     (maybe
       (return $ Left $ Result (nev winner) (nev looser) (log +: Win (nev winner)))
