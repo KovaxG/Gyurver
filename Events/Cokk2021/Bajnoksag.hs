@@ -125,7 +125,6 @@ fightLoop (State (ta, hpa) (tb, hpb) log) logger
               Damage (nev ta, dmgA, hpAFinal, Maybe.catMaybes [zsirossagCheckA, muveszlelekCheckA, tuzokadasCheckA])
                      (nev tb, dmgB, hpBFinal, Maybe.catMaybes [zsirossagCheckB, regeneracioCheckB, humorCheckB, furfangossagB2, settenkedesCheckA])
         let newState = State (tb, hpBFinal) (ta, hpAFinal) (log +: newLog)
-        --Logger.debug logger newState
         return $ Right newState
 
 gameOver :: Tojas -> Tojas -> [Log] -> IO (Either Result State)
@@ -171,22 +170,3 @@ encodeLog log = case log of
       , ("effsB", JsonArray $ map (JsonString . show) effsB)
       ]
 
-
-{-
-  https://scorecounter.com/tournament/
-
-[DEBUG   2021-04-30 23:06:56.630984362 EEST]
-State (Tojgli,-18) (Tojika,23)
-[ StartFight ("Tojgli",50) ("Tojika",75)
-, Damage ("Tojgli",5,45,[]) ("Tojika",0,75,[ZsirossagCheck])
-, Damage ("Tojika",0,35,[ZsirossagCheck]) ("Tojgli",10,75,[FurfangossagCheck,SettenkedesCheck])
-, Damage ("Tojgli",5,70,[]) ("Tojika",5,30,[])
-, Damage ("Tojika",1,29,[TuzokadasCheck]) ("Tojgli",37,33,[])
-, Damage ("Tojgli",5,28,[]) ("Tojika",0,29,[ZsirossagCheck,SettenkedesCheck])
-, Damage ("Tojika",1,28,[]) ("Tojgli",7,24,[RegeneracioCheck])
-, Damage ("Tojgli",5,19,[]) ("Tojika",5,23,[])
-, Damage ("Tojika",0,23,[ZsirossagCheck,TuzokadasCheck]) ("Tojgli",37,-18,[])
-]
-
-
--}

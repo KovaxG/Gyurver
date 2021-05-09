@@ -1,12 +1,14 @@
 module Cokkolo2021.Results exposing (..)
 
 import Html exposing (Html, div, h1, h2, h3, text)
+import Html.Attributes exposing (style)
 import Browser exposing (Document)
 import Bootstrap.CDN as CDN
 import Bootstrap.Table as Table
 import Bootstrap.Grid as Grid
 
 import Cokkolo2021.Common exposing (..)
+import Html.Attributes exposing (rowspan)
 
 type alias Model = {}
 type Msg = NoMsg
@@ -23,32 +25,71 @@ view _ =
   , body =
     [ [ CDN.stylesheet
       , [ [ h1 [] [text "Cökkölés 2021 Eredmények"]
+          , bracket
           , h2 [] [text "Selejtező"]
           ] |> Grid.col []
         ] |> Grid.row []
-      , [ [ csoport "A" [(pucer, "Tojika", 0), (pucer, "Repedés", 0), (pucer, "A Névtelen Tojás", 0)]
+      , [ [ csoport "A" [(pucer, "Névtelen Tojás", 3), (pucer, "Tojika", 2), (pucer, "Repedés", 2)]
           ] |> Grid.col []
-        , [ csoport "B" [(pucer, "kismi19 Tojása", 0), (pucer, "Már tudja a halál mi volt a nevem", 0), (pucer, "Hezirisz Tojása", 0)]
-          ] |> Grid.col []
-        ] |> Grid.row []
-      , [ [ csoport "C" [(pucer, "Tokmag Tojása", 0), (legke, "Legkemenyebb", 0), (pucer, "bloazs Tojása", 0)]
-          ] |> Grid.col []
-        , [ csoport "D" [(pucer, "andnor Tojása", 0), (sanya, "Agi Tojása", 0), (pucer, "Tűnő árnyék Tojása", 0)]
+        , [ csoport "B" [(pucer, "Már tudja a halál mi volt a nevem", 4), (pucer, "kismi19 Tojása", 2), (pucer, "Hezirisz Tojása", 0)]
           ] |> Grid.col []
         ] |> Grid.row []
-      , [ [ csoport "E" [(pucer, "RETEK Tojása", 0), (carto, "Cartoony", 0), (bimrk, "Stay Frosty", 0)]
+      , [ [ csoport "C" [(legke, "Legkemenyebb", 4), (pucer, "Tokmag Tojása", 2), (pucer, "bloazs Tojása", 0)]
           ] |> Grid.col []
-        , [ csoport "F" [(maszk, "Tojgli", 0), (pucer, "VaranTavers Tojása", 0), (pucer, "Összekoccanunk Tojása", 0)]
+        , [ csoport "D" [(pucer, "Tűnő árnyék Tojása", 4), (sanya, "Agi Tojása", 2), (pucer, "andnor Tojása", 0)]
           ] |> Grid.col []
         ] |> Grid.row []
-      , [ [ csoport "G" [(krisz, "Kriszti Tojása", 0), (pucer, "Terebesi Tojása", 0), (pucer, "Ceci Tojása", 0)]
+      , [ [ csoport "E" [(pucer, "RETEK Tojása", 4), (carto, "Cartoony", 3), (bimrk, "Stay Frosty", 1)]
           ] |> Grid.col []
-        , [ csoport "H" [(sokek, "Cökkmesztőr2077", 0), (pucer, "Tms Tojása", 0), (kehim, "Karola Tojása", 0), (kalap, "Mushou", 0)]
+        , [ csoport "F" [(maszk, "Tojgli", 4), (pucer, "Összekoccanunk Tojása", 2), (pucer, "VaranTavers Tojása", 0)]
+          ] |> Grid.col []
+        ] |> Grid.row []
+      , [ [ csoport "G" [(krisz, "Kriszti Tojása", 4), (pucer, "Terebesi Tojása", 2), (pucer, "Ceci Tojása", 0)]
+          ] |> Grid.col []
+        , [ csoport "H" [(kehim, "Karola Tojása", 6), (kalap, "Mushou", 4), (sokek, "Cökkmesztőr2077", 2), (pucer, "Tms Tojása", 0)]
           ] |> Grid.col []
         ] |> Grid.row []
       ] |> Grid.container []
     ]
   }
+
+bracket : Html Msg
+bracket =
+  Table.table
+    { options = [ Table.bordered ]
+    , thead =
+        Table.simpleThead
+          [ Table.th [] [text "Negyeddöntő"]
+          , Table.th [] [text "Elődöntő"]
+          , Table.th [] [text "Döntő"]
+          , Table.th [] [text "Nyertes"]
+          ]
+    , tbody =
+      [ Table.tr []
+        [ Table.td [] [displayImage pucer 50 0, text "Névtelen Tojás"]
+        , Table.td [Table.cellAttr (rowspan 2)] [displayImage pucer 50 0, text "Névtelen Tojás"]
+        , Table.td [Table.cellAttr (rowspan 4)] [displayImage pucer 50 0, text "Névtelen Tojás"]
+        , Table.td [Table.cellAttr (rowspan 8), Table.cellAttr (style "valign" "middle")] [displayImage pucer 50 0, text "Névtelen Tojás"]
+        ]
+      , Table.tr [] [ Table.td [] [displayImage pucer 50 0, text "Már tudja a halál mi volt a nevem"] ]
+      , Table.tr []
+        [ Table.td [] [displayImage legke 50 0, text "Legkemenyebb"]
+        , Table.td [Table.cellAttr (rowspan 2)] [displayImage legke 50 0, text "Legkemenyebb"]
+        ]
+      , Table.tr [] [ Table.td [] [displayImage pucer 50 0, text "Tűnő árnyék Tojása"] ]
+      , Table.tr []
+        [ Table.td [] [displayImage pucer 50 0, text "RETEK Tojása"]
+        , Table.td [Table.cellAttr (rowspan 2)] [displayImage pucer 50 0, text "RETEK Tojása"]
+        , Table.td [Table.cellAttr (rowspan 4)] [displayImage pucer 50 0, text "RETEK Tojása"]
+        ]
+      , Table.tr [] [ Table.td [] [displayImage maszk 50 0, text "Tojgli"] ]
+      , Table.tr []
+        [ Table.td [] [displayImage krisz 50 0, text "Kriszti Tojása"]
+        , Table.td [Table.cellAttr (rowspan 2)] [displayImage kehim 50 0, text "Karola Tojása"]
+        ]
+      , Table.tr [] [ Table.td [] [displayImage kehim 50 0, text "Karola Tojása"] ]
+      ] |> Table.tbody []
+    }
 
 csoport : String -> List (String, String, Int) -> Html Msg
 csoport betu tojasok =

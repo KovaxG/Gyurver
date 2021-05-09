@@ -42,7 +42,7 @@ view model =
           , iframe [src "https://www.youtube.com/embed/V01as85s8NY"] []
           ] |> Grid.col []
         , [ h2 [] [text "Meccsek"]
-          , p [] [text "Ha ezt látod, akkor még nincs meg a videó, de készűl!"]
+          , p [] [text "Ha ezt látod, akkor még nincs meg a videó, de készűl! (Naaaagyon lassan)"]
           ] |> Grid.col []
         ] |> Grid.row []
       , [ [ h2 [] [text "Verseny Ágak"]
