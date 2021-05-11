@@ -49,6 +49,10 @@ data Endpoint
   | DeleteVideoJSON Int
   | OptionsVideo
   | OptionsVideoJSON Int
+  | PostFilm
+  | PostWatchedFilm
+  | GetFilms
+  | DeleteFilm
   | Other String
   deriving (Eq, Show)
 
@@ -117,6 +121,11 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "POST /api/cokk2021/items/buy" $> PostCokk2021BuyItem
         , Parsec.string "POST /api/cokk2021/items/equip" $> PostCokk2021EquipItem
         , Parsec.string "POST /api/cokk2021/fight" $> PostCokk2021Fight
+
+        , Parsec.string "POST /api/films" $> PostFilm
+        , Parsec.string "POST /api/films/watched" $> PostWatchedFilm
+        , Parsec.string "GET /api/films" $> GetFilms
+        , Parsec.string "DELETE /api/films" $> DeleteFilm
 
         , Parsec.string "POST /api/suggestionbox" $> PostSuggestion
 

@@ -68,3 +68,11 @@ count p = length . filter p
 
 finiteIterateM :: Monad m => (s -> m (Either r s)) -> s -> m r
 finiteIterateM f s0 = f s0 >>= either return (finiteIterateM f)
+
+filterNot :: (a -> Bool) -> [a] -> [a]
+filterNot p = filter (not . p)
+
+dequote :: String -> String
+dequote s
+  | head s == '"' && last s == '"' = init $ tail s
+  | otherwise = s

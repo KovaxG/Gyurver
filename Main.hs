@@ -33,17 +33,20 @@ import qualified Events.Cokk2021.ChangeEggnameRequest as Cokk2021ChangeEggnameRe
 import Gyurver.Html
 import Gyurver.Request
 import Gyurver.Response
-import Gyurver.Server
+import qualified Gyurver.Server as Server
 import           Gyurver.Logger (Logger(..))
 import qualified Gyurver.Logger as Logger
 import qualified Types.Common as Types
 import qualified Types.DateTime as DateTime
+import           Types.Movie (Movie, MovieDiff)
+import qualified Types.Movie as Movie
 import           Types.Video (Video)
 import qualified Types.Video as Video
 import qualified Types.VideoAdd as VideoAdd
 import qualified Types.VideoEdit as VideoEdit
 import           Types.Password as Password
-import           Types.Settings as Settings
+import           Types.Settings (Settings)
+import qualified Types.Settings as Settings
 import Endpoints
 import           Utils (($>), (</>))
 import qualified Utils
@@ -63,12 +66,14 @@ main = do
   cokk2021WaterDB <- DB.getHandle "cokk2021Water"
   cokk2021ItemDB <- DB.getHandle "cokk2021Item"
 
+  movieDiffDB <- DB.getHandle "movieDiff"
+
   settings <- readSettings log
   Logger.info log (show settings)
-  runServer log
-            (settings & hostAddress)
-            (settings & port)
-            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB suggestionBoxDB settings)
+  Server.run log
+            (settings & Settings.hostAddress)
+            (settings & Settings.port)
+            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB suggestionBoxDB movieDiffDB settings)
 
 readSettings :: Logger -> IO Settings
 readSettings log =
@@ -77,7 +82,7 @@ readSettings log =
     fileNotFound :: IO Settings
     fileNotFound = do
       Logger.warn log "Could not read settings file, using default settings."
-      return defaultSettings
+      return Settings.defaultSettings
 
     fileFound :: Text -> IO Settings
     fileFound contents = contents & Text.unpack & Settings.parse & either settingsParseFailed settingsLoaded
@@ -86,11 +91,11 @@ readSettings log =
     settingsParseFailed msg = do
       let message = "Found settings file, but failed to parse it (" ++ msg ++ "), using default settings."
       Logger.error log message
-      return defaultSettings
+      return Settings.defaultSettings
 
     settingsLoaded :: Settings -> IO Settings
     settingsLoaded settings = do
-      Logger.info log $ "Loaded settings, ip is " ++ show (hostAddress settings)
+      Logger.info log $ "Loaded settings, ip is " ++ show (Settings.hostAddress settings)
       return settings
 
 process :: DBHandle Cokk2020.Tojas
@@ -99,6 +104,7 @@ process :: DBHandle Cokk2020.Tojas
         -> DBHandle Cokk2021WaterLog.WaterLog
         -> DBHandle Cokk2021Item.Item
         -> DBHandle String
+        -> DBHandle Movie.MovieDiff
         -> Settings
         -> Request
         -> IO Response
@@ -108,12 +114,22 @@ process tojasDB
         cokk2021WaterDB
         cokk2021ItemDB
         suggestionBoxDB
+        movieDiffDB
         settings
         Request{requestType, path, content} = do
   let
     processJsonBody :: Decoder.Decoder a -> (a -> IO Response) -> IO Response
     processJsonBody decoder handle =
       Json.parseJson content >>= Decoder.run decoder & either (makeResponse BadRequest) handle
+
+    movieProcessing :: (String -> MovieDiff) -> String -> IO Response
+    movieProcessing diff successMsg =
+      if not (null content)
+      then do
+        DB.insert movieDiffDB $ diff $ Utils.dequote content
+        makeResponse OK successMsg
+      else
+        makeResponse BadRequest "I need the name of the film in the body!"
 
   case parseEndpoint $ unwords [show requestType, path] of
     GetLandingPage -> do
@@ -308,7 +324,7 @@ process tojasDB
     PostCokk2021Water -> do
       Logger.info log $ "[API] Watering with body: " ++ content
 
-      if (settings & cokk2021) == Types.Blocked
+      if (settings & Settings.cokk2021) == Types.Blocked
       then do
         Logger.info log "Event is locked!"
         makeResponse Forbidden "Event is locked!"
@@ -370,7 +386,7 @@ process tojasDB
     PostCokk2021IncSkill -> do
       Logger.info log $ "[API] increase skill with body: " ++ content
 
-      if (settings & cokk2021) == Types.Blocked
+      if (settings & Settings.cokk2021) == Types.Blocked
       then do
         Logger.info log "Event is locked!"
         makeResponse Forbidden "Event is locked!"
@@ -409,7 +425,7 @@ process tojasDB
 
     PostCokk2021ChangeEggname -> do
       Logger.info log $ "[API] change egg name with body: " ++ content
-      if (settings & cokk2021) == Types.Blocked
+      if (settings & Settings.cokk2021) == Types.Blocked
       then do
         Logger.info log "Event is locked!"
         makeResponse Forbidden "Event is locked!"
@@ -436,7 +452,7 @@ process tojasDB
     PostCokk2021BuyItem -> do
       Logger.info log $ "[API] buy request with body: " ++ content
 
-      if (settings & cokk2021) == Types.Blocked
+      if (settings & Settings.cokk2021) == Types.Blocked
       then do
         Logger.info log "Event is locked!"
         makeResponse Forbidden "Event is locked!"
@@ -474,7 +490,7 @@ process tojasDB
     PostCokk2021EquipItem -> do
       Logger.info log $ "[API] requested equip item endpoint with content: " ++ content
 
-      if (settings & cokk2021) == Types.Blocked
+      if (settings & Settings.cokk2021) == Types.Blocked
       then do
         Logger.info log "Event is locked!"
         makeResponse Forbidden "Event is locked!"
@@ -506,7 +522,7 @@ process tojasDB
     DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr
       processJsonBody Password.decoder $ \(Password pwd) ->
-        if pwd == (settings & password)
+        if pwd == (settings & Settings.password)
         then do
           DB.delete vidsDB (\v -> Video.nr v == reqNr)
           success
@@ -521,6 +537,15 @@ process tojasDB
     OptionsVideoJSON reqNr -> do
       Logger.info log $ "Someone asked if you can post to /api/video/" ++ show reqNr ++ ", sure."
       allowHeaders
+
+    PostFilm        -> movieProcessing Movie.NewMovie "added (if doesn't exist)"
+    DeleteFilm      -> movieProcessing Movie.Delete "removed (if exists)"
+    PostWatchedFilm -> movieProcessing (`Movie.SetWatched` True) "marked as watched (if exists)"
+
+    GetFilms -> do
+      movieDiffs <- DB.everythingList movieDiffDB
+      let movies = Movie.combineDiffs movieDiffs
+      makeResponse OK $ Movie.toJson movies
 
     Other req -> do
       Logger.warn log $ "Weird request: " ++ req

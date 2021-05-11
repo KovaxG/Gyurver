@@ -1,4 +1,4 @@
-module Gyurver.Server (runServer, IP(..), Port(..)) where
+module Gyurver.Server (run, IP(..), Port(..)) where
 
 import Network.Simple.TCP (serve, HostPreference(..), send, recv, Socket, SockAddr)
 
@@ -13,8 +13,8 @@ type RequestProcessor = Request -> IO Response
 newtype IP = IP String deriving (Show, Eq)
 newtype Port = Port Int deriving (Show, Eq)
 
-runServer:: Logger -> IP -> Port -> RequestProcessor -> IO ()
-runServer log (IP address) (Port port) processRequest =
+run:: Logger -> IP -> Port -> RequestProcessor -> IO ()
+run log (IP address) (Port port) processRequest =
   serve (Host address) (show port) (processConnection log processRequest)
 
 processConnection :: Logger -> RequestProcessor -> (Socket, SockAddr) -> IO ()

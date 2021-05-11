@@ -108,6 +108,11 @@ tests =
   , test "posting new video HU" $ parseEndpoint "POST /api/videok" === PostVideo
   , test "posting new video RO" $ parseEndpoint "POST /api/videouri" === PostVideo
 
+  , test "posting a new film API POST" $ parseEndpoint "POST /api/films" === PostFilm
+  , test "marking a film as watched API POST" $ parseEndpoint "POST /api/films/watched" === PostWatchedFilm
+  , test "get a list of films API GET" $ parseEndpoint "GET /api/films" === GetFilms
+  , test "delete a film API DELETE" $ parseEndpoint "DELETE /api/films" === DeleteFilm
+
   , test "video options HU" $ parseEndpoint "OPTIONS /api/videok" === OptionsVideo
   , test "video options RO" $ parseEndpoint "OPTIONS /api/videouri" === OptionsVideo
   , test "video options EN" $ parseEndpoint "OPTIONS /api/videos" === OptionsVideo
