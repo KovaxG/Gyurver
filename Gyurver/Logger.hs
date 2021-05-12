@@ -1,7 +1,11 @@
 module Gyurver.Logger (Logger(..), info, error, warn, debug) where
 
 import Prelude hiding (error)
+import           Control.Exception (SomeException)
+import qualified Control.Exception as Exception
+import qualified System.Directory as Dir
 import qualified Data.Time as Time
+import           Utils ((</>))
 
 data Logger = Console | File
 
@@ -33,8 +37,17 @@ genericLog logMode logger message = do
   case logger of
     Console -> putStrLn msg
     File -> do
+      let folderName = "logs"
       let fileName = takeWhile (/= ' ') (show time) ++ ".gyurlog"
-      appendFile fileName (msg ++ "\n")
+      let path = folderName </> fileName
+      let tryLogging = appendFile path (msg ++ "\n")
+      Exception.catch
+        tryLogging
+        (\e -> do
+          print (e :: SomeException)
+          Dir.createDirectory folderName
+          tryLogging
+        )
       putStrLn msg
 
 sbrackets :: String -> String
