@@ -77,5 +77,4 @@ defaultSettings = Settings
 - `/api/cokk2021/items/buy` buy item endpoint for 2021 Cokkoles (Post)
 - `/api/cokk2021/items/equip` equip item endpoint for 2021 Cokkoles (Post)
 - `/api/cokk2021/fight` run a match between 2 eggs for 2021 Cokkoles (Post)
-- `/api/films` endpoint for film stuff (Get, Post, Delete)
-- `/api/films/watched` endpoint for marking films as watched (Post)
+- `/api/films` endpoint for film stuff (Get, Post, Delete, Put)

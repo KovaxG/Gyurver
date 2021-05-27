@@ -1,4 +1,4 @@
-module Endpoints (Endpoint(..), Resource(..), parseEndpoint, parseResource) where
+module Endpoints (Endpoint(..), Resource(..), Operation(..), parse, parseResource) where
 
 import           Text.Parsec (ParsecT, Stream, (<|>))
 import qualified Text.Parsec as Parsec
@@ -6,6 +6,13 @@ import qualified Text.Parsec as Parsec
 import Utils (fromRight, eitherToMaybe, ($>))
 
 data Resource = Resource String String
+
+data Operation
+  = Insert
+  | Modify
+  | Obtain
+  | Delete
+  deriving (Show, Eq)
 
 parseResource :: String -> Maybe Resource
 parseResource = eitherToMaybe . Parsec.parse rule "Parsing Resource"
@@ -49,16 +56,13 @@ data Endpoint
   | DeleteVideoJSON Int
   | OptionsVideo
   | OptionsVideoJSON Int
-  | PostFilm
-  | PostWatchedFilm
-  | GetFilms
-  | DeleteFilm
+  | Film Operation
   | Other String
   deriving (Eq, Show)
 
 
-parseEndpoint :: String -> Endpoint
-parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
+parse :: String -> Endpoint
+parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
   where
     landingPage = Parsec.string "GET /" $> GetLandingPage
 
@@ -122,10 +126,10 @@ parseEndpoint s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "POST /api/cokk2021/items/equip" $> PostCokk2021EquipItem
         , Parsec.string "POST /api/cokk2021/fight" $> PostCokk2021Fight
 
-        , Parsec.string "POST /api/films" $> PostFilm
-        , Parsec.string "POST /api/films/watched" $> PostWatchedFilm
-        , Parsec.string "GET /api/films" $> GetFilms
-        , Parsec.string "DELETE /api/films" $> DeleteFilm
+        , Parsec.string "POST /api/films" $> Film Insert
+        , Parsec.string "PUT /api/films" $> Film Modify
+        , Parsec.string "GET /api/films" $> Film Obtain
+        , Parsec.string "DELETE /api/films" $> Film Delete
 
         , Parsec.string "POST /api/suggestionbox" $> PostSuggestion
 

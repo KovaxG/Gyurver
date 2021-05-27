@@ -47,7 +47,7 @@ import qualified Types.VideoEdit as VideoEdit
 import           Types.Password as Password
 import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
-import Endpoints
+import qualified Endpoints as Endpoint
 import           Utils (($>), (</>))
 import qualified Utils
 
@@ -131,40 +131,40 @@ process tojasDB
       else
         makeResponse BadRequest "I need the name of the film in the body!"
 
-  case parseEndpoint $ unwords [show requestType, path] of
-    GetLandingPage -> do
+  case Endpoint.parse $ unwords [show requestType, path] of
+    Endpoint.GetLandingPage -> do
       Logger.info log $ "Requested landing page, sending " ++ mainPath
       sendFile mainPath
 
-    GetCV -> do
+    Endpoint.GetCV -> do
       Logger.info log "Requested CV."
       sendFile cvPath
 
-    GetFavicon -> do
+    Endpoint.GetFavicon -> do
       Logger.info log "Requested favicon."
       sendFile faviconPath
 
-    GetArticlesPage -> do
+    Endpoint.GetArticlesPage -> do
       Logger.info log "Requested articles page."
       sendFile mainPath
 
-    GetCokk2020JSON -> do
+    Endpoint.GetCokk2020JSON -> do
       Logger.info log "[API] Requested cokkolesi lista."
       tojasok <- DB.everythingList tojasDB
       addHeaders [("Content-Type", "application/json")]
         <$> makeResponse OK (map Cokk2020.tojasToJson tojasok)
 
-    GetVideosPage -> do
+    Endpoint.GetVideosPage -> do
       Logger.info log "Requested video list."
       sendFile mainPath
 
-    GetVideosJSON -> do
+    Endpoint.GetVideosJSON -> do
       Logger.info log "[API] Requested video list."
       videos <- DB.everythingList vidsDB
       addHeaders [("Content-Type", "application/json")]
         <$> makeResponse OK (Video.videosToJson videos)
 
-    GetVideoJSON reqNr -> do
+    Endpoint.GetVideoJSON reqNr -> do
       Logger.info log $ "[API] Requesting video with nr: " ++ show reqNr
       videos <- DB.everythingList vidsDB
       videos & List.find (\v -> Video.nr v == reqNr)
@@ -173,35 +173,35 @@ process tojasDB
                <$> makeResponse OK (Video.videoToJson v)
              )
 
-    GetCokk2020ResultsPage -> do
+    Endpoint.GetCokk2020ResultsPage -> do
       Logger.info log "Requested results for 2020 Cokk."
       sendFile mainPath
 
-    GetCokk2021ResultsPage -> do
+    Endpoint.GetCokk2021ResultsPage -> do
       Logger.info log "Requested results for 2021 Cokk."
       sendFile mainPath
 
-    GetCokk2020Page -> do
+    Endpoint.GetCokk2020Page -> do
       Logger.info log "Requested cokk 2020 page."
       sendFile mainPath
 
-    GetCokk2021Page -> do
+    Endpoint.GetCokk2021Page -> do
       Logger.info log "Requested cokk 2021 page"
       sendFile mainPath
 
-    GetCokk2021Participants  -> do
+    Endpoint.GetCokk2021Participants  -> do
       Logger.info log "[API] Requested participants list"
       users <- DB.everythingList cokk2021UserDB
       waterLogs <- DB.everythingList cokk2021WaterDB
       addHeaders [("Content-Type", "application/json")]
         <$> makeResponse OK (map (Cokk2021User.toListItemJson waterLogs True) users)
 
-    PostSuggestion -> do
+    Endpoint.PostSuggestion -> do
       Logger.info log "New suggestion!"
       DB.insert suggestionBoxDB $ "---\n" ++ content
       success
 
-    PostCokk2021ParticipantsForUser -> do
+    Endpoint.PostCokk2021ParticipantsForUser -> do
       Logger.info log "[API] Requested user participation list"
       processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
@@ -226,7 +226,7 @@ process tojasDB
                       <$> makeResponse OK (map (uncurry $ Cokk2021User.toListItemJson waterLogs) nusers)
                   )
 
-    PostCokk2021Fight -> do
+    Endpoint.PostCokk2021Fight -> do
       Logger.info log $ "[API] Fight with body: " ++ content
       processJsonBody Cokk2021FightRequest.decode $ \req -> do
         users <- DB.everythingList cokk2021UserDB
@@ -242,14 +242,14 @@ process tojasDB
                   fightResult <- Cokk2021FightRequest.runFight sourceUser targetUser log
                   makeResponse OK fightResult
 
-    GetVideosAddPage -> do
+    Endpoint.GetVideosAddPage -> do
       Logger.info log "Requested video add page."
       sendFile mainPath
 
-    GetResource resource -> do
+    Endpoint.GetResource resource -> do
       Logger.info log $ "Requesting resource [" ++ resource ++ "]."
-      case parseResource resource of
-        Just (Resource _ term) -> do
+      case Endpoint.parseResource resource of
+        Just (Endpoint.Resource _ term) -> do
           let filePath = contentPath </> (term ++ "s") </> resource
           Logger.info log $ "Sending " ++ filePath ++"... Let's hope it exists..."
           sendFile filePath
@@ -257,12 +257,12 @@ process tojasDB
           Logger.warn log $ "No such resource: " ++ path
           badRequest
 
-    GetCokk2021Items -> do
+    Endpoint.GetCokk2021Items -> do
       Logger.info log "[API] Requested items"
       items <- DB.everythingList cokk2021ItemDB
       makeResponse OK $ map Cokk2021Item.encode items
 
-    PostVideo -> do
+    Endpoint.PostVideo -> do
       Logger.info log "[API] Adding new video to list."
       processJsonBody VideoAdd.decoder $ \request ->
         case VideoAdd.toVideo settings request of
@@ -273,7 +273,7 @@ process tojasDB
             Logger.info log error
             makeResponse Unauthorized error
 
-    PostVideoJSON reqNr -> do
+    Endpoint.PostVideoJSON reqNr -> do
       Logger.info log $ "[API] Modified video with nr: " ++ show reqNr
       processJsonBody VideoEdit.decoder $ \video ->
         case VideoEdit.toVideo settings video of
@@ -284,7 +284,7 @@ process tojasDB
             Logger.info log error
             makeResponse Unauthorized error
 
-    PostCokk2021Login -> do
+    Endpoint.PostCokk2021Login -> do
       Logger.info log $ "[API] Login attempt with body " ++ content
       processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
@@ -301,7 +301,7 @@ process tojasDB
                     makeResponse OK $ Cokk2021DashboardData.encode dashboardData
                   )
 
-    PostCokk2021Register -> do
+    Endpoint.PostCokk2021Register -> do
       Logger.info log $ "[API] Registration attempt with body: " ++ content
       if (settings & Settings.cokk2021) == Types.Running
       then
@@ -321,7 +321,7 @@ process tojasDB
         Logger.info log "[API] The event is not running anymore! "
         makeResponse Forbidden "The event is not running anymore!"
 
-    PostCokk2021Water -> do
+    Endpoint.PostCokk2021Water -> do
       Logger.info log $ "[API] Watering with body: " ++ content
 
       if (settings & Settings.cokk2021) == Types.Blocked
@@ -369,7 +369,7 @@ process tojasDB
                     (makeResponse BadRequest)
                     result
 
-    PostCokk2021DashboardRefresh -> do
+    Endpoint.PostCokk2021DashboardRefresh -> do
       Logger.info log $ "[API] refreshing dashboard with body: " ++ content
       processJsonBody Cokk2021Login.decode $ \login -> do
         users <- DB.everythingList cokk2021UserDB
@@ -383,7 +383,7 @@ process tojasDB
                 makeResponse OK $ Cokk2021DashboardData.encode dashboardData
               )
 
-    PostCokk2021IncSkill -> do
+    Endpoint.PostCokk2021IncSkill -> do
       Logger.info log $ "[API] increase skill with body: " ++ content
 
       if (settings & Settings.cokk2021) == Types.Blocked
@@ -423,7 +423,7 @@ process tojasDB
             )
             userOpt
 
-    PostCokk2021ChangeEggname -> do
+    Endpoint.PostCokk2021ChangeEggname -> do
       Logger.info log $ "[API] change egg name with body: " ++ content
       if (settings & Settings.cokk2021) == Types.Blocked
       then do
@@ -449,7 +449,7 @@ process tojasDB
             )
             userOpt
 
-    PostCokk2021BuyItem -> do
+    Endpoint.PostCokk2021BuyItem -> do
       Logger.info log $ "[API] buy request with body: " ++ content
 
       if (settings & Settings.cokk2021) == Types.Blocked
@@ -487,7 +487,7 @@ process tojasDB
             )
             userOpt
 
-    PostCokk2021EquipItem -> do
+    Endpoint.PostCokk2021EquipItem -> do
       Logger.info log $ "[API] requested equip item endpoint with content: " ++ content
 
       if (settings & Settings.cokk2021) == Types.Blocked
@@ -519,7 +519,7 @@ process tojasDB
             )
             userOpt
 
-    DeleteVideoJSON reqNr -> do
+    Endpoint.DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " ++ show reqNr
       processJsonBody Password.decoder $ \(Password pwd) ->
         if pwd == (settings & Settings.password)
@@ -530,24 +530,25 @@ process tojasDB
           Logger.info log ("Bad password: " ++ pwd)
           makeResponse Unauthorized "Bad password!"
 
-    OptionsVideo -> do
+    Endpoint.OptionsVideo -> do
       Logger.info log "Someone asked if you can post to /api/videos/new, sure."
       allowHeaders
 
-    OptionsVideoJSON reqNr -> do
+    Endpoint.OptionsVideoJSON reqNr -> do
       Logger.info log $ "Someone asked if you can post to /api/video/" ++ show reqNr ++ ", sure."
       allowHeaders
 
-    PostFilm        -> movieProcessing Movie.NewMovie "added (if doesn't exist)"
-    DeleteFilm      -> movieProcessing Movie.Delete "removed (if exists)"
-    PostWatchedFilm -> movieProcessing (`Movie.SetWatched` True) "marked as watched (if exists)"
+    Endpoint.Film operation ->
+      case operation of
+        Endpoint.Insert -> movieProcessing Movie.NewMovie "added (if doesn't exist)"
+        Endpoint.Modify -> movieProcessing (`Movie.SetWatched` True) "marked as watched (if exists)"
+        Endpoint.Delete -> movieProcessing Movie.Delete "removed (if exists)"
+        Endpoint.Obtain -> do
+          movieDiffs <- DB.everythingList movieDiffDB
+          let movies = Movie.combineDiffs movieDiffs
+          makeResponse OK $ Movie.toJson movies
 
-    GetFilms -> do
-      movieDiffs <- DB.everythingList movieDiffDB
-      let movies = Movie.combineDiffs movieDiffs
-      makeResponse OK $ Movie.toJson movies
-
-    Other req -> do
+    Endpoint.Other req -> do
       Logger.warn log $ "Weird request: " ++ req
       badRequest
 
