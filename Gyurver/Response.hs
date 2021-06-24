@@ -4,17 +4,21 @@ module Gyurver.Response
   ( Response
   , Status(..)
   , toByteString
-  , makeResponse
+  , make
   , addHeaders
   , success
+  , processJsonBody
   ) where
 
+import           Data.Function ((&))
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Time as Time
 
 import Gyurver.Html (Document)
-import Component.Json
+import qualified Component.Json as Json
+import           Component.Json (Json)
+import qualified Component.Decoder as Decoder
 
 data Status
   = OK
@@ -49,11 +53,15 @@ toByteString Response{content, status, headers} =
     , content
     ]
 
+processJsonBody :: String -> Decoder.Decoder a -> (a -> IO Response) -> IO Response
+processJsonBody content decoder handle =
+  Json.parseJson content >>= Decoder.run decoder & either (make BadRequest) handle
+
 addHeaders :: [(String, String)] -> Response -> Response
 addHeaders hs r = r { headers = headers r ++ hs }
 
-makeResponse :: CanSend a => Status -> a -> IO Response
-makeResponse status content = do
+make :: CanSend a => Status -> a -> IO Response
+make status content = do
   now <- Time.getCurrentTime
   let payload = toBytes content
   return $ Response
@@ -69,7 +77,7 @@ makeResponse status content = do
     }
 
 success :: IO Response
-success = makeResponse OK "OK Boomer"
+success = make OK "OK Boomer"
 
 class CanSend a where
   toBytes :: a -> ByteString
@@ -87,7 +95,7 @@ instance CanSend Json where
   toBytes = BS.pack . show
 
 instance CanSend [Json] where
-  toBytes = toBytes . JsonArray
+  toBytes = toBytes . Json.JsonArray
 
 showHeader :: (String, String) -> String
 showHeader (k, v) = k ++ ": " ++ v ++ "\n"

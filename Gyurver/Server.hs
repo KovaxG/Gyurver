@@ -4,7 +4,7 @@ import Network.Simple.TCP (serve, HostPreference(..), send, recv, Socket, SockAd
 
 import Gyurver.Gyurror (Gyurror(..))
 import Gyurver.Request (parseRequest, Request)
-import Gyurver.Response (makeResponse, toByteString, Response, Status(BadRequest))
+import Gyurver.Response (make, toByteString, Response, Status(BadRequest))
 import Gyurver.Logger (Logger)
 import qualified Gyurver.Logger as Log
 import Utils (maybeToEither)
@@ -41,8 +41,8 @@ processConnection log processRequest (connectionSocket, _) = do
       responseIO >>= send connectionSocket . toByteString
 
 parseFailedResponse :: IO Response
-parseFailedResponse = makeResponse BadRequest "Failed to decode request!"
+parseFailedResponse = make BadRequest "Failed to decode request!"
 
 receiveFailedResponse :: IO Response
 receiveFailedResponse =
-  makeResponse BadRequest "I got a connection but no message... Not sure if anyone will ever see this :D"
+  make BadRequest "I got a connection but no message... Not sure if anyone will ever see this :D"
