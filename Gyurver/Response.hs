@@ -24,6 +24,7 @@ data Status
   = OK
   | BadRequest
   | Unauthorized
+  | NotFound
   | InternalServerError
   | PaymentRequired
   | Forbidden
@@ -34,6 +35,7 @@ instance Show Status where
       OK -> "200 OK"
       BadRequest -> "400 Bad Request"
       Unauthorized -> "401 Unauthorized"
+      NotFound -> "404 Not Found"
       InternalServerError -> "500 Internal Server Error"
       PaymentRequired -> "402 Payment Required"
       Forbidden -> "403 Forbidden"

@@ -44,6 +44,8 @@ import           Types.Movie (Movie, MovieDiff)
 import qualified Types.Movie as Movie
 import           Types.Video (Video)
 import qualified Types.Video as Video
+import           Types.Blog (Blog)
+import qualified Types.Blog as Blog
 import qualified Types.VideoAdd as VideoAdd
 import qualified Types.VideoEdit as VideoEdit
 import           Types.Password as Password
@@ -62,20 +64,20 @@ main = do
 
   tojasDB <- DB.getHandle "cokkolo2020"
   vidsDB <- DB.getHandle "vids"
+  movieDiffDB <- DB.getHandle "movieDiff"
   suggestionBoxDB <- DB.getHandle "suggestionBox"
+  blogDB <- DB.getHandle "blog"
 
   cokk2021UserDB <- DB.getHandle "cokk2021User"
   cokk2021WaterDB <- DB.getHandle "cokk2021Water"
   cokk2021ItemDB <- DB.getHandle "cokk2021Item"
-
-  movieDiffDB <- DB.getHandle "movieDiff"
 
   settings <- readSettings log
   Logger.info log (show settings)
   Server.run log
             (settings & Settings.hostAddress)
             (settings & Settings.port)
-            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB suggestionBoxDB movieDiffDB settings)
+            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB suggestionBoxDB movieDiffDB blogDB settings)
 
 readSettings :: Logger -> IO Settings
 readSettings log =
@@ -107,6 +109,7 @@ process :: DBHandle Cokk2020.Tojas
         -> DBHandle Cokk2021Item.Item
         -> DBHandle String
         -> DBHandle Movie.MovieDiff
+        -> DBHandle Blog
         -> Settings
         -> Request
         -> IO Response
@@ -117,6 +120,7 @@ process tojasDB
         cokk2021ItemDB
         suggestionBoxDB
         movieDiffDB
+        blogDB
         settings
         Request{requestType, path, content} = do
   let
@@ -149,6 +153,14 @@ process tojasDB
     Endpoint.GetBlogPage -> do
       Logger.info log "Requested blog page."
       sendFile mainPath
+
+    Endpoint.GetBlogJSON blogNr -> do
+      Logger.info log $ "Requested blog nr " ++ show blogNr
+      blogMaybe <- DB.get blogDB blogNr
+      maybe
+        (Response.make NotFound $ "I have no blog with index " ++ show blogNr)
+        (fmap (Response.addHeaders [("Content-Type", "application/json")]) . Response.make OK . Blog.toJson)
+        blogMaybe
 
     Endpoint.GetCokk2020JSON -> do
       Logger.info log "[API] Requested cokkolesi lista."

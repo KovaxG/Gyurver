@@ -82,6 +82,9 @@ tests =
 
   , test "blog page" $ parse "GET /blog" === GetBlogPage
 
+  , test "correct blog page" $ parse "GET /api/blog/1" === GetBlogJSON 1
+  , test "incorrect blog page" $ parse "GET /api/blog/a" === Other "GET /api/blog/a"
+
   , test "videos API EN" $ parse "GET /api/videos" === GetVideosJSON
   , test "videos API HU" $ parse "GET /api/videok" === GetVideosJSON
   , test "videos API RO" $ parse "GET /api/videouri" === GetVideosJSON

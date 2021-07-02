@@ -94,11 +94,11 @@ everything handle = do
   return $ maybe Map.empty (Map.fromList . zip [1 ..] . map (Maybe.fromJust . decode) . Text.lines) raw
 
 get :: DBFormat a => DBHandle a -> Int -> IO (Maybe a)
-get handle id = do
+get handle index = do
   Sem.block (semaphore handle)
   !raw <- safeReadTextFile (path handle)
   Sem.unblock (semaphore handle)
-  return $ (Maybe.listToMaybe . drop (id-1) . take id . map (Maybe.fromJust . decode) . Text.lines) =<< raw
+  return $ (Maybe.listToMaybe . drop (index - 1) . take index . map (Maybe.fromJust . decode) . Text.lines) =<< raw
 
 delete :: DBFormat a => DBHandle a -> (a -> Bool) -> IO ()
 delete handle pred = do

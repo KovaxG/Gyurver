@@ -58,6 +58,7 @@ data Endpoint
   | OptionsVideoJSON Int
   | Film Operation
   | GetBlogPage
+  | GetBlogJSON Int
   | Other String
   deriving (Eq, Show)
 
@@ -81,6 +82,8 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "GET /videouri" $> GetVideosPage
 
         , Parsec.string "GET /blog" $> GetBlogPage
+
+        , Parsec.string "GET /api/blog/" >> GetBlogJSON <$> (read <$> Parsec.many1 Parsec.digit)
 
         , Parsec.string "GET /videos/new" $> GetVideosAddPage
         , Parsec.string "GET /videok/uj" $> GetVideosAddPage

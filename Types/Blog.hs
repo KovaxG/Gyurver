@@ -106,3 +106,4 @@ decodeMetadata =
 instance DBFormat Blog where
   encode = Text.pack . show . toJson
   decode = Utils.eitherToMaybe . (=<<) (Decoder.run decoder) . Json.parseJson . Text.unpack
+

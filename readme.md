@@ -52,6 +52,7 @@ defaultSettings = Settings
 - `/cokk2020/results` The results of the 2020 Cokkoles contest
 - `/cokk2021` Landing page of 2021 Cokkoles contest
 - `/cokk2021/results` The results of the 2021 Cokkoles contest
+- `/blog` A page where you can browse the blog
 
 
 ### Resources
@@ -78,3 +79,4 @@ defaultSettings = Settings
 - `/api/cokk2021/items/equip` equip item endpoint for 2021 Cokkoles (Post)
 - `/api/cokk2021/fight` run a match between 2 eggs for 2021 Cokkoles (Post)
 - `/api/films` endpoint for film stuff (Get, Post, Delete, Put)
+- `/api/blog/#` get a specific blog (Get)
