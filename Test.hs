@@ -80,6 +80,8 @@ tests =
   , test "videos page HU" $ parse "GET /videok" === GetVideosPage
   , test "videos page RO" $ parse "GET /videouri" === GetVideosPage
 
+  , test "blog page" $ parse "GET /blog" === GetBlogPage
+
   , test "videos API EN" $ parse "GET /api/videos" === GetVideosJSON
   , test "videos API HU" $ parse "GET /api/videok" === GetVideosJSON
   , test "videos API RO" $ parse "GET /api/videouri" === GetVideosJSON

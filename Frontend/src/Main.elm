@@ -5,14 +5,12 @@ import Browser.Navigation exposing (Key)
 import Browser.Navigation as Nav
 import Html exposing (text)
 import Url exposing (Url)
-import Debug
 import Dict exposing (Dict)
 
 import Bootstrap.Grid as Grid
 import Bootstrap.Navbar as Navbar
 import Html exposing (Html)
 import Html.Attributes exposing (href)
-import Bootstrap.Utilities.Spacing as Spacing
 
 import Landing
 import Cokkolo2020.Landing
@@ -20,9 +18,9 @@ import Cokkolo2020.Results
 import Cokkolo2021.Landing
 import Cokkolo2021.Results
 import Articles
+import Blog
 import Video.VideoAdd as VideoAdd
 import Video.Vids as VideoList
-import Browser.Navigation exposing (pushUrl)
 import Settings
 import Endpoints
 
@@ -51,6 +49,7 @@ type Content
   | Articles Articles.Model
   | VideoAdd VideoAdd.Model
   | VideoList VideoList.Model
+  | Blog Blog.Model
   | Invalid Model Msg
   | Loading
   | Test String
@@ -67,12 +66,13 @@ type Msg
   | ArticlesMsg Articles.Msg
   | VideoAddMsg VideoAdd.Msg
   | VideoListMsg VideoList.Msg
+  | BlogMsg Blog.Msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model = Navbar.subscriptions model.navbar NavbarMsg
 
 init : () -> Url -> Key -> (Model, Cmd Msg)
-init flags url key =
+init _ url key =
   let (navbarInitialState, navbarCmd) = Navbar.initialState NavbarMsg
       (initialModel, initialCmd) = selectPage { content = Loading, key = key, navbar = navbarInitialState } url.path
   in (initialModel, Cmd.batch [initialCmd, navbarCmd])
@@ -88,6 +88,7 @@ update msg model =
     (ArticlesMsg amsg, Articles a) -> Articles.update amsg a |> liftModelCmd Articles ArticlesMsg model
     (VideoAddMsg vamsg, VideoAdd va) -> VideoAdd.update vamsg va |> liftModelCmd VideoAdd VideoAddMsg model
     (VideoListMsg vlmsg, VideoList vl) -> VideoList.update vlmsg vl |> liftModelCmd VideoList VideoListMsg model
+    (BlogMsg bmsg, Blog b) -> Blog.update bmsg b |> liftModelCmd Blog BlogMsg model
 
     (UrlRequest request, _) ->
       case request of
@@ -121,6 +122,7 @@ validLinks model = Dict.fromList
   , (Endpoints.videoAddPageEN, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
   , (Endpoints.videoAddPageHU, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
   , (Endpoints.videoAddPageRO, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
+  , (Endpoints.blogPage, Blog.init |> liftModelCmd Blog BlogMsg model)
   ]
 
 selectPage : Model -> String -> (Model, Cmd Msg)
@@ -142,9 +144,10 @@ view model =
     Articles articles -> Articles.view articles |> liftDocument model ArticlesMsg
     VideoAdd videoAdd -> VideoAdd.view videoAdd |> liftDocument model VideoAddMsg
     VideoList videoList -> VideoList.view videoList |> liftDocument model VideoListMsg
+    Blog blog -> Blog.view blog |> liftDocument model BlogMsg
     Loading -> { title = "Loading", body = [text "If you see this just hit refresh :D #developer"]}
     Test msg -> { title = "Test", body = [text msg] }
-    Invalid md ms ->
+    Invalid _ _ ->
       { title = "Error"
       , body = [text "mismatch"]
       }
@@ -156,6 +159,7 @@ navbar model =
   |> Navbar.brand [ href Endpoints.landingPage ] [ text "Gyurver"]
   |> Navbar.items
     [ Navbar.itemLink [ href Endpoints.articlesPageEN ] [ text "📑 Articles"]
+    , Navbar.itemLink [ href Endpoints.blogPage ] [ text "📝 Blog" ]
     , Navbar.itemLink [ href Endpoints.videosPageEN ] [ text "📼 Videos"]
     , Navbar.dropdown
       { id = "Cokkolo_Dropdown"

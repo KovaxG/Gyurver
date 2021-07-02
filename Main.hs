@@ -146,6 +146,10 @@ process tojasDB
       Logger.info log "Requested articles page."
       sendFile mainPath
 
+    Endpoint.GetBlogPage -> do
+      Logger.info log "Requested blog page."
+      sendFile mainPath
+
     Endpoint.GetCokk2020JSON -> do
       Logger.info log "[API] Requested cokkolesi lista."
       tojasok <- DB.everythingList tojasDB
@@ -195,10 +199,10 @@ process tojasDB
       DB.insert suggestionBoxDB $ "---\n" ++ content
       Response.success
 
-    Endpoint.PostCokk2021ParticipantsForUser -> do
+    Endpoint.PostCokk2021ParticipantsForUser ->
       Cokk2021Handler.getParticipantsForUser content cokk2021UserDB cokk2021WaterDB
 
-    Endpoint.PostCokk2021Fight -> do
+    Endpoint.PostCokk2021Fight ->
       Cokk2021Handler.fight content cokk2021UserDB log
 
     Endpoint.GetVideosAddPage -> do
@@ -241,19 +245,19 @@ process tojasDB
             Logger.info log error
             Response.make Unauthorized error
 
-    Endpoint.PostCokk2021Login -> do
+    Endpoint.PostCokk2021Login ->
       Cokk2021Handler.login content cokk2021UserDB cokk2021WaterDB log
 
-    Endpoint.PostCokk2021Register -> do
+    Endpoint.PostCokk2021Register ->
       Cokk2021Handler.register content cokk2021UserDB settings log
 
-    Endpoint.PostCokk2021Water -> do
+    Endpoint.PostCokk2021Water ->
       Cokk2021Handler.water content cokk2021UserDB cokk2021WaterDB log settings
 
-    Endpoint.PostCokk2021DashboardRefresh -> do
+    Endpoint.PostCokk2021DashboardRefresh ->
       Cokk2021Handler.refreshDashboard content cokk2021UserDB cokk2021WaterDB
 
-    Endpoint.PostCokk2021IncSkill -> do
+    Endpoint.PostCokk2021IncSkill ->
       Cokk2021Handler.incSkill content cokk2021UserDB log settings
 
     Endpoint.PostCokk2021ChangeEggname -> do

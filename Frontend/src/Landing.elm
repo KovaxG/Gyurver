@@ -3,11 +3,10 @@ module Landing exposing (Model, Msg, init, update, view)
 import Browser exposing (Document)
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
-import Html exposing (text, h1, p, a)
+import Html exposing (text, p, a)
 import Html.Attributes exposing (href)
 
 import Endpoints
-import Settings
 
 type alias Model = ()
 type alias Msg = ()

@@ -9,6 +9,8 @@ articlesPageHU = "/cikkek"
 articlesPageRO = "/articole"
 
 
+blogPage = "/blog"
+
 videosPageEN = "/videos"
 videosPageHU = "/videok"
 videosPageRO = "/videouri"

@@ -1,12 +1,11 @@
 module Articles exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
-import Html exposing (Html, text, h1, h2, h3, p, a, br, strong)
+import Html exposing (text, h1, h2, p, a, br, strong)
 import Html.Attributes exposing (href)
 
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
-import Bootstrap.ListGroup as ListGroup
 
 type Model = NoModel
 type Msg = NoMsg
@@ -15,10 +14,10 @@ init : (Model, Cmd Msg)
 init = (NoModel, Cmd.none)
 
 update : Msg -> Model -> (Model, Cmd Msg)
-update msg model = (model, Cmd.none)
+update _ model = (model, Cmd.none)
 
 view : Model -> Document Msg
-view model =
+view _ =
   { title = "Articles"
   , body =
     [ CDN.stylesheet
