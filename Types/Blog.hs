@@ -1,11 +1,13 @@
 module Types.Blog where
 
-import qualified Data.Text as Text
 import           Component.Database (DBFormat(..))
 import           Component.Json (Json(..))
 import qualified Component.Json as Json
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
+import qualified Data.Text as Text
+import           Types.Date (Date(..))
+import qualified Types.Date as Date
 import qualified Utils
 
 type Language = String
@@ -14,6 +16,7 @@ type Title = String
 
 data Blog = Blog
   { title :: Title
+  , date :: Date
   , sections :: [Section]
   , references :: [Reference]
   , metadata :: Metadata
@@ -44,6 +47,7 @@ showASCII blog = unlines $ mconcat
 testBlog :: Blog
 testBlog = Blog
   { title = "Test Blog"
+  , date = Date 2021 7 2
   , sections =
       [ Paragraph "Hey, this is the first test blog. It is not intended to be shared, it is only intended for testing. Here is how I will refer to stuff: I like youtube [1]"
       , Paragraph "This is the second paragraph. I think I will not add newlines in paragraphs, because that way it will be much simpler for me to work with the stuff."
@@ -52,12 +56,13 @@ testBlog = Blog
       [ Ref 1 "Youtube" "www.youtube.com"
       , Ref 2 "Google" "www.google.com"
       ]
-  , metadata = Metadata ["English"] []
+  , metadata = Metadata ["English"] ["test"]
   }
 
 toJson :: Blog -> Json
 toJson blog = JsonObject
   [ ("title", JsonString $ title blog)
+  , ("date", Date.toJson $ date blog)
   , ("sections", JsonArray $ map sectionToJson $ sections blog)
   , ("references", JsonArray $ map refToJson $ references blog)
   , ("metadata", metadataToJson $ metadata blog)
@@ -79,6 +84,7 @@ metadataToJson (Metadata languages topics) =
 decoder :: Decoder Blog
 decoder =
   Blog <$> Decoder.field "title" Decoder.string
+       <*> Decoder.field "date" Date.decoder
        <*> Decoder.field "sections" (Decoder.list decodeSection)
        <*> Decoder.field "references" (Decoder.list decodeReference)
        <*> Decoder.field "metadata" decodeMetadata
@@ -106,4 +112,3 @@ decodeMetadata =
 instance DBFormat Blog where
   encode = Text.pack . show . toJson
   decode = Utils.eitherToMaybe . (=<<) (Decoder.run decoder) . Json.parseJson . Text.unpack
-
