@@ -181,11 +181,7 @@ liftDocument model f da =
   }
 
 liftModelCmd : (a -> Content) -> (b -> d) -> Model -> (a, Cmd b) -> (Model, Cmd d)
-liftModelCmd fm fc model (m, cmd) =
-  ( { model | content = fm m }
-  , Cmd.map fc cmd
-  )
+liftModelCmd fm fc model (m, cmd) = ({ model | content = fm m }, Cmd.map fc cmd)
 
 pushNewUrl : Key -> String -> (Model, Cmd Msg) -> (Model, Cmd Msg)
-pushNewUrl key path (model, cmd) =
-  (model, Cmd.batch [Nav.pushUrl key path, cmd])
+pushNewUrl key path (model, cmd) = (model, Cmd.batch [Nav.pushUrl key path, cmd])

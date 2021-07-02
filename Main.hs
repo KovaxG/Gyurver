@@ -154,6 +154,13 @@ process tojasDB
       Logger.info log "Requested blog page."
       sendFile mainPath
 
+    Endpoint.GetBlogItemsJSON -> do
+      Logger.info log "Requested blog items"
+      blogs <- DB.everythingList blogDB
+      let blogItems = zipWith Blog.toBlogItem [1..] blogs
+      Response.addHeaders [("Content-Type", "application/json")]
+        <$> Response.make OK blogItems
+
     Endpoint.GetBlogJSON blogNr -> do
       Logger.info log $ "Requested blog nr " ++ show blogNr
       blogMaybe <- DB.get blogDB blogNr

@@ -81,6 +81,7 @@ tests =
   , test "videos page RO" $ parse "GET /videouri" === GetVideosPage
 
   , test "blog page" $ parse "GET /blog" === GetBlogPage
+  , test "get blog items" $ parse "GET /api/blog/items" === GetBlogItemsJSON
 
   , test "correct blog page" $ parse "GET /api/blog/1" === GetBlogJSON 1
   , test "incorrect blog page" $ parse "GET /api/blog/a" === Other "GET /api/blog/a"

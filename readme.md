@@ -80,3 +80,4 @@ defaultSettings = Settings
 - `/api/cokk2021/fight` run a match between 2 eggs for 2021 Cokkoles (Post)
 - `/api/films` endpoint for film stuff (Get, Post, Delete, Put)
 - `/api/blog/#` get a specific blog (Get)
+- `/api/blog/items` get the metadata of all blogs (Get)

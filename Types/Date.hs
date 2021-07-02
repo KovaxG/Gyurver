@@ -1,12 +1,16 @@
 module Types.Date where
 
-import Component.Json
-import Component.Decoder (Decoder)
+import           Component.Json (Json(..))
+import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 import qualified Data.Time as Time
 import qualified Data.Time.Calendar as Calendar
+import           Text.Printf (printf)
 
-data Date = Date Int Int Int deriving (Read, Show, Eq)
+data Date = Date Int Int Int deriving (Read, Eq)
+
+instance Show Date where
+  show (Date y m d) = printf "%04d.%02d.%02d" y m d
 
 toJson :: Date -> Json
 toJson (Date y m d) = JsonObject

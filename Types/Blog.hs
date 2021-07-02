@@ -38,6 +38,7 @@ showASCII :: Blog -> String
 showASCII blog = unlines $ mconcat
   [ [title blog]
   , ["------------"]
+  , [show $ date blog]
   , [""]
   , map showSectionASCII (sections blog)
   , [""]
@@ -69,17 +70,23 @@ toJson blog = JsonObject
   ]
 
 sectionToJson :: Section -> Json
-sectionToJson (Paragraph body) =
-  JsonObject [("section", JsonString "paragraph"), ("content", JsonString body)]
+sectionToJson (Paragraph body) = JsonObject
+  [ ("section", JsonString "paragraph")
+  , ("content", JsonString body)
+  ]
 
 refToJson :: Reference -> Json
-refToJson (Ref index name url) =
-  JsonObject [("index", JsonNumber $ fromIntegral index), ("name", JsonString name), ("url", JsonString url)]
-
+refToJson (Ref index name url) = JsonObject
+  [ ("index", JsonNumber $ fromIntegral index)
+  , ("name", JsonString name)
+  , ("url", JsonString url)
+  ]
 
 metadataToJson :: Metadata -> Json
-metadataToJson (Metadata languages topics) =
-  JsonObject [("languages", JsonArray $ map JsonString languages), ("topics", JsonArray $ map JsonString topics)]
+metadataToJson (Metadata languages topics) = JsonObject
+  [ ("languages", JsonArray $ map JsonString languages)
+  , ("topics", JsonArray $ map JsonString topics)
+  ]
 
 decoder :: Decoder Blog
 decoder =
@@ -112,3 +119,11 @@ decodeMetadata =
 instance DBFormat Blog where
   encode = Text.pack . show . toJson
   decode = Utils.eitherToMaybe . (=<<) (Decoder.run decoder) . Json.parseJson . Text.unpack
+
+toBlogItem :: Int -> Blog -> Json
+toBlogItem index blog = JsonObject
+  [ ("index", JsonNumber $ fromIntegral index)
+  , ("title", JsonString $ title blog)
+  , ("date", Date.toJson $ date blog)
+  , ("metadata", metadataToJson $ metadata blog)
+  ]

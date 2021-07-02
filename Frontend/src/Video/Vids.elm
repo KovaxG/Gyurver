@@ -26,8 +26,6 @@ import Types.Result as Result
 import Html.Events exposing (onClick)
 import Util
 
-type TagType = SelectedTag | NormalTag
-
 type ItemStatus = Viewing | Editing | EditWaiting | Deleting | DeleteWaiting
 
 type alias VideoItem =
@@ -345,7 +343,7 @@ deleteVideoToHtml model item =
   ] |> div []
 
 editableVideoToHtml : Model -> VideoItem -> Html Msg
-editableVideoToHtml model item =
+editableVideoToHtml _ item =
   [ Grid.row [] [Grid.col [] [input [ placeholder "title", value item.title, onInput (VideoEdit item.video.nr << TitleChanged)] []]]
   , Grid.row []
     [ Grid.col [] [iframe [src item.video.url] []]
