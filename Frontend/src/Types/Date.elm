@@ -9,10 +9,10 @@ type alias Date = ElmDate.Date
 decode : Decoder Date
 decode =
   Decode.map3
-    (\y m d ->
-      ElmDate.fromCalendarDate y
-                            (ElmDate.numberToMonth m)
-                            d
+    (\y m ->
+      ElmDate.fromCalendarDate
+        y
+        (ElmDate.numberToMonth m)
     )
     (Decode.field "year" Decode.int)
     (Decode.field "month" Decode.int)

@@ -11,6 +11,8 @@ articlesPageRO = "/articole"
 
 blogPage = "/blog"
 
+blogItemsJson = "/api/blog/items"
+
 videosPageEN = "/videos"
 videosPageHU = "/videok"
 videosPageRO = "/videouri"

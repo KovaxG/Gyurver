@@ -18,6 +18,10 @@ instance Applicative Decoder where
   pure = success
   decoderf <*> decoder = Decoder $ \json -> run decoderf json <*> run decoder json
 
+-- run da json, lol
+instance Monad Decoder where
+  da >>= df = Decoder $ \json -> run da json >>= (\a -> run (df a) json)
+
 int :: Decoder Int
 int = Decoder $ \case
     JsonNumber num ->

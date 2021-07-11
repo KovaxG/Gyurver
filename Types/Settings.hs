@@ -57,3 +57,6 @@ parse = Bifunctor.first show . Parsec.parse settings "Parsing Settings"
     running = Parsec.string "running" >> return Running
     locked = Parsec.string "locked" >> return Locked
     blocked = Parsec.string "blocked" >> return Blocked
+
+
+-- Tugyatok mier ros ha ninci civel beseietek perte cet, unatkostok és fel idegesite te magatokat semiert. Oian egyedű letet erestek. És csak a olvasad és a iras nuktat engemet.

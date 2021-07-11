@@ -4,7 +4,6 @@ import Html exposing (Html, text, h1, h2, br, div, a)
 import Html.Attributes exposing (href, align)
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
-import Bootstrap.Alert as Alert
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
 import Bootstrap.Utilities.Spacing as Spacing

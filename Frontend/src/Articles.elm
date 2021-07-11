@@ -16,6 +16,9 @@ init = (NoModel, Cmd.none)
 update : Msg -> Model -> (Model, Cmd Msg)
 update _ model = (model, Cmd.none)
 
+-- TODO: Should have an article type and a display function for each article
+-- (also use the language type I just created! :D)
+
 view : Model -> Document Msg
 view _ =
   { title = "Articles"

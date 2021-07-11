@@ -3,7 +3,7 @@ module Cokkolo2021.Landing exposing (Model, Msg, init, update, view)
 import Browser exposing (Document)
 import Html
 import Http as Http
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode
 
 import Bootstrap.Modal as Modal
 

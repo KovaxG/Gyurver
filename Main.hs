@@ -157,7 +157,7 @@ process tojasDB
     Endpoint.GetBlogItemsJSON -> do
       Logger.info log "Requested blog items"
       blogs <- DB.everythingList blogDB
-      let blogItems = zipWith Blog.toBlogItem [1..] blogs
+      let blogItems = map Blog.toBlogItem blogs
       Response.addHeaders [("Content-Type", "application/json")]
         <$> Response.make OK blogItems
 
