@@ -154,6 +154,10 @@ process tojasDB
       Logger.info log "Requested blog page."
       sendFile mainPath
 
+    Endpoint.GetBlogItemPage blogNr -> do
+      Logger.info log $ "Requested blog with index " ++ show blogNr
+      sendFile mainPath
+
     Endpoint.GetBlogItemsJSON -> do
       Logger.info log "Requested blog items"
       blogs <- DB.everythingList blogDB

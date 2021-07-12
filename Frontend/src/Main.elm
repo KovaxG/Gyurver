@@ -18,11 +18,13 @@ import Cokkolo2020.Results
 import Cokkolo2021.Landing
 import Cokkolo2021.Results
 import Articles
+import BlogList
 import Blog
 import Video.VideoAdd as VideoAdd
 import Video.Vids as VideoList
 import Settings
 import Endpoints
+import Util
 
 main : Program () Model Msg
 main = application
@@ -49,6 +51,7 @@ type Content
   | Articles Articles.Model
   | VideoAdd VideoAdd.Model
   | VideoList VideoList.Model
+  | BlogList BlogList.Model
   | Blog Blog.Model
   | Invalid Model Msg
   | Loading
@@ -66,6 +69,7 @@ type Msg
   | ArticlesMsg Articles.Msg
   | VideoAddMsg VideoAdd.Msg
   | VideoListMsg VideoList.Msg
+  | BlogListMsg BlogList.Msg
   | BlogMsg Blog.Msg
 
 subscriptions : Model -> Sub Msg
@@ -88,7 +92,7 @@ update msg model =
     (ArticlesMsg amsg, Articles a) -> Articles.update amsg a |> liftModelCmd Articles ArticlesMsg model
     (VideoAddMsg vamsg, VideoAdd va) -> VideoAdd.update vamsg va |> liftModelCmd VideoAdd VideoAddMsg model
     (VideoListMsg vlmsg, VideoList vl) -> VideoList.update vlmsg vl |> liftModelCmd VideoList VideoListMsg model
-    (BlogMsg bmsg, Blog b) -> Blog.update bmsg b |> liftModelCmd Blog BlogMsg model
+    (BlogListMsg bmsg, BlogList b) -> BlogList.update bmsg b |> liftModelCmd BlogList BlogListMsg model
 
     (UrlRequest request, _) ->
       case request of
@@ -97,7 +101,7 @@ update msg model =
 
     (UrlChange url, _) ->
       validLinks model
-      |> Dict.get url.path
+      |> Dict.get (Util.removeFinalDigits url.path)
       |> Maybe.withDefault ({ model | content = Loading }, Cmd.none)
 
     (NavbarMsg newState, _) -> ({ model | navbar = newState }, Cmd.none)
@@ -122,14 +126,16 @@ validLinks model = Dict.fromList
   , (Endpoints.videoAddPageEN, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
   , (Endpoints.videoAddPageHU, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
   , (Endpoints.videoAddPageRO, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
-  , (Endpoints.blogPage, Blog.init |> liftModelCmd Blog BlogMsg model)
+  , (Endpoints.blogPage, BlogList.init |> liftModelCmd BlogList BlogListMsg model)
+  , (Endpoints.blogItemPage, Blog.init |> liftModelCmd Blog BlogMsg model)
   ]
 
 selectPage : Model -> String -> (Model, Cmd Msg)
 selectPage model path =
   let loading = { model | content = Loading }
+      key = Util.removeFinalDigits path
   in
-    if Dict.member path (validLinks model)
+    if Dict.member key (validLinks model)
     then pushNewUrl model.key path (loading, Cmd.none)
     else (loading, Nav.load path)
 
@@ -144,6 +150,7 @@ view model =
     Articles articles -> Articles.view articles |> liftDocument model ArticlesMsg
     VideoAdd videoAdd -> VideoAdd.view videoAdd |> liftDocument model VideoAddMsg
     VideoList videoList -> VideoList.view videoList |> liftDocument model VideoListMsg
+    BlogList blog -> BlogList.view blog |> liftDocument model BlogListMsg
     Blog blog -> Blog.view blog |> liftDocument model BlogMsg
     Loading -> { title = "Loading", body = [text "If you see this just hit refresh :D #developer"]}
     Test msg -> { title = "Test", body = [text msg] }

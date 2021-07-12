@@ -2,6 +2,7 @@ module Util exposing (..)
 
 import Http exposing (Error(..))
 import Types.Result as Result
+import List.Extra as List
 
 mapIf : (a -> Bool) -> (a -> a) -> List a -> List a
 mapIf p f = List.map (\a -> if p a then f a else a)
@@ -26,3 +27,10 @@ processMessage success fail result =
 
 flip : (a -> b -> c) -> b -> a -> c
 flip f a b = f b a
+
+removeFinalDigits : String -> String
+removeFinalDigits url =
+  url
+  |> String.toList
+  |> List.dropWhileRight Char.isDigit
+  |> String.fromList
