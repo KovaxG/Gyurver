@@ -5,8 +5,8 @@ import Browser.Navigation exposing (Key)
 import Browser.Navigation as Nav
 import Html exposing (text)
 import Url exposing (Url)
-import Dict exposing (Dict)
-
+import Url.Parser as Parser exposing (Parser)
+import Maybe.Extra as Maybe
 import Bootstrap.Grid as Grid
 import Bootstrap.Navbar as Navbar
 import Html exposing (Html)
@@ -23,8 +23,7 @@ import Blog
 import Video.VideoAdd as VideoAdd
 import Video.Vids as VideoList
 import Settings
-import Endpoints
-import Util
+import Endpoints exposing (Endpoint(..))
 
 main : Program () Model Msg
 main = application
@@ -93,51 +92,40 @@ update msg model =
     (VideoAddMsg vamsg, VideoAdd va) -> VideoAdd.update vamsg va |> liftModelCmd VideoAdd VideoAddMsg model
     (VideoListMsg vlmsg, VideoList vl) -> VideoList.update vlmsg vl |> liftModelCmd VideoList VideoListMsg model
     (BlogListMsg bmsg, BlogList b) -> BlogList.update bmsg b |> liftModelCmd BlogList BlogListMsg model
+    (BlogMsg bmsg, Blog b) -> Blog.update bmsg b |> liftModelCmd Blog BlogMsg model
 
     (UrlRequest request, _) ->
       case request of
         External path -> ({ model | content = Loading }, Nav.load path)
         Internal url -> selectPage model url.path
 
-    (UrlChange url, _) ->
-      validLinks model
-      |> Dict.get (Util.removeFinalDigits url.path)
-      |> Maybe.withDefault ({ model | content = Loading }, Cmd.none)
+    (UrlChange url, _) -> validLinks model url.path |> Maybe.withDefault ({ model | content = Loading }, Cmd.none)
 
     (NavbarMsg newState, _) -> ({ model | navbar = newState }, Cmd.none)
 
     (_, _) -> ({ model | content = Invalid model msg }, Cmd.none)
 
-validLinks : Model -> Dict String (Model, Cmd Msg)
-validLinks model = Dict.fromList
-  [ (Endpoints.landingPage, Landing.init |> liftModelCmd Landing LandingMsg model)
-  , (Endpoints.cokk2020Page, Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model)
-  , (Endpoints.cokk2020ResultsPageEN, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model)
-  , (Endpoints.cokk2020ResultsPageHU, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model)
-  , (Endpoints.cokk2020ResultsPageRO, Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model)
-  , (Endpoints.cokk2021Page, Cokkolo2021.Landing.init |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model)
-  , (Endpoints.cokk2021ResultsPageEN, Cokkolo2021.Results.init |> liftModelCmd CokkoloResults2021 CokkoloResults2021Msg model)
-  , (Endpoints.articlesPageEN, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
-  , (Endpoints.articlesPageHU, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
-  , (Endpoints.articlesPageRO, Articles.init |> liftModelCmd Articles ArticlesMsg  model)
-  , (Endpoints.videosPageEN, VideoList.init |> liftModelCmd VideoList VideoListMsg model)
-  , (Endpoints.videosPageHU, VideoList.init |> liftModelCmd VideoList VideoListMsg model)
-  , (Endpoints.videosPageRO, VideoList.init |> liftModelCmd VideoList VideoListMsg model)
-  , (Endpoints.videoAddPageEN, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
-  , (Endpoints.videoAddPageHU, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
-  , (Endpoints.videoAddPageRO, VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
-  , (Endpoints.blogPage, BlogList.init |> liftModelCmd BlogList BlogListMsg model)
-  , (Endpoints.blogItemPage, Blog.init |> liftModelCmd Blog BlogMsg model)
-  ]
+-- Cool story here, I was trying to parse the url, and was using Url.fromString path.
+-- The problem is that it always returns Nothing, because the expected url needs to
+-- be an absolute url *sadface*
+validLinks : Model -> String -> Maybe (Model, Cmd Msg)
+validLinks model path =
+  let endpointToInit : Endpoint -> (Model, Cmd Msg)
+      endpointToInit ep = case ep of
+        LandingPage -> (Landing.init |> liftModelCmd Landing LandingMsg model)
+        Cokk2020Page -> (Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model)
+        BlogItemPage index -> (Blog.init index |> liftModelCmd Blog BlogMsg model)
+  in path
+     |> Endpoints.parse
+     |> Maybe.map endpointToInit
 
 selectPage : Model -> String -> (Model, Cmd Msg)
 selectPage model path =
   let loading = { model | content = Loading }
-      key = Util.removeFinalDigits path
   in
-    if Dict.member key (validLinks model)
-    then pushNewUrl model.key path (loading, Cmd.none)
-    else (loading, Nav.load path)
+    validLinks model path
+    |> Maybe.map (\_ -> pushNewUrl model.key path (loading, Cmd.none))
+    |> Maybe.withDefault (loading, Nav.load path)
 
 view : Model -> Document Msg
 view model =
@@ -163,7 +151,7 @@ navbar : Model -> Html Msg
 navbar model =
   Navbar.config NavbarMsg
   |> Navbar.withAnimation
-  |> Navbar.brand [ href Endpoints.landingPage ] [ text "Gyurver"]
+  |> Navbar.brand [ href <| Endpoints.show LandingPage ] [ text "Gyurver"]
   |> Navbar.items
     [ Navbar.itemLink [ href Endpoints.articlesPageEN ] [ text "📑 Articles"]
     , Navbar.itemLink [ href Endpoints.blogPage ] [ text "📝 Blog" ]
@@ -172,7 +160,7 @@ navbar model =
       { id = "Cokkolo_Dropdown"
       , toggle = Navbar.dropdownToggle [] [text "🥚 Cökkölő"]
       , items =
-        [ Navbar.dropdownItem [href Endpoints.cokk2020Page] [text "2020"]
+        [ Navbar.dropdownItem [href <| Endpoints.show Cokk2020Page] [text "2020"]
         , Navbar.dropdownItem [href Endpoints.cokk2021Page] [text "2021"]
         ]
       }

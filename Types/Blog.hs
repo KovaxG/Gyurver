@@ -138,7 +138,7 @@ instance DBFormat Blog where
 
 toBlogItem :: Blog -> Json
 toBlogItem blog = JsonObject
-  [ ("identity", JsonNumber $ fromIntegral $ identifier blog)
+  [ ("identifier", JsonNumber $ fromIntegral $ identifier blog)
   , ("title", JsonString $ title blog)
   , ("date", Date.toJson $ date blog)
   , ("intro", JsonString $ intro blog)

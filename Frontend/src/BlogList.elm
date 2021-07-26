@@ -15,7 +15,7 @@ import Http
 import Types.Date as Date
 import Types.Language as Language exposing (Language(..))
 import Types.Date exposing (Date)
-import Endpoints
+import Endpoints exposing (Endpoint(..))
 import Util
 import Settings
 
@@ -32,7 +32,7 @@ blogItemDecoder : Decoder BlogItem
 blogItemDecoder =
   Decode.map6
     BlogItem
-    (Decode.field "identity" Decode.int)
+    (Decode.field "identifier" Decode.int)
     (Decode.field "title" Decode.string)
     (Decode.field "date" Date.decode)
     (Decode.field "intro" Decode.string)
@@ -95,7 +95,7 @@ view state =
 viewBlogItem : BlogItem -> Html Msg
 viewBlogItem blogItem =
   [ br [] []
-  , h3 [] [a [href <| Settings.path ++ Endpoints.blogItemPage ++ String.fromInt blogItem.identity] [text <| showFlags blogItem.languages ++ blogItem.title]]
+  , h3 [] [a [href <| Settings.path ++ Endpoints.show (BlogItemPage blogItem.identity)] [text <| showFlags blogItem.languages ++ blogItem.title]]
   , strong [] [text "Date "]
   , text <| toIsoString <| blogItem.date
   , br [] []
