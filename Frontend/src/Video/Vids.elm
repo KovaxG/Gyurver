@@ -1,7 +1,7 @@
 module Video.Vids exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
-import Html exposing (Html, text, h1, h3, br, strong, div, iframe, input, span)
+import Html exposing (Html, text, h1, h3, br, strong, div, iframe, input)
 import Html.Attributes exposing (src, placeholder, value)
 import Html.Events exposing (onInput)
 import Bootstrap.CDN as CDN
@@ -19,7 +19,7 @@ import Date as ElmDate
 import Types.Date as Date exposing (Date)
 import Settings
 import Endpoints
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode
 import Set
 import Video.Video as Video exposing (Video)
 import Types.Result as Result
@@ -264,7 +264,7 @@ view model =
 
 searchSection : Model -> List VideoItem -> Html Msg
 searchSection model filteredVideos =
-  div [] (titleField model :: tagSelection model :: infoField filteredVideos :: [])
+  div [] [titleField model, tagSelection model, infoField filteredVideos]
 
 infoField : List VideoItem -> Html Msg
 infoField items =

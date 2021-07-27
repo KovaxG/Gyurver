@@ -1,6 +1,6 @@
 module Video.VideoAdd exposing (Model, Msg, init, update, view)
 
-import Browser exposing (UrlRequest, Document, application)
+import Browser exposing (Document)
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Form.Input as Input
@@ -9,13 +9,10 @@ import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Spinner as Spinner
 import Browser.Navigation as Nav
-import Html exposing (Html, text, button, h1, p, a, br, iframe, div)
-import Html.Attributes exposing (href, src)
-import Html.Events exposing (onClick)
-import Json.Encode as Json exposing (Value)
-import Json.Decode as Decode
+import Html exposing (Html, text, h1, a, br, iframe, div)
+import Html.Attributes exposing (src)
 import Http as Http exposing (Error(..))
-import Date as Date exposing (Date)
+import Date
 import Task
 import Time exposing (Month(..))
 import Maybe.Extra as Maybe
@@ -182,6 +179,7 @@ textInput value msg = Input.text
     else Input.id ""
   ]
 
+-- TODO use this for author input instead of text input!
 authorInput : Model -> Html Msg
 authorInput model = Input.text
   [ Input.value model.author

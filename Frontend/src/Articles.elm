@@ -8,7 +8,7 @@ import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 
 type Model = NoModel
-type Msg = NoMsg
+type alias Msg = ()
 
 init : (Model, Cmd Msg)
 init = (NoModel, Cmd.none)

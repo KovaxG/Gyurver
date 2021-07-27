@@ -5,7 +5,6 @@ import Browser.Navigation exposing (Key)
 import Browser.Navigation as Nav
 import Html exposing (text)
 import Url exposing (Url)
-import Url.Parser as Parser exposing (Parser)
 import Maybe.Extra as Maybe
 import Bootstrap.Grid as Grid
 import Bootstrap.Navbar as Navbar

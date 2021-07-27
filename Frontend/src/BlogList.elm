@@ -71,7 +71,7 @@ processIncommingList : List BlogItem -> Msg
 processIncommingList bs = if List.isEmpty bs then PopulateError "I got nothing ¯\\_(ツ)_/¯" else Populate bs
 
 update : Msg -> Model -> (Model, Cmd Msg)
-update msg model =
+update msg _ =
   case msg of
     Populate items -> (Populated items, Cmd.none)
     PopulateError error -> (ShowMessage error, Cmd.none)

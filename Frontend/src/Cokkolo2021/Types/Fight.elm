@@ -19,7 +19,7 @@ describeEffect name1 name2 eff = case eff of
 toString : FightLog -> String
 toString fl = case fl of
   StartFight _ _ _ _ -> "Kezdődik a harc!"
-  Damage n1 dmg1 hp1 eff1 n2 dmg2 hp2 eff2 ->
+  Damage n1 dmg1 _ eff1 n2 dmg2 _ eff2 ->
     let
       tamadoEffektek = List.map (describeEffect n1 n2) eff1
       vedekezoEffektetkFurfangossakNelkul =
