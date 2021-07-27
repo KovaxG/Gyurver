@@ -9,6 +9,7 @@ type Endpoint
   = LandingPage
   | ArticlesPage
   | VideosPage
+  | VideoAddPage
   | Cokk2020Page
   | Cokk2020ResultsPage
   | Cokk2021Page
@@ -24,6 +25,7 @@ parse path =
           [ map LandingPage top
           , map ArticlesPage (s "articles")
           , map VideosPage (s "videos")
+          , map VideoAddPage (s "videos" </> s "new")
           , map Cokk2020Page (s "cokk2020")
           , map Cokk2020ResultsPage (s "cokk2020" </> s "results")
           , map Cokk2021Page (s "cokk2021")
@@ -34,12 +36,6 @@ parse path =
      |> Url.fromString
      |> Maybe.andThen (Parser.parse actualParser)
 
-  -- , Parser.keyword Endpoints.videoAddPageEN
-  --     |> Parser.map (\_ -> VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
-  -- , Parser.keyword Endpoints.videoAddPageHU
-  --     |> Parser.map (\_ -> VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
-  -- , Parser.keyword Endpoints.videoAddPageRO
-  --     |> Parser.map (\_ -> VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
   -- , Parser.keyword Endpoints.blogPage
   --   |> Parser.map (\_ -> BlogList.init |> liftModelCmd BlogList BlogListMsg model)
   -- ]
@@ -49,6 +45,7 @@ show ep = case ep of
   LandingPage -> "/"
   ArticlesPage -> "/articles"
   VideosPage -> "/videos"
+  VideoAddPage -> "/videos/new"
   Cokk2020Page -> "/cokk2020"
   Cokk2020ResultsPage -> "/cokk2020/results"
   Cokk2021Page -> "/cokk2021"
@@ -59,11 +56,6 @@ blogPage = "/blog"
 
 blogItemsJson = "/api/blog/items"
 blogItemJson = "/api/blog/"
-
-videoAddPageEN = "/videos/new"
-videoAddPageHU = "/videok/uj"
-videoAddPageRO = "/videouri/nou"
-
 
 videosJsonEN = "/api/videos"
 videosJsonHU = "/api/videok"
