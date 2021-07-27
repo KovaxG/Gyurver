@@ -1,9 +1,7 @@
 module Cokkolo2020.Landing exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
-import Browser.Navigation exposing (load)
-import Html exposing (Html, button, div, text, h1, h3, p, ol, li, br, a)
-import Html.Events exposing (onClick)
+import Html exposing (Html, div, text, h1, h3, p, ol, li, br, a)
 import Html.Attributes exposing (style, href)
 import Http exposing (get, expectJson, Error)
 import Json.Decode exposing (Decoder)
@@ -11,12 +9,10 @@ import Json.Decode as Decoder
 
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
-import Bootstrap.Button as Button
 import Bootstrap.Spinner as Spinner
 import Bootstrap.Text as Text
 
-import Settings
-import Endpoints
+import Endpoints exposing (Endpoint(..))
 
 type alias Model =
   { tojasok : List Tojas
@@ -44,7 +40,7 @@ init =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    Tojasok (Err err) ->
+    Tojasok (Err _) ->
       ( { model | betoltve = True }
       , Cmd.none
       )
@@ -62,7 +58,7 @@ view model =
           , leiras
           , text "A felíratkozásnak már vége, a nap folyamán itt lesz egy link ahol majd meg lehet nézni az eredményeket. Sok sikert mindenkinek :)"
           , br [] []
-          , a [href Endpoints.cokk2020ResultsPageHU] [text "Mutasd az Eredményeket!"]
+          , a [href <| Endpoints.show Cokk2020ResultsPage] [text "Mutasd az Eredményeket!"]
           , h3 [] [text "Versenyzők"]
           , if model.betoltve
             then listaView model.tojasok
@@ -99,6 +95,7 @@ tojasDecoder =
     (Decoder.field "nev" Decoder.string)
     (Decoder.field "szin" Decoder.string)
 
+leiras : Html Msg
 leiras =
   p []
     [ text "Kellemes ünnepeket! Üdv az első online cökkölési versenyen."

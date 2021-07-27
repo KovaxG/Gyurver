@@ -115,6 +115,7 @@ validLinks model path =
         LandingPage -> Landing.init |> liftModelCmd Landing LandingMsg model
         ArticlesPage -> Articles.init |> liftModelCmd Articles ArticlesMsg model
         Cokk2020Page -> Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model
+        Cokk2020ResultsPage -> Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model
         BlogItemPage index -> Blog.init index |> liftModelCmd Blog BlogMsg model
   in path
      |> Endpoints.parse

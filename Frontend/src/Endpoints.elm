@@ -1,7 +1,7 @@
 module Endpoints exposing (..)
 
 import Url
-import Url.Parser as Parser exposing (Parser, (</>))
+import Url.Parser as Parser exposing (Parser, (</>), oneOf, map, s, int, top)
 
 -- This file is duplicated in Gyurver Endpoints.hs, not sure what to do about this fact
 
@@ -9,6 +9,7 @@ type Endpoint
   = LandingPage
   | ArticlesPage
   | Cokk2020Page
+  | Cokk2020ResultsPage
   | BlogItemPage Int
 
 parse : String -> Maybe Endpoint
@@ -16,22 +17,17 @@ parse path =
   let fullUrl = "http://fake.com" ++ path
       actualParser : Parser (Endpoint -> a) a
       actualParser =
-        Parser.oneOf
-          [ Parser.map LandingPage Parser.top
-          , Parser.map ArticlesPage (Parser.s "articles")
-          , Parser.map Cokk2020Page (Parser.s "cokk2020")
-          , Parser.map BlogItemPage (Parser.s "blog" </> Parser.int)
+        oneOf
+          [ map LandingPage top
+          , map ArticlesPage (s "articles")
+          , map Cokk2020Page (s "cokk2020")
+          , map Cokk2020ResultsPage (s "cokk2020" </> s "results")
+          , map BlogItemPage (s "blog" </> int)
           ]
   in fullUrl
      |> Url.fromString
      |> Maybe.andThen (Parser.parse actualParser)
 
-  -- , Parser.keyword Endpoints.cokk2020ResultsPageEN
-  --     |> Parser.map (\_ -> Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model)
-  -- , Parser.keyword Endpoints.cokk2020ResultsPageHU
-  --     |> Parser.map (\_ -> Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model)
-  -- , Parser.keyword Endpoints.cokk2020ResultsPageRO
-  --     |> Parser.map (\_ -> Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model)
   -- , Parser.keyword Endpoints.cokk2021Page
   --     |> Parser.map (\_ -> Cokkolo2021.Landing.init |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model)
   -- , Parser.keyword Endpoints.cokk2021ResultsPageEN
@@ -57,6 +53,7 @@ show ep = case ep of
   LandingPage -> "/"
   ArticlesPage -> "/articles"
   Cokk2020Page -> "/cokk2020"
+  Cokk2020ResultsPage -> "/cokk2020/results"
   BlogItemPage nr -> "/blog/" ++ String.fromInt nr
 
 blogPage = "/blog"
@@ -83,10 +80,6 @@ videoJson nr = "/api/video/" ++ String.fromInt nr
 
 cokk2021Page = "/cokk2021"
 cokk2021ResultsPageEN = "/cokk2021/results"
-
-cokk2020ResultsPageEN = "/cokk2020/results"
-cokk2020ResultsPageHU = "/cokk2020/eredmenyek"
-cokk2020ResultsPageRO = "/cokk2020/rezultate"
 
 cokk2020Json = "/api/cokk2020"
 
