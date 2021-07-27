@@ -116,6 +116,7 @@ validLinks model path =
         Cokk2020Page -> Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model
         Cokk2020ResultsPage -> Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model
         Cokk2021Page -> Cokkolo2021.Landing.init |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model
+        Cokk2021ResultsPage -> Cokkolo2021.Results.init |> liftModelCmd CokkoloResults2021 CokkoloResults2021Msg model
         BlogItemPage index -> Blog.init index |> liftModelCmd Blog BlogMsg model
   in path
      |> Endpoints.parse
@@ -142,12 +143,9 @@ view model =
     VideoList videoList -> VideoList.view videoList |> liftDocument model VideoListMsg
     BlogList blog -> BlogList.view blog |> liftDocument model BlogListMsg
     Blog blog -> Blog.view blog |> liftDocument model BlogMsg
-    Loading -> { title = "Loading", body = [text "If you see this just hit refresh :D #developer"]}
+    Loading -> { title = "Loading", body = [text "If you see this just hit refresh :D #developer"] }
     Test msg -> { title = "Test", body = [text msg] }
-    Invalid _ _ ->
-      { title = "Error"
-      , body = [text "mismatch"]
-      }
+    Invalid _ _ -> { title = "Error", body = [text "mismatch"] }
 
 navbar : Model -> Html Msg
 navbar model =
@@ -169,7 +167,6 @@ navbar model =
     ]
   |> Navbar.customItems [Navbar.textItem [ ] [ text <| "v" ++ Settings.version]]
   |> Navbar.view model.navbar
-
 
 liftDocument : Model -> (a -> Msg) -> Document a -> Document Msg
 liftDocument model f da =
