@@ -10,6 +10,7 @@ type Endpoint
   | ArticlesPage
   | Cokk2020Page
   | Cokk2020ResultsPage
+  | Cokk2021Page
   | BlogItemPage Int
 
 parse : String -> Maybe Endpoint
@@ -22,14 +23,13 @@ parse path =
           , map ArticlesPage (s "articles")
           , map Cokk2020Page (s "cokk2020")
           , map Cokk2020ResultsPage (s "cokk2020" </> s "results")
+          , map Cokk2021Page (s "cokk2021")
           , map BlogItemPage (s "blog" </> int)
           ]
   in fullUrl
      |> Url.fromString
      |> Maybe.andThen (Parser.parse actualParser)
 
-  -- , Parser.keyword Endpoints.cokk2021Page
-  --     |> Parser.map (\_ -> Cokkolo2021.Landing.init |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model)
   -- , Parser.keyword Endpoints.cokk2021ResultsPageEN
   --     |> Parser.map (\_ -> Cokkolo2021.Results.init |> liftModelCmd CokkoloResults2021 CokkoloResults2021Msg model)
   -- , Parser.keyword Endpoints.videosPageEN
@@ -54,6 +54,7 @@ show ep = case ep of
   ArticlesPage -> "/articles"
   Cokk2020Page -> "/cokk2020"
   Cokk2020ResultsPage -> "/cokk2020/results"
+  Cokk2021Page -> "/cokk2021"
   BlogItemPage nr -> "/blog/" ++ String.fromInt nr
 
 blogPage = "/blog"
@@ -78,7 +79,6 @@ videosJsonRO = "/api/videouri"
 
 videoJson nr = "/api/video/" ++ String.fromInt nr
 
-cokk2021Page = "/cokk2021"
 cokk2021ResultsPageEN = "/cokk2021/results"
 
 cokk2020Json = "/api/cokk2020"

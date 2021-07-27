@@ -115,6 +115,7 @@ validLinks model path =
         ArticlesPage -> Articles.init |> liftModelCmd Articles ArticlesMsg model
         Cokk2020Page -> Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model
         Cokk2020ResultsPage -> Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model
+        Cokk2021Page -> Cokkolo2021.Landing.init |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model
         BlogItemPage index -> Blog.init index |> liftModelCmd Blog BlogMsg model
   in path
      |> Endpoints.parse
@@ -162,7 +163,7 @@ navbar model =
       , toggle = Navbar.dropdownToggle [] [text "🥚 Cökkölő"]
       , items =
         [ Navbar.dropdownItem [href <| Endpoints.show Cokk2020Page] [text "2020"]
-        , Navbar.dropdownItem [href Endpoints.cokk2021Page] [text "2021"]
+        , Navbar.dropdownItem [href <| Endpoints.show Cokk2021Page] [text "2021"]
         ]
       }
     ]
