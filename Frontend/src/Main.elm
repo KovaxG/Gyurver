@@ -113,6 +113,7 @@ validLinks model path =
       endpointToInit ep = case ep of
         LandingPage -> Landing.init |> liftModelCmd Landing LandingMsg model
         ArticlesPage -> Articles.init |> liftModelCmd Articles ArticlesMsg model
+        VideosPage -> VideoList.init |> liftModelCmd VideoList VideoListMsg model
         Cokk2020Page -> Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model
         Cokk2020ResultsPage -> Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model
         Cokk2021Page -> Cokkolo2021.Landing.init |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model
@@ -155,7 +156,7 @@ navbar model =
   |> Navbar.items
     [ Navbar.itemLink [ href <| Endpoints.show ArticlesPage ] [ text "📑 Articles"]
     , Navbar.itemLink [ href Endpoints.blogPage ] [ text "📝 Blog" ]
-    , Navbar.itemLink [ href Endpoints.videosPageEN ] [ text "📼 Videos"]
+    , Navbar.itemLink [ href <| Endpoints.show VideosPage ] [ text "📼 Videos"]
     , Navbar.dropdown
       { id = "Cokkolo_Dropdown"
       , toggle = Navbar.dropdownToggle [] [text "🥚 Cökkölő"]

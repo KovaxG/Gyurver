@@ -18,7 +18,7 @@ import Time exposing (Month(..))
 import Maybe.Extra as Maybe
 
 import Settings
-import Endpoints
+import Endpoints exposing (Endpoint(..))
 import Video.NewVideoRequest as NewVideoRequest exposing (NewVideoRequest)
 import Types.Result as Result
 import Util
@@ -99,7 +99,7 @@ update msg model = case msg of
   WatchDateChanged watchDate -> ({ model | watchDate = watchDate }, Cmd.none)
   TagsChanged tags -> ({ model | tags = tags }, Cmd.none)
   PasswordChanged pass -> ({ model | password = pass }, Cmd.none)
-  Success -> ({ model | status = Received "OK" }, Nav.load Endpoints.videosPageEN)
+  Success -> ({ model | status = Received "OK" }, Nav.load <| Endpoints.show VideosPage)
   Response message -> ({ model | status = Received message }, Cmd.none)
   SaveData ->
     case toRequest model of

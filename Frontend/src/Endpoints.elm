@@ -8,6 +8,7 @@ import Url.Parser as Parser exposing (Parser, (</>), oneOf, map, s, int, top)
 type Endpoint
   = LandingPage
   | ArticlesPage
+  | VideosPage
   | Cokk2020Page
   | Cokk2020ResultsPage
   | Cokk2021Page
@@ -22,6 +23,7 @@ parse path =
         oneOf
           [ map LandingPage top
           , map ArticlesPage (s "articles")
+          , map VideosPage (s "videos")
           , map Cokk2020Page (s "cokk2020")
           , map Cokk2020ResultsPage (s "cokk2020" </> s "results")
           , map Cokk2021Page (s "cokk2021")
@@ -32,12 +34,6 @@ parse path =
      |> Url.fromString
      |> Maybe.andThen (Parser.parse actualParser)
 
-  -- , Parser.keyword Endpoints.videosPageEN
-  --     |> Parser.map (\_ -> VideoList.init |> liftModelCmd VideoList VideoListMsg model)
-  -- , Parser.keyword Endpoints.videosPageHU
-  --     |> Parser.map (\_ -> VideoList.init |> liftModelCmd VideoList VideoListMsg model)
-  -- , Parser.keyword Endpoints.videosPageRO
-  --     |> Parser.map (\_ -> VideoList.init |> liftModelCmd VideoList VideoListMsg model)
   -- , Parser.keyword Endpoints.videoAddPageEN
   --     |> Parser.map (\_ -> VideoAdd.init |> liftModelCmd VideoAdd VideoAddMsg model)
   -- , Parser.keyword Endpoints.videoAddPageHU
@@ -52,6 +48,7 @@ show : Endpoint -> String
 show ep = case ep of
   LandingPage -> "/"
   ArticlesPage -> "/articles"
+  VideosPage -> "/videos"
   Cokk2020Page -> "/cokk2020"
   Cokk2020ResultsPage -> "/cokk2020/results"
   Cokk2021Page -> "/cokk2021"
@@ -62,11 +59,6 @@ blogPage = "/blog"
 
 blogItemsJson = "/api/blog/items"
 blogItemJson = "/api/blog/"
-
-videosPageEN = "/videos"
-videosPageHU = "/videok"
-videosPageRO = "/videouri"
-
 
 videoAddPageEN = "/videos/new"
 videoAddPageHU = "/videok/uj"
