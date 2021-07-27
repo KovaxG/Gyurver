@@ -14,6 +14,7 @@ type Endpoint
   | Cokk2020ResultsPage
   | Cokk2021Page
   | Cokk2021ResultsPage
+  | BlogListPage
   | BlogItemPage Int
 
 parse : String -> Maybe Endpoint
@@ -30,15 +31,12 @@ parse path =
           , map Cokk2020ResultsPage (s "cokk2020" </> s "results")
           , map Cokk2021Page (s "cokk2021")
           , map Cokk2021ResultsPage (s "cokk2021" </> s "results")
+          , map BlogListPage (s "blog")
           , map BlogItemPage (s "blog" </> int)
           ]
   in fullUrl
      |> Url.fromString
      |> Maybe.andThen (Parser.parse actualParser)
-
-  -- , Parser.keyword Endpoints.blogPage
-  --   |> Parser.map (\_ -> BlogList.init |> liftModelCmd BlogList BlogListMsg model)
-  -- ]
 
 show : Endpoint -> String
 show ep = case ep of
@@ -50,9 +48,8 @@ show ep = case ep of
   Cokk2020ResultsPage -> "/cokk2020/results"
   Cokk2021Page -> "/cokk2021"
   Cokk2021ResultsPage -> "/cokk2021/results"
+  BlogListPage -> "/blog"
   BlogItemPage nr -> "/blog/" ++ String.fromInt nr
-
-blogPage = "/blog"
 
 blogItemsJson = "/api/blog/items"
 blogItemJson = "/api/blog/"

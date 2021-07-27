@@ -119,6 +119,7 @@ validLinks model path =
         Cokk2020ResultsPage -> Cokkolo2020.Results.init |> liftModelCmd CokkoloResults2020 CokkoloResults2020Msg model
         Cokk2021Page -> Cokkolo2021.Landing.init |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model
         Cokk2021ResultsPage -> Cokkolo2021.Results.init |> liftModelCmd CokkoloResults2021 CokkoloResults2021Msg model
+        BlogListPage -> BlogList.init |> liftModelCmd BlogList BlogListMsg model
         BlogItemPage index -> Blog.init index |> liftModelCmd Blog BlogMsg model
   in path
      |> Endpoints.parse
@@ -156,7 +157,7 @@ navbar model =
   |> Navbar.brand [ href <| Endpoints.show LandingPage ] [ text "Gyurver"]
   |> Navbar.items
     [ Navbar.itemLink [ href <| Endpoints.show ArticlesPage ] [ text "📑 Articles"]
-    , Navbar.itemLink [ href Endpoints.blogPage ] [ text "📝 Blog" ]
+    , Navbar.itemLink [ href <| Endpoints.show BlogListPage ] [ text "📝 Blog" ]
     , Navbar.itemLink [ href <| Endpoints.show VideosPage ] [ text "📼 Videos"]
     , Navbar.dropdown
       { id = "Cokkolo_Dropdown"
