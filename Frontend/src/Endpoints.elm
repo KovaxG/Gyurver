@@ -7,6 +7,7 @@ import Url.Parser as Parser exposing (Parser, (</>))
 
 type Endpoint
   = LandingPage
+  | ArticlesPage
   | Cokk2020Page
   | BlogItemPage Int
 
@@ -17,6 +18,7 @@ parse path =
       actualParser =
         Parser.oneOf
           [ Parser.map LandingPage Parser.top
+          , Parser.map ArticlesPage (Parser.s "articles")
           , Parser.map Cokk2020Page (Parser.s "cokk2020")
           , Parser.map BlogItemPage (Parser.s "blog" </> Parser.int)
           ]
@@ -34,12 +36,6 @@ parse path =
   --     |> Parser.map (\_ -> Cokkolo2021.Landing.init |> liftModelCmd CokkoloLanding2021 CokkoloLanding2021Msg model)
   -- , Parser.keyword Endpoints.cokk2021ResultsPageEN
   --     |> Parser.map (\_ -> Cokkolo2021.Results.init |> liftModelCmd CokkoloResults2021 CokkoloResults2021Msg model)
-  -- , Parser.keyword Endpoints.articlesPageEN
-  --     |> Parser.map (\_ -> Articles.init |> liftModelCmd Articles ArticlesMsg  model)
-  -- , Parser.keyword Endpoints.articlesPageHU
-  --     |> Parser.map (\_ -> Articles.init |> liftModelCmd Articles ArticlesMsg  model)
-  -- , Parser.keyword Endpoints.articlesPageRO
-  --     |> Parser.map (\_ -> Articles.init |> liftModelCmd Articles ArticlesMsg  model)
   -- , Parser.keyword Endpoints.videosPageEN
   --     |> Parser.map (\_ -> VideoList.init |> liftModelCmd VideoList VideoListMsg model)
   -- , Parser.keyword Endpoints.videosPageHU
@@ -59,13 +55,9 @@ parse path =
 show : Endpoint -> String
 show ep = case ep of
   LandingPage -> "/"
+  ArticlesPage -> "/articles"
   Cokk2020Page -> "/cokk2020"
   BlogItemPage nr -> "/blog/" ++ String.fromInt nr
-
-articlesPageEN = "/articles"
-articlesPageHU = "/cikkek"
-articlesPageRO = "/articole"
-
 
 blogPage = "/blog"
 

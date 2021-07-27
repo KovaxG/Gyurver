@@ -112,9 +112,10 @@ validLinks : Model -> String -> Maybe (Model, Cmd Msg)
 validLinks model path =
   let endpointToInit : Endpoint -> (Model, Cmd Msg)
       endpointToInit ep = case ep of
-        LandingPage -> (Landing.init |> liftModelCmd Landing LandingMsg model)
-        Cokk2020Page -> (Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model)
-        BlogItemPage index -> (Blog.init index |> liftModelCmd Blog BlogMsg model)
+        LandingPage -> Landing.init |> liftModelCmd Landing LandingMsg model
+        ArticlesPage -> Articles.init |> liftModelCmd Articles ArticlesMsg model
+        Cokk2020Page -> Cokkolo2020.Landing.init |> liftModelCmd CokkoloLanding2020 CokkoloLanding2020Msg model
+        BlogItemPage index -> Blog.init index |> liftModelCmd Blog BlogMsg model
   in path
      |> Endpoints.parse
      |> Maybe.map endpointToInit
@@ -153,7 +154,7 @@ navbar model =
   |> Navbar.withAnimation
   |> Navbar.brand [ href <| Endpoints.show LandingPage ] [ text "Gyurver"]
   |> Navbar.items
-    [ Navbar.itemLink [ href Endpoints.articlesPageEN ] [ text "📑 Articles"]
+    [ Navbar.itemLink [ href <| Endpoints.show ArticlesPage ] [ text "📑 Articles"]
     , Navbar.itemLink [ href Endpoints.blogPage ] [ text "📝 Blog" ]
     , Navbar.itemLink [ href Endpoints.videosPageEN ] [ text "📼 Videos"]
     , Navbar.dropdown
