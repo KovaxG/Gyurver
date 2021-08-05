@@ -6,8 +6,8 @@ import Bootstrap.Badge as Badge
 import Bootstrap.Utilities.Spacing as Spacing
 import Browser exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
-import Date exposing (fromCalendarDate, toIsoString)
-import Html exposing (Html, div, br, h3, a, strong, text)
+import Date
+import Html exposing (Html, div, br, h3, a, text)
 import Html.Attributes exposing (href)
 import Time exposing (Month(..))
 import Http
@@ -38,14 +38,6 @@ blogItemDecoder =
     (Decode.field "intro" Decode.string)
     (Decode.field "languages" (Decode.list Language.decoder))
     (Decode.field "topics" (Decode.list Decode.string))
-
-example =
-  [ {identity = 1, title = "test 1", date = fromCalendarDate 2021 Jul 3, intro = "intro 1", languages = [EN], topics = ["test"]}
-  , {identity = 2, title = "test 2", date = fromCalendarDate 2021 Jul 10, intro = "intro 1", languages = [EN, HU], topics = ["test", "test1", "omg"]}
-  , {identity = 3, title = "test 3", date = fromCalendarDate 2021 Jul 21, intro = "intro 1", languages = [EN], topics = ["test"]}
-  , {identity = 4, title = "test 4", date = fromCalendarDate 2021 Aug 5, intro = "intro 1", languages = [RO], topics = ["test"]}
-  , {identity = 5, title = "test 5", date = fromCalendarDate 2021 Aug 30, intro = "intro 1", languages = [DE, EN, HU, RO], topics = ["test"]}
-  ]
 
 type Model
   = Populated (List BlogItem)
@@ -95,14 +87,16 @@ view state =
 viewBlogItem : BlogItem -> Html Msg
 viewBlogItem blogItem =
   [ br [] []
-  , h3 [] [a [href <| Settings.path ++ Endpoints.show (BlogItemPage blogItem.identity)] [text <| showFlags blogItem.languages ++ blogItem.title]]
-  , strong [] [text "Date "]
-  , text <| toIsoString <| blogItem.date
+  , h3 [] [a [href <| Settings.path ++ Endpoints.show (BlogItemPage blogItem.identity)] [text blogItem.title]]
+  , text <| "👅 " ++ showFlags blogItem.languages
   , br [] []
-  , strong [] [text "Intro "]
+  , text "📅 "
+  , text <| Date.toIsoString <| blogItem.date
+  , br [] []
+  , text "🗜️ "
   , text blogItem.intro
   , br [] []
-  , div [] (strong [] [text "Tags"] :: List.map makeBadge blogItem.topics)
+  , div [] (text "🏷️" :: List.map makeBadge blogItem.topics)
   ] |> div []
 
 makeBadge : String -> Html Msg

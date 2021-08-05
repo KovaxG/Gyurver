@@ -2,13 +2,10 @@ module Blog exposing (Model, Msg, init, update, view)
 
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
-import Bootstrap.Badge as Badge
-import Bootstrap.Utilities.Spacing as Spacing
 import Browser exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
-import Date exposing (fromCalendarDate, toIsoString)
-import Html exposing (Html, div, br, h3, a, strong, text)
-import Html.Attributes exposing (href)
+import Date
+import Html exposing (Html, div, br, h3, a, text, p)
 import Time exposing (Month(..))
 import Http
 
@@ -115,4 +112,43 @@ displayMessage : String -> Html Msg
 displayMessage s = text <| "Error: " ++ s
 
 displayBlogPost : BlogPost -> Html Msg
-displayBlogPost bp = text <| Debug.toString bp
+displayBlogPost bp =
+  h3 [] [text bp.title]
+  :: displayInfo bp
+  :: (List.map displaySection bp.sections)
+  ++ (List.map displayRef bp.references)
+  |> div []
+
+displayInfo : BlogPost -> Html Msg
+displayInfo bp =
+  [ text "👅 "
+  , displayFlags bp.metadata.languages
+  , br [] []
+  , text "📅 "
+  , text <| Date.toIsoString bp.date
+  , br [] []
+  , text "🗜️ "
+  , text <| bp.intro
+  , br [] []
+  , text "🏷️ "
+  , displayTopics bp.metadata.topics
+  ] |> p []
+
+displayFlags : List Language -> Html Msg
+displayFlags langs = text <| String.concat <| List.map (Language.flag) langs
+
+displayTopics : List String -> Html Msg
+displayTopics tags =
+  tags
+  |> List.intersperse ", "
+  |> String.concat
+  |> text
+
+displayRef : Reference -> Html Msg
+displayRef (Ref i a link) =
+  div [] [text <| "[" ++ String.fromInt i ++ "] " ++ a ++ " - " ++ link]
+
+displaySection : Section -> Html Msg
+displaySection section =
+  case section of
+    Paragraph s -> p [] [text s]
