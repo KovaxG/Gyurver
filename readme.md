@@ -53,7 +53,7 @@ defaultSettings = Settings
 - `/cokk2021` Landing page of 2021 Cokkoles contest
 - `/cokk2021/results` The results of the 2021 Cokkoles contest
 - `/blog` A page where you can browse the blog
-
+- `/blog/#` A page that displays the blog with the given index
 
 ### Resources
 - `/favicon.ico` Get the favicon
