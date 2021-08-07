@@ -142,11 +142,13 @@ gyurblogParseTests =
   , test "Invalid date" $ parseGyurblog invalidDate === Left "Invalid Date!"
   , test "Minimum" $ parseGyurblog minimumFile === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [EN] } })
   , test "Language" $ parseGyurblog languageFile === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [HU, RO, DE] } })
+  , test "Invalid Language" $ parseGyurblog invalidLanguageFile === Left "Invalid Language!"
   , test "Topics" $ parseGyurblog topicsFile === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [EN], topics = ["tag1", "tag2", "tag3"] } })
   , test "Full Metadata" $ parseGyurblog fullMetadata === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [HU, RO, DE], topics = ["tag1", "tag2", "tag3"] } })
   , test "Single Metadata" $ parseGyurblog singleMetadata === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [HU], topics = ["tag"] } })
   , test "Single Intro" $ parseGyurblog singleIntro === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, intro = "This is the intro.", metadata = defaultMetadata { languages = [EN]} })
   , test "Double Intro" $ parseGyurblog doubleIntro === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, intro = "HelloWorld", metadata = defaultMetadata { languages = [EN]} })
+  , test "Invalid Intro" $ parseGyurblog badIntro === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, intro = "", metadata = defaultMetadata { languages = [EN]} })
   ]
 
 blankFile :: String
@@ -175,6 +177,13 @@ languageFile = unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "lang: HU, RO, DE"
+  ]
+
+invalidLanguageFile :: String
+invalidLanguageFile = unlines
+  [ "title: This is the title"
+  , "date: 2021-08-07"
+  , "lang: lol"
   ]
 
 topicsFile :: String
@@ -213,6 +222,13 @@ doubleIntro = unlines
   , "date: 2021-08-07"
   , "(Hello)"
   , "(World)"
+  ]
+
+badIntro :: String
+badIntro = unlines
+  [ "title: This is the title"
+  , "date: 2021-08-07"
+  , "(Hello"
   ]
 
 defaultBlog :: Blog

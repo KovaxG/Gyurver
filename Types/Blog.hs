@@ -201,16 +201,12 @@ getLanguages s
   | otherwise = Right (s, [EN])
 
 getTopics :: [String] -> Either String ([String], [String])
-getTopics s
-  | any (List.isPrefixOf "tags:") s =
-    let (rest, tags) = getPrefix "tags:" "" s
-    in Right (rest, words $ Utils.mapIf (==',') (const ' ') tags)
-  | otherwise = Right (s, [])
+getTopics s =
+  let (rest, tags) = getPrefix "tags:" "" s
+  in Right (rest, words $ Utils.mapIf (==',') (const ' ') tags)
 
 getIntro :: [String] -> Either String ([String], String)
-getIntro s
-  | any (\l -> List.isPrefixOf "(" l && List.isSuffixOf ")" l) s = Right $ getPrefix "(" ")" s
-  | otherwise = Right (s, "")
+getIntro = Right . getPrefix "(" ")"
 
 getPrefix :: String -> String -> [String] -> ([String], String)
 getPrefix prefix suffix s =
