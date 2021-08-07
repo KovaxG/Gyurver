@@ -8,7 +8,7 @@ import qualified Component.Json as Json
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 
-data Language = EN | HU | RO | DE
+data Language = EN | HU | RO | DE deriving (Eq, Read)
 
 instance Show Language where
   show lang = case lang of

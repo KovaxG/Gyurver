@@ -6,6 +6,9 @@ import qualified Component.Decoder as Decoder
 import qualified Data.Time as Time
 import qualified Data.Time.Calendar as Calendar
 import           Text.Printf (printf)
+import qualified Text.Parsec as Parsec
+import           Text.Parsec ((<|>))
+import qualified Utils
 
 data Date = Date Int Int Int deriving (Read, Eq)
 
@@ -33,3 +36,15 @@ getCurrentDate = do
   let day = Time.localDay localTime
   let (y, m, d) = Calendar.toGregorian day
   return $ Date (fromIntegral y) m d
+
+parseDate :: String -> Maybe Date
+parseDate = Utils.eitherToMaybe . Parsec.parse date "Parsing Date."
+  where
+    separator = Parsec.char '.' <|> Parsec.char '-' <|> Parsec.char '/'
+    date = do
+      year <- read <$> Parsec.many1 Parsec.digit
+      separator
+      month <- read <$> Parsec.many1 Parsec.digit
+      separator
+      day <- read <$> Parsec.many1 Parsec.digit
+      return $ Date year month day

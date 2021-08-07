@@ -1,13 +1,15 @@
 module Utils where
 
-import Control.Exception
-import Data.Bifunctor
+import           Control.Exception
+import           Data.Bifunctor
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
-import Data.Maybe
-import Data.Text (Text)
+import qualified Data.Maybe as Maybe
+import           Data.Text (Text)
 import qualified Data.Text as Text
+import qualified Data.List as List
 import qualified Data.Text.IO as IO
+
 
 ($>) :: Functor f => f a -> b -> f b
 ($>) = flip (<$)
@@ -44,7 +46,7 @@ safeReadBinaryFile path = do
   return $ eitherToMaybe contents
 
 safeRead :: Read a => String -> Maybe a
-safeRead = fmap fst . listToMaybe . reads
+safeRead = fmap fst . Maybe.listToMaybe . reads
 
 maybeToEither :: e -> Maybe a -> Either e a
 maybeToEither e = maybe (Left e) Right
@@ -58,6 +60,14 @@ fromRight a _ = a
 
 readText :: Read a => Text -> a
 readText = read . Text.unpack
+
+safeHead :: [a] -> Maybe a
+safeHead [] = Nothing
+safeHead xs = Just $ head xs
+
+safeDeHead :: [a] -> Maybe (a, [a])
+safeDeHead [] = Nothing
+safeDeHead (x:xs) = Just (x, xs)
 
 safeLast :: [a] -> Maybe a
 safeLast [] = Nothing
@@ -76,3 +86,12 @@ dequote :: String -> String
 dequote s
   | head s == '"' && last s == '"' = init $ tail s
   | otherwise = s
+
+trim :: String -> String
+trim = reverse . dropWhile (==' ') . reverse . dropWhile (==' ')
+
+stripPrefix :: String -> String -> String
+stripPrefix prefix s = Maybe.fromMaybe s $ List.stripPrefix prefix s
+
+stripSuffix :: String -> String -> String
+stripSuffix suffix s = maybe s reverse $ List.stripPrefix (reverse suffix) $ reverse s

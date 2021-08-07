@@ -2,6 +2,9 @@
 
 import Data.Function ((&))
 import Endpoints (Endpoint(..), Operation(..), parse)
+import Types.Blog (Blog(..), Metadata(..), parseGyurblog)
+import Types.Date (Date(..))
+import Types.Language (Language(..))
 
 data Assertion a = Equality a a deriving (Show)
 
@@ -22,14 +25,16 @@ runTest :: Eq a => Test a -> Result
 runTest Test { assertion } = case assertion of
   Equality a b -> if a == b then Passed else Failed
 
-runTests :: (Eq a, Show a) => [Test a] -> String
-runTests tests = unlines (passed ++ [""] ++ failed) ++ "\n" ++ lastLine ++ normalText
+runTests :: (Eq a, Show a) => String -> [Test a] -> String
+runTests descr tests = "------------\n" ++ unlines (passed ++ [""] ++ failed) ++ "\n" ++ descr ++ ": " ++ lastLine ++ normalText
   where
     results = zipMap runTest tests
     passed = results & filter ((==Passed) . snd) & map ((++) greenText . description . fst)
-    failed = results & filter ((==Failed) . snd) & map (\(t, _) -> (++ " -> " ++ show (assertion t)) $ (++) redText $ description $ t)
+    failed = results & filter ((==Failed) . snd) & map (\(t, _) -> (++ " -> " ++ show (assertion t)) $ (++) redText $ description t)
     lastColor = if null failed then greenText else redText
-    lastLine = lastColor ++ "Passed: " ++ show (length passed) ++ " Failed: " ++ show (length failed)
+    totalPassed = length passed
+    totalFailed = length failed
+    lastLine = lastColor ++ "Total: " ++ show (totalPassed + totalFailed) ++ " Passed: " ++ show totalPassed ++ " Failed: " ++ show totalFailed
 
 normalText :: String
 normalText = "\ESC[00m"
@@ -40,8 +45,8 @@ greenText = "\ESC[01;32m"
 redText :: String
 redText = "\ESC[01;31m"
 
-tests :: [Test Endpoint]
-tests =
+endpointTests :: [Test Endpoint]
+endpointTests =
   [ test "landing page" $ parse "GET /" === GetLandingPage
   , test "CV" $ parse "GET /cv" === GetCV
   , test "favicon" $ parse "GET /favicon.ico" === GetFavicon
@@ -129,8 +134,105 @@ tests =
   , test "requesting pdf resource: test_underscore.pdf" $ parse "GET /res/test_underscore.pdf" === GetResource "test_underscore.pdf"
   ]
 
+gyurblogParseTests :: [Test (Either String Blog)]
+gyurblogParseTests =
+  [ test "Empty file" $ parseGyurblog blankFile === Left "Did not find title."
+  , test "Blank title" $ parseGyurblog blankTitle === Left "Title can't be blank!"
+  , test "Single line" $ parseGyurblog noDate === Left "Did not find date."
+  , test "Invalid date" $ parseGyurblog invalidDate === Left "Invalid Date!"
+  , test "Minimum" $ parseGyurblog minimumFile === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [EN] } })
+  , test "Language" $ parseGyurblog languageFile === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [HU, RO, DE] } })
+  , test "Topics" $ parseGyurblog topicsFile === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [EN], topics = ["tag1", "tag2", "tag3"] } })
+  , test "Full Metadata" $ parseGyurblog fullMetadata === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [HU, RO, DE], topics = ["tag1", "tag2", "tag3"] } })
+  , test "Single Metadata" $ parseGyurblog singleMetadata === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [HU], topics = ["tag"] } })
+  , test "Single Intro" $ parseGyurblog singleIntro === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, intro = "This is the intro.", metadata = defaultMetadata { languages = [EN]} })
+  , test "Double Intro" $ parseGyurblog doubleIntro === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, intro = "HelloWorld", metadata = defaultMetadata { languages = [EN]} })
+  ]
+
+blankFile :: String
+blankFile = ""
+
+blankTitle :: String
+blankTitle = "title: "
+
+noDate :: String
+noDate = "title: Title"
+
+invalidDate :: String
+invalidDate = unlines
+  [ "title: This is the title"
+  , "date: This is the date"
+  ]
+
+minimumFile :: String
+minimumFile = unlines
+  [ "title: This is the title"
+  , "date: 2021-08-07"
+  ]
+
+languageFile :: String
+languageFile = unlines
+  [ "title: This is the title"
+  , "date: 2021-08-07"
+  , "lang: HU, RO, DE"
+  ]
+
+topicsFile :: String
+topicsFile = unlines
+  [ "title: This is the title"
+  , "date: 2021-08-07"
+  , "tags: tag1, tag2, tag3"
+  ]
+
+fullMetadata :: String
+fullMetadata = unlines
+  [ "title: This is the title"
+  , "date: 2021-08-07"
+  , "lang: HU, RO, DE"
+  , "tags: tag1, tag2, tag3"
+  ]
+
+singleMetadata :: String
+singleMetadata = unlines
+  [ "title: This is the title"
+  , "date: 2021-08-07"
+  , "lang: HU"
+  , "tags: tag"
+  ]
+
+singleIntro :: String
+singleIntro = unlines
+  [ "title: This is the title"
+  , "date: 2021-08-07"
+  , "(This is the intro.)"
+  ]
+
+doubleIntro :: String
+doubleIntro = unlines
+  [ "title: This is the title"
+  , "date: 2021-08-07"
+  , "(Hello)"
+  , "(World)"
+  ]
+
+defaultBlog :: Blog
+defaultBlog = Blog
+  { identifier = 0
+  , title = ""
+  , date = Date 2020 1 1
+  , intro  = ""
+  , sections  = []
+  , references = []
+  , metadata = defaultMetadata
+  }
+
+defaultMetadata :: Metadata
+defaultMetadata = Metadata { languages = [], topics = [] }
+
 main :: IO ()
-main = putStrLn $ runTests tests
+main = do
+  putStrLn $ runTests "Endpoint tests" endpointTests
+  putStrLn $ runTests "Gyurblog tests" gyurblogParseTests
 
 zipMap :: (a -> b) -> [a] -> [(a, b)]
 zipMap f = fmap (\a -> (a, f a))
