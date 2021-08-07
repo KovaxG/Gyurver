@@ -10,9 +10,9 @@ import           Component.Database (DBHandle)
 import qualified Component.Database as DB
 import qualified Component.Json as Json
 
-import Data.Text (Text)
+import           Data.Text (Text)
 import qualified Data.Text as Text
-import Data.Function ((&))
+import           Data.Function ((&))
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 
@@ -44,7 +44,7 @@ import           Types.Movie (Movie, MovieDiff)
 import qualified Types.Movie as Movie
 import           Types.Video (Video)
 import qualified Types.Video as Video
-import           Types.Blog (Blog)
+import           Types.Blog (Blog, Index(..))
 import qualified Types.Blog as Blog
 import qualified Types.VideoAdd as VideoAdd
 import qualified Types.VideoEdit as VideoEdit
@@ -66,7 +66,7 @@ main = do
   vidsDB <- DB.getHandle "vids"
   movieDiffDB <- DB.getHandle "movieDiff"
   suggestionBoxDB <- DB.getHandle "suggestionBox"
-  blogDB <- DB.getHandle "blog"
+  blogDB <- DB.getHandle "blogLookup"
 
   cokk2021UserDB <- DB.getHandle "cokk2021User"
   cokk2021WaterDB <- DB.getHandle "cokk2021Water"
@@ -109,7 +109,7 @@ process :: DBHandle Cokk2020.Tojas
         -> DBHandle Cokk2021Item.Item
         -> DBHandle String
         -> DBHandle Movie.MovieDiff
-        -> DBHandle Blog
+        -> DBHandle Blog.Index
         -> Settings
         -> Request
         -> IO Response
@@ -160,18 +160,25 @@ process tojasDB
 
     Endpoint.GetBlogItemsJSON -> do
       Logger.info log "Requested blog items"
-      blogs <- DB.everythingList blogDB
-      let blogItems = map Blog.toBlogItem blogs
+      indexes <- DB.everythingList blogDB
+      blogItems <- Maybe.mapMaybe Utils.eitherToMaybe <$> traverse (\(Index i s) -> Blog.readGyurblog i (blogPath s)) indexes
       Response.addHeaders [("Content-Type", "application/json")]
-        <$> Response.make OK blogItems
+        <$> Response.make OK (map Blog.toBlogItem blogItems)
 
     Endpoint.GetBlogJSON blogNr -> do
       Logger.info log $ "Requested blog nr " ++ show blogNr
-      blogMaybe <- DB.get blogDB blogNr
+      indexes <- DB.everythingList blogDB
+      let fileNameMaybe = Blog.getFileName <$> List.find (Blog.withIndex blogNr) indexes
       maybe
         (Response.make NotFound $ "I have no blog with index " ++ show blogNr)
-        (fmap (Response.addHeaders [("Content-Type", "application/json")]) . Response.make OK . Blog.toJson)
-        blogMaybe
+        (\fileName -> do
+          blog <- Blog.readGyurblog blogNr (blogPath fileName)
+          either
+            (const $ Response.make NotFound $ "I have no blog with index " ++ show blogNr ++ ". Missing file!")
+            (fmap (Response.addHeaders [("Content-Type", "application/json")]) . Response.make OK . Blog.toJson)
+            blog
+        )
+        fileNameMaybe
 
     Endpoint.GetCokk2020JSON -> do
       Logger.info log "[API] Requested cokkolesi lista."
@@ -423,6 +430,9 @@ faviconPath = contentPath </> "favicon.ico"
 
 mainPath :: String
 mainPath = contentPath </> "index.html"
+
+blogPath :: String -> String
+blogPath s = "Content" </> "gyurblogs" </> s
 
 allowHeaders :: IO Response
 allowHeaders =

@@ -2,7 +2,7 @@
 
 import Data.Function ((&))
 import Endpoints (Endpoint(..), Operation(..), parse)
-import Types.Blog (Blog(..), Metadata(..), parseGyurblog)
+import Types.Blog (Blog(..), Metadata(..), Reference(..), Section(..), parseGyurblog)
 import Types.Date (Date(..))
 import Types.Language (Language(..))
 
@@ -136,19 +136,129 @@ endpointTests =
 
 gyurblogParseTests :: [Test (Either String Blog)]
 gyurblogParseTests =
-  [ test "Empty file" $ parseGyurblog blankFile === Left "Did not find title."
-  , test "Blank title" $ parseGyurblog blankTitle === Left "Title can't be blank!"
-  , test "Single line" $ parseGyurblog noDate === Left "Did not find date."
-  , test "Invalid date" $ parseGyurblog invalidDate === Left "Invalid Date!"
-  , test "Minimum" $ parseGyurblog minimumFile === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [EN] } })
-  , test "Language" $ parseGyurblog languageFile === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [HU, RO, DE] } })
-  , test "Invalid Language" $ parseGyurblog invalidLanguageFile === Left "Invalid Language!"
-  , test "Topics" $ parseGyurblog topicsFile === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [EN], topics = ["tag1", "tag2", "tag3"] } })
-  , test "Full Metadata" $ parseGyurblog fullMetadata === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [HU, RO, DE], topics = ["tag1", "tag2", "tag3"] } })
-  , test "Single Metadata" $ parseGyurblog singleMetadata === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, metadata = defaultMetadata { languages = [HU], topics = ["tag"] } })
-  , test "Single Intro" $ parseGyurblog singleIntro === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, intro = "This is the intro.", metadata = defaultMetadata { languages = [EN]} })
-  , test "Double Intro" $ parseGyurblog doubleIntro === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, intro = "HelloWorld", metadata = defaultMetadata { languages = [EN]} })
-  , test "Invalid Intro" $ parseGyurblog badIntro === Right (defaultBlog { title = "This is the title", date = Date 2021 8 7, intro = "", metadata = defaultMetadata { languages = [EN]} })
+  [ test "Empty file" $
+    parseGyurblog 0 blankFile === Left "Did not find title."
+
+  , test "Blank title" $
+    parseGyurblog 0 blankTitle === Left "Title can't be blank!"
+
+  , test "Single line" $
+    parseGyurblog 0 noDate === Left "Did not find date."
+
+  , test "Invalid date" $
+    parseGyurblog 0 invalidDate === Left "Invalid Date!"
+
+  , test "Minimum" $
+    parseGyurblog 0 minimumFile === Right (
+      defaultBlog
+        { title = "This is the title"
+        , date = Date 2021 8 7
+        , metadata = defaultMetadata { languages = [EN] }
+        }
+    )
+
+  , test "Language" $
+    parseGyurblog 0 languageFile === Right (
+      defaultBlog
+        { title = "This is the title"
+        , date = Date 2021 8 7
+        , metadata = defaultMetadata { languages = [HU, RO, DE] }
+        }
+    )
+
+  , test "Invalid Language" $
+    parseGyurblog 0 invalidLanguageFile === Left "Invalid Language!"
+
+  , test "Topics" $
+    parseGyurblog 0 topicsFile === Right (
+      defaultBlog
+        { title = "This is the title"
+        , date = Date 2021 8 7
+        , metadata = defaultMetadata { languages = [EN], topics = ["tag1", "tag2", "tag3"] }
+        }
+    )
+
+  , test "Full Metadata" $
+    parseGyurblog 0 fullMetadata === Right (
+      defaultBlog
+        { title = "This is the title"
+        , date = Date 2021 8 7
+        , metadata = defaultMetadata { languages = [HU, RO, DE], topics = ["tag1", "tag2", "tag3"] }
+        }
+    )
+
+  , test "Single Metadata" $
+    parseGyurblog 0 singleMetadata === Right (
+      defaultBlog
+        { title = "This is the title"
+        , date = Date 2021 8 7
+        , metadata = defaultMetadata { languages = [HU], topics = ["tag"] }
+        }
+    )
+
+  , test "Single Intro" $
+    parseGyurblog 0 singleIntro === Right (
+      defaultBlog
+        { title = "This is the title"
+        , date = Date 2021 8 7
+        , intro = "This is the intro."
+        , metadata = defaultMetadata { languages = [EN]}
+        }
+    )
+
+  , test "Double Intro" $
+    parseGyurblog 0 doubleIntro === Right (
+      defaultBlog
+        { title = "This is the title"
+        , date = Date 2021 8 7
+        , intro = "HelloWorld"
+        , metadata = defaultMetadata { languages = [EN]}
+        }
+    )
+
+  , test "Invalid Intro" $
+    parseGyurblog 0 badIntro === Right (
+      defaultBlog
+        { title = "This is the title"
+        , date = Date 2021 8 7
+        , sections = [Paragraph "(Hello"]
+        , metadata = defaultMetadata { languages = [EN]}
+        }
+    )
+
+  , test "Single Reference" $
+    parseGyurblog 0 singleRef === Right (
+      defaultBlog
+        { title = "Title"
+        , date = Date 2021 8 7
+        , sections = [Paragraph "Look, a ref: [1]"]
+        , references = [Ref 1 "My site" "www.totallysafelink.xyz"]
+        , metadata = defaultMetadata { languages = [EN]}
+        }
+    )
+
+  , test "Multi Reference" $
+    parseGyurblog 0 multiRef === Right (
+      defaultBlog
+        { title = "Title"
+        , date = Date 2021 8 7
+        , sections = [Paragraph "Look, refs: [1][2][3][4][5]"]
+        , references =
+          [ Ref 1 "My site" "www.totallysafelink.xyz"
+          , Ref 2 "My site" "www.totallysafelink.xyz"
+          , Ref 3 "My site" "www.totallysafelink.xyz"
+          , Ref 4 "My site" "www.totallysafelink.xyz"
+          , Ref 5 "My site" "www.totallysafelink.xyz"
+          ]
+        , metadata = defaultMetadata { languages = [EN]}
+        }
+    )
+
+  , test "Referencing non existent ref" $
+    parseGyurblog 0 invalidRef === Left "Referencing non existent ref: [2]"
+
+  , test "Having extra references" $
+    parseGyurblog 0 extraRef === Left "Not referenced in the text: [2]"
   ]
 
 blankFile :: String
@@ -229,6 +339,44 @@ badIntro = unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "(Hello"
+  ]
+
+singleRef :: String
+singleRef = unlines
+  [ "title: Title"
+  , "date: 2021-08-07"
+  , "Look, a ref: [1]"
+  , "[1] My site (www.totallysafelink.xyz)"
+  ]
+
+multiRef :: String
+multiRef = unlines
+  [ "title: Title"
+  , "date: 2021-08-07"
+  , "Look, refs: [1][2][3][4][5]"
+  , "[1] My site (www.totallysafelink.xyz)"
+  , "[2] My site (www.totallysafelink.xyz)"
+  , "[3] My site (www.totallysafelink.xyz)"
+  , "[4] My site (www.totallysafelink.xyz)"
+  , "[5] My site (www.totallysafelink.xyz)"
+  ]
+
+invalidRef :: String
+invalidRef = unlines
+  [ "title: Title"
+  , "date: 2021-08-07"
+  , "Ok, so look. This is a valid ref [1], however some are not so valid."
+  , "For example, this is not a valid ref: [2]"
+  , "[1] My site (www.totallysafelink.xyz)"
+  ]
+
+extraRef :: String
+extraRef = unlines
+  [ "title: Title"
+  , "date: 2021-08-07"
+  , "Ok, so look. This is a valid ref [1], however some are not so valid."
+  , "[1] My site (www.totallysafelink.xyz)"
+  , "[2] My site (www.totallysafelink.xyz)"
   ]
 
 defaultBlog :: Blog
