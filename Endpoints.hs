@@ -1,11 +1,13 @@
 module Endpoints (Endpoint(..), Resource(..), Operation(..), parse, parseResource) where
 
+import           Data.Text (Text)
+import qualified Data.Text as Text
 import           Text.Parsec (ParsecT, Stream, (<|>))
 import qualified Text.Parsec as Parsec
 
 import Utils (fromRight, eitherToMaybe, ($>))
 
-data Resource = Resource String String
+data Resource = Resource Text Text
 
 data Operation
   = Insert
@@ -14,13 +16,13 @@ data Operation
   | Delete
   deriving (Show, Eq)
 
-parseResource :: String -> Maybe Resource
+parseResource :: Text -> Maybe Resource
 parseResource = eitherToMaybe . Parsec.parse rule "Parsing Resource"
   where
     rule = do
-      name <- Parsec.many1 (Parsec.alphaNum <|> Parsec.char '_')
+      name <- Text.pack <$> Parsec.many1 (Parsec.alphaNum <|> Parsec.char '_')
       Parsec.char '.'
-      term <- Parsec.many1 Parsec.alphaNum
+      term <- Text.pack <$> Parsec.many1 Parsec.alphaNum
       return $ Resource name term
 
 data Endpoint
@@ -50,7 +52,7 @@ data Endpoint
   | GetCokk2020Page
   | GetCokk2021Page
   | GetVideosAddPage
-  | GetResource String
+  | GetResource Text
   | PostVideo
   | PostVideoJSON Int
   | DeleteVideoJSON Int
@@ -61,11 +63,11 @@ data Endpoint
   | GetBlogJSON Int
   | GetBlogItemsJSON
   | GetBlogItemPage Int
-  | Other String
+  | Other Text
   deriving (Eq, Show)
 
 
-parse :: String -> Endpoint
+parse :: Text -> Endpoint
 parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
   where
     landingPage = Parsec.string "GET /" $> GetLandingPage
@@ -143,7 +145,7 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "GET /cv" $> GetCV
         , Parsec.string "GET /favicon.ico" $> GetFavicon
 
-        , Parsec.string "GET /res/" >> GetResource <$> Parsec.many1 validResourceChar
+        , Parsec.string "GET /res/" >> GetResource . Text.pack <$> Parsec.many1 validResourceChar
         ]
 
     validResourceChar = Parsec.alphaNum <|> Parsec.char '.' <|> Parsec.char '_'

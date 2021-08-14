@@ -1,14 +1,18 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.ChangeEggnameRequest where
+
+import           Data.Text (Text)
 
 import           Events.Cokk2021.Login (Login (..))
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 
 data ChangeEggnameRequest = CENR
-  { username :: String
-  , password :: String
-  , newEggname :: String
+  { username :: Text
+  , password :: Text
+  , newEggname :: Text
   }
 
 decode :: Decoder ChangeEggnameRequest

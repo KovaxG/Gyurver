@@ -1,7 +1,9 @@
 module Gyurver.Request (Request(..), RequestType(..), parseRequest) where
 
-import Data.ByteString.Char8 (ByteString, unpack)
-import Data.Map (Map)
+import           Data.Text (Text)
+import qualified Data.Text as Text
+import           Data.ByteString.Char8 (ByteString, unpack)
+import           Data.Map (Map)
 import qualified Data.Map as Map
 import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, char, option, sepBy, noneOf, newline, anyChar)
 
@@ -19,15 +21,15 @@ instance Show RequestType where
 
 data Request = Request
   { requestType :: RequestType
-  , path :: String
-  , query :: Map String String
-  , attributes :: Map String String
-  , content :: String
+  , path :: Text
+  , query :: Map Text Text
+  , attributes :: Map Text Text
+  , content :: Text
   } deriving (Show, Read)
 
 parseRequest :: ByteString -> Either Gyurror Request
 parseRequest =
-  mapLeft (FailedParse . show)
+  mapLeft (FailedParse . Text.pack . show)
   . parse request "Request"
   . removeCarries
   . unpack
@@ -44,7 +46,7 @@ parseRequest =
       newline
       attributes <- attributes
       newline
-      content <- many anyChar
+      content <- Text.pack <$> many anyChar
       return Request {
         requestType = requestType,
         path = path,
@@ -59,7 +61,7 @@ parseRequest =
     optionsRequest = string "OPTIONS" $> Options
     deleteRequest = string "DELETE" $> Delete
 
-    path = many pathChars
+    path = Text.pack <$> many pathChars
     pathChars = alphaNum <|> char '/' <|> char '.' <|> char '_'
 
     query = option Map.empty queryPairs
@@ -68,16 +70,16 @@ parseRequest =
       pairs <- sepBy queryPair (char '&')
       return $ Map.fromList pairs
     queryPair = do
-      key <- many alphaNum
+      key <- Text.pack <$> many alphaNum
       char '='
-      value <- many alphaNum
+      value <- Text.pack <$> many alphaNum
       return (key, value)
 
     attributes = Map.fromList <$> many attribute
     attribute = do
-      key <- many keyChar
+      key <- Text.pack <$> many keyChar
       string ": "
-      value <- many valueChar
+      value <- Text.pack <$> many valueChar
       newline
       return (key, value)
     keyChar = alphaNum <|> char '-'

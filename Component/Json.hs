@@ -1,9 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Component.Json where
 
-import Data.Bifunctor
+import           Data.Bifunctor (Bifunctor(..))
 import qualified Data.List as List
-import Text.Parsec
-import Text.Printf
+import           Data.Text (Text)
+import qualified Data.Text as Text
+import           Text.Parsec
+import           Text.Printf (printf)
 
 import Utils (($>))
 
@@ -11,26 +14,26 @@ data Json
   = JsonNull
   | JsonBool Bool
   | JsonNumber Double
-  | JsonString String
+  | JsonString Text
   | JsonArray [Json]
-  | JsonObject [(String, Json)]
+  | JsonObject [(Text, Json)]
 
 nullable :: (a -> Json) -> Maybe a -> Json
 nullable = maybe JsonNull
 
-instance Show Json where
-  show JsonNull = "null"
-  show (JsonBool True) = "true"
-  show (JsonBool False) = "false"
+toString :: Json -> Text
+toString json = case json of
+  JsonNull -> "null"
+  (JsonBool True) -> "true"
+  (JsonBool False) -> "false"
   -- This was added because JsonNumber 0.0000001 produces stuff like 1e-10 or something :[]
-  show (JsonNumber num) = printf "%f" num
-  show (JsonString str) = stringify str
-  show (JsonArray jsons) = show jsons
-  show (JsonObject assocList) =
-    "{" ++ List.intercalate "," (map lineToString assocList) ++ "}"
+  (JsonNumber num) -> Text.pack $ printf "%f" num
+  (JsonString str) -> "\"" <> str <> "\"" -- removed escaping characters
+  (JsonArray jsons) -> "[" <> Text.intercalate "," (map toString jsons) <> "]"
+  (JsonObject assocList) ->
+    "{" <> Text.intercalate "," (map lineToString assocList) <> "}"
     where
-      lineToString (label, value) =
-        show label ++ ":" ++ show value
+      lineToString (label, value) = "\"" <> label <> "\"" <> ":" <> toString value
 
 -- The normal show for strings escapes every single special
 -- character and I can't use it in the db because show followed
@@ -43,8 +46,8 @@ stringify s = "\"" ++ (escape =<< s) ++ "\""
     escape '\"' = "\\\""
     escape c = [c]
 
-parseJson :: String -> Either String Json
-parseJson = first show . parse json ""
+parseJson :: Text -> Either Text Json
+parseJson = first (Text.pack . show) . parse json ""
   where
     json =
       jsonNull
@@ -75,7 +78,7 @@ parseJson = first show . parse json ""
     stringCharacters = do
       char '\"'
       -- TODO not great, can't have quotes in strings :(
-      str <- many (noneOf "\"")
+      str <- Text.pack <$> many (noneOf "\"")
       char '\"'
       return str
 

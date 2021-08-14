@@ -1,5 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Types.Movie where
 
+import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Component.Json (Json(..))
 import           Component.Database (DBFormat(..))
@@ -7,20 +10,20 @@ import           Utils ((+:))
 import qualified Utils
 
 data MovieDiff
-  = NewMovie String
-  | SetWatched String Bool
-  | Delete String
+  = NewMovie Text
+  | SetWatched Text Bool
+  | Delete Text
   deriving (Show)
 
-diffName :: MovieDiff -> String
+diffName :: MovieDiff -> Text
 diffName d = case d of
   NewMovie n -> n
   SetWatched n _ -> n
   Delete n -> n
 
-data Movie = Movie String Bool deriving (Show)
+data Movie = Movie Text Bool deriving (Show)
 
-movieName :: Movie -> String
+movieName :: Movie -> Text
 movieName (Movie n _) = n
 
 setWatched :: Bool -> Movie -> Movie
@@ -42,15 +45,16 @@ toJson = JsonArray . map movieToJson
     movieToJson (Movie name watched) = JsonObject [("title", JsonString name), ("watched", JsonBool watched)]
 
 instance DBFormat MovieDiff where
-  encode d = Text.pack $ prefix ++ diffName d
+  encode d = prefix <> diffName d
     where
+      prefix :: Text
       prefix = case d of
         NewMovie _ ->  "NM"
         SetWatched _ True -> "WT"
         SetWatched _ False -> "WF"
         Delete _ -> "DM"
 
-  decode s = case splitAt 2 (Text.unpack s) of
+  decode s = case Text.splitAt 2 s of
     ("NM", n) -> Just $ NewMovie n
     ("WT", n) -> Just $ SetWatched n True
     ("WF", n) -> Just $ SetWatched n False

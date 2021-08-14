@@ -1,5 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Gyurver.Response
   ( Response
   , Status(..)
@@ -14,6 +16,9 @@ import           Data.Function ((&))
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Time as Time
+import           Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as TextEncoding
 
 import Gyurver.Html (Document)
 import qualified Component.Json as Json
@@ -55,7 +60,7 @@ toByteString Response{content, status, headers} =
     , content
     ]
 
-processJsonBody :: String -> Decoder.Decoder a -> (a -> IO Response) -> IO Response
+processJsonBody :: Text -> Decoder.Decoder a -> (a -> IO Response) -> IO Response
 processJsonBody content decoder handle =
   Json.parseJson content >>= Decoder.run decoder & either (make BadRequest) handle
 
@@ -79,7 +84,7 @@ make status content = do
     }
 
 success :: IO Response
-success = make OK "OK Boomer"
+success = make OK ("OK Boomer" :: Text)
 
 class CanSend a where
   toBytes :: a -> ByteString
@@ -87,14 +92,14 @@ class CanSend a where
 instance CanSend ByteString where
   toBytes = id
 
-instance CanSend String where
-  toBytes = BS.pack
+instance CanSend Text where
+  toBytes = TextEncoding.encodeUtf8
 
 instance CanSend Document where
   toBytes = BS.pack . show
 
 instance CanSend Json where
-  toBytes = BS.pack . show
+  toBytes = TextEncoding.encodeUtf8 . Json.toString
 
 instance CanSend [Json] where
   toBytes = toBytes . Json.JsonArray

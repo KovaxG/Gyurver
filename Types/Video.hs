@@ -1,23 +1,27 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Types.Video (Video(..), videosToJson, videoToJson) where
 
-import           Component.Json
+import           Component.Json (Json(..))
+import qualified Component.Json as Json
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 import           Component.Database (DBFormat(..))
-import           Types.Date
+import           Types.Date (Date(..))
 import qualified Types.Date as Date
+import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Utils (eitherToMaybe)
 
 data Video =  Video
   { nr :: Int
-  , link :: String
-  , title :: String
-  , channel :: String
+  , link :: Text
+  , title :: Text
+  , channel :: Text
   , date :: Date
-  , comment :: String
+  , comment :: Text
   , watchDate :: Maybe Date
-  , tags :: [String]
+  , tags :: [Text]
   } deriving (Read, Show)
 
 testVideo :: Video
@@ -43,7 +47,7 @@ videoToJson vid = JsonObject
   , ("author", JsonString (channel vid))
   , ("date", Date.toJson (date vid))
   , ("comment", JsonString (comment vid))
-  , ("watchDate", nullable Date.toJson (watchDate vid))
+  , ("watchDate", Json.nullable Date.toJson (watchDate vid))
   , ("tags", JsonArray (map JsonString (tags vid)))
   ]
 
@@ -60,5 +64,5 @@ videoDecoder =
     <*> Decoder.field "tags" (Decoder.list Decoder.string)
 
 instance DBFormat Video where
-  encode = Text.pack . show . videoToJson
-  decode =  eitherToMaybe . (=<<) (Decoder.run videoDecoder) . parseJson . Text.unpack
+  encode = Json.toString . videoToJson
+  decode =  eitherToMaybe . (=<<) (Decoder.run videoDecoder) . Json.parseJson

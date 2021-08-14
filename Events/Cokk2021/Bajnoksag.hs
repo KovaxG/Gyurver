@@ -1,8 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.Bajnoksag where
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Maybe as Maybe
 import qualified Data.Tuple as Tuple
+import           Data.Text (Text)
+import qualified Data.Text as Text
 import           Events.Cokk2021.Skills (Skills)
 import qualified Events.Cokk2021.Skills as Skills
 import           Component.Json (Json(..))
@@ -13,7 +17,7 @@ import qualified System.Random as Random
 import           Utils ((+:))
 import qualified Utils
 
-type Nev = String
+type Nev = Text
 type HP = Int
 type DMG = Int
 
@@ -23,9 +27,9 @@ data Tojas = Tojas
   } deriving (Eq, Ord)
 
 instance Show Tojas where
-  show = nev
+  show = Text.unpack . nev
 
-mkTojas :: String -> Skills -> Tojas
+mkTojas :: Text -> Skills -> Tojas
 mkTojas = Tojas
 
 data Result = Result Nev Nev [Log] deriving (Show)
@@ -150,7 +154,7 @@ probability a p pp = do
 encodeLog :: Log -> Json
 encodeLog log = case log of
   Win name -> JsonObject [("type", JsonString "win"), ("winner", JsonString name)]
-  Effect eff -> JsonObject [("type", JsonString "eff"), ("effect", JsonString $ show eff)]
+  Effect eff -> JsonObject [("type", JsonString "eff"), ("effect", JsonString $ Text.pack $ show eff)]
   StartFight (na, hpa) (nb, hpb) ->
     JsonObject
       [ ("type", JsonString "start")
@@ -163,10 +167,10 @@ encodeLog log = case log of
       , ("nameA", JsonString na)
       , ("dmgA", JsonNumber $ fromIntegral dmgA)
       , ("hpA", JsonNumber $ fromIntegral hpA)
-      , ("effsA", JsonArray $ map (JsonString . show) effsA)
+      , ("effsA", JsonArray $ map (JsonString . Text.pack . show) effsA)
       , ("nameB", JsonString nb)
       , ("dmgB", JsonNumber $ fromIntegral dmgB)
       , ("hpB", JsonNumber $ fromIntegral hpB)
-      , ("effsB", JsonArray $ map (JsonString . show) effsB)
+      , ("effsB", JsonArray $ map (JsonString . Text.pack . show) effsB)
       ]
 

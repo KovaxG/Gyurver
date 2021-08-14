@@ -1,24 +1,27 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Types.Language where
 
-import           Data.Function ((&))
 import           Component.Json (Json(..))
 import qualified Component.Json as Json
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
+import           Data.Function ((&))
+import           Data.Text (Text)
+import qualified Data.Text as Text
 
-data Language = EN | HU | RO | DE deriving (Eq, Read)
+data Language = EN | HU | RO | DE deriving (Eq, Read, Show)
 
-instance Show Language where
-  show lang = case lang of
-    EN -> "EN"
-    HU -> "HU"
-    RO -> "RO"
-    DE -> "DE"
+toString :: Language -> Text
+toString lang = case lang of
+  EN -> "EN"
+  HU -> "HU"
+  RO -> "RO"
+  DE -> "DE"
 
 toJson :: Language -> Json
-toJson = JsonString . show
+toJson = JsonString . toString
 
 fromJson :: Decoder Language
 fromJson = Decoder.string >>= \case
@@ -26,4 +29,4 @@ fromJson = Decoder.string >>= \case
   "RO" -> Decoder.success RO
   "DE" -> Decoder.success DE
   "HU" -> Decoder.success HU
-  other -> Decoder.failure $ other ++ " is not a valid language!"
+  other -> Decoder.failure $ other <>" is not a valid language!"

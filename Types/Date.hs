@@ -1,9 +1,13 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Types.Date where
 
 import           Component.Json (Json(..))
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 import qualified Data.Time as Time
+import           Data.Text (Text)
+import qualified Data.Text as Text
 import qualified Data.Time.Calendar as Calendar
 import           Text.Printf (printf)
 import qualified Text.Parsec as Parsec
@@ -37,7 +41,7 @@ getCurrentDate = do
   let (y, m, d) = Calendar.toGregorian day
   return $ Date (fromIntegral y) m d
 
-parseDate :: String -> Maybe Date
+parseDate :: Text -> Maybe Date
 parseDate = Utils.eitherToMaybe . Parsec.parse date "Parsing Date."
   where
     separator = Parsec.char '.' <|> Parsec.char '-' <|> Parsec.char '/'

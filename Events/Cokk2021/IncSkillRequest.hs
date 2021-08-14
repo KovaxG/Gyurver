@@ -1,6 +1,9 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.IncSkillRequest where
 
+import           Data.Text (Text)
 import qualified Data.Text as Text
 
 import           Events.Cokk2021.Login (Login (..))
@@ -12,9 +15,9 @@ import qualified Component.Decoder as Decoder
 import qualified Utils
 
 data IncSkillRequest = ISK
-  { username :: String
-  , password :: String
-  , skill :: String
+  { username :: Text
+  , password :: Text
+  , skill :: Text
   } deriving (Show)
 
 encode :: IncSkillRequest -> Json
@@ -31,12 +34,11 @@ decode =
       <*> Decoder.field "skill" Decoder.string
 
 instance DBFormat IncSkillRequest where
-  encode = Text.pack . show . Events.Cokk2021.IncSkillRequest.encode
+  encode = Json.toString . Events.Cokk2021.IncSkillRequest.encode
   decode =
     Utils.eitherToMaybe
     . (=<<) (Decoder.run Events.Cokk2021.IncSkillRequest.decode)
     . Json.parseJson
-    . Text.unpack
 
 toLogin :: IncSkillRequest -> Login
 toLogin ISK {username, password} = Login username password

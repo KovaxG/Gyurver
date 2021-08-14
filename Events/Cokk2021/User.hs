@@ -1,5 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.User where
 
+import           Data.Text (Text)
 import qualified Data.Text as Text
 
 import           Component.Json (Json(..))
@@ -17,9 +20,9 @@ import qualified Events.Cokk2021.WaterLog as WaterLog
 import qualified Utils
 
 data User = User
-  { username :: String
-  , passwordHash :: String
-  , eggname :: String
+  { username :: Text
+  , passwordHash :: Text
+  , eggname :: Text
   , perfume :: Int
   , base :: Item
   , skills :: Skills
@@ -48,12 +51,11 @@ decode =
        <*> Decoder.field "items" (Decoder.list Decoder.int)
 
 instance DBFormat User where
-  encode = Text.pack . show . Events.Cokk2021.User.encode
+  encode = Json.toString . Events.Cokk2021.User.encode
   decode =
     Utils.eitherToMaybe
     . (=<<) (Decoder.run Events.Cokk2021.User.decode)
     . Json.parseJson
-    . Text.unpack
 
 addPerfume :: Int -> User -> User
 addPerfume p u = u { perfume = perfume u + p }

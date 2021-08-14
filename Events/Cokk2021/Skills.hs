@@ -1,5 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.Skills where
 
+import           Data.Text (Text)
 import qualified Data.Text as Text
 
 import           Component.Json (Json(..))
@@ -90,14 +93,13 @@ decode =
          <*> Decoder.field "edzettseg" Decoder.int
 
 instance DBFormat Skills where
-  encode = Text.pack . show . Events.Cokk2021.Skills.encode
+  encode = Json.toString . Events.Cokk2021.Skills.encode
   decode =
     Utils.eitherToMaybe
     . (=<<) (Decoder.run Events.Cokk2021.Skills.decode)
     . Json.parseJson
-    . Text.unpack
 
-parse :: String -> Maybe (Skills -> Int)
+parse :: Text -> Maybe (Skills -> Int)
 parse s = case s of
   "kemenyseg" -> Just kemenyseg
   "erosseg" -> Just erosseg
@@ -123,7 +125,7 @@ parse s = case s of
   "edzettseg" -> Just edzettseg
   _ -> Nothing
 
-incSkill :: String -> Skills -> Maybe Skills
+incSkill :: Text -> Skills -> Maybe Skills
 incSkill skill skills = case skill of
   "kemenyseg" -> Just $ skills { kemenyseg = kemenyseg skills + 1 }
   "erosseg" -> Just $ skills { erosseg = erosseg skills + 1 }

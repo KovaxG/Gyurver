@@ -1,4 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2020 where
 
 import           Data.Text (Text)
@@ -29,6 +31,6 @@ instance DBFormat Tojas where
 tojasToJson :: Tojas -> Json
 tojasToJson Tojas{nev, hatterSzin} =
   JsonObject
-    [ ("nev", JsonString (Text.unpack nev))
-    , ("szin", JsonString (Text.unpack hatterSzin))
+    [ ("nev", JsonString nev)
+    , ("szin", JsonString hatterSzin)
     ]

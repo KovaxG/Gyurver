@@ -1,4 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.FightRequest where
+
+import           Data.Text (Text)
+import qualified Data.Text as Text
 
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
@@ -9,9 +14,9 @@ import qualified Events.Cokk2021.User as User
 import qualified Events.Cokk2021.Bajnoksag as Bajnoksag
 
 data FightRequest = FightRequest
-  { source :: String
-  , target :: String
-  , sourcePass :: String
+  { source :: Text
+  , target :: Text
+  , sourcePass :: Text
   }
 
 decode :: Decoder FightRequest

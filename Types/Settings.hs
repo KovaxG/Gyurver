@@ -1,8 +1,12 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Types.Settings(Settings(..), parse, defaultSettings) where
 
 import qualified Data.Bifunctor as Bifunctor
-import Text.Parsec ((<|>))
+import           Data.Text (Text)
+import qualified Data.Text as Text
+import           Text.Parsec ((<|>))
 import qualified Text.Parsec as Parsec
 
 import Gyurver.Server
@@ -11,7 +15,7 @@ import Types.Common (Mode(..), EventMode(..))
 data Settings = Settings
   { hostAddress :: IP
   , port :: Port
-  , password :: String
+  , password :: Text
   , mode :: Mode
   , cokk2021 :: EventMode
   } deriving (Show, Eq)
@@ -24,8 +28,8 @@ defaultSettings = Settings
   , cokk2021 = Locked
   }
 
-parse :: String -> Either String Settings
-parse = Bifunctor.first show . Parsec.parse settings "Parsing Settings"
+parse :: Text -> Either Text Settings
+parse = Bifunctor.first (Text.pack . show) . Parsec.parse settings "Parsing Settings"
   where
     settings = do
       Parsec.string "host_address"
@@ -38,7 +42,7 @@ parse = Bifunctor.first show . Parsec.parse settings "Parsing Settings"
       Parsec.newline
       Parsec.string "password"
       Parsec.spaces
-      password <- Parsec.many1 Parsec.alphaNum
+      password <- Text.pack <$> Parsec.many1 Parsec.alphaNum
       Parsec.newline
       Parsec.string "mode"
       Parsec.spaces

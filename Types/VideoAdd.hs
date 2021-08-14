@@ -1,27 +1,30 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Types.VideoAdd (Request, toVideo, decoder) where
 
-import Component.Decoder (Decoder)
+import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
-import Data.Function ((&))
+import           Data.Function ((&))
+import           Data.Text (Text)
 import           Types.Date (Date)
 import qualified Types.Date as Date
-import Types.Video (Video)
+import           Types.Video (Video)
 import qualified Types.Video as Video
-import Types.Settings (Settings)
+import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
 
 data Request =  Request
-  { link :: String
-  , title :: String
-  , channel :: String
+  { link :: Text
+  , title :: Text
+  , channel :: Text
   , date :: Date
-  , comment :: String
+  , comment :: Text
   , watchDate :: Maybe Date
-  , tags :: [String]
-  , password :: String
+  , tags :: [Text]
+  , password :: Text
   } deriving (Show)
 
-toVideo :: Settings -> Request -> Either String (Int -> Video)
+toVideo :: Settings -> Request -> Either Text (Int -> Video)
 toVideo settings request =
   if (settings & Settings.password)  == (request & password)
   then Right $ \vid ->
@@ -33,7 +36,7 @@ toVideo settings request =
     (request & comment)
     (request & watchDate)
     (request & tags)
-  else Left("Incorrect Password: \"" ++ (request & password) ++ "\"")
+  else Left $ "Incorrect Password: \"" <> (request & password) <> "\""
 
 decoder :: Decoder Request
 decoder = Request

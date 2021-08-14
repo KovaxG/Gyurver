@@ -1,5 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.WaterLog where
 
+import           Data.Text (Text)
 import qualified Data.Text as Text
 
 import           Component.Json (Json(..))
@@ -12,12 +15,12 @@ import qualified Types.DateTime as DateTime
 import qualified Utils
 
 data WaterLog = WaterLog
-  { wlSource :: String
-  , wlTarget :: String
+  { wlSource :: Text
+  , wlTarget :: Text
   , wlDateTime :: DateTime
   }
 
-make :: String -> String -> IO WaterLog
+make :: Text -> Text -> IO WaterLog
 make source target = WaterLog source target <$> DateTime.getCurrentDateTime
 
 encode :: WaterLog -> Json
@@ -34,9 +37,8 @@ decode =
            <*> Decoder.field "time" DateTime.decoder
 
 instance DBFormat WaterLog where
-  encode = Text.pack . show . Events.Cokk2021.WaterLog.encode
+  encode = Json.toString . Events.Cokk2021.WaterLog.encode
   decode =
     Utils.eitherToMaybe
     . (=<<) (Decoder.run Events.Cokk2021.WaterLog.decode)
     . Json.parseJson
-    . Text.unpack

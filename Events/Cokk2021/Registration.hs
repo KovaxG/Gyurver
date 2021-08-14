@@ -1,4 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.Registration where
+
+import           Data.Text (Text)
+import qualified Data.Text as Text
 
 import           Events.Cokk2021.User (User(User))
 import qualified Events.Cokk2021.User as User
@@ -9,9 +14,9 @@ import qualified Events.Cokk2021.Item as Item
 
 
 data Registration = Registration
-  { username :: String
-  , password :: String
-  , eggName :: String
+  { username :: Text
+  , password :: Text
+  , eggName :: Text
   }
 
 decode :: Decoder Registration

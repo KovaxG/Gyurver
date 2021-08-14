@@ -1,5 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.Item where
 
+import           Data.Text (Text)
 import qualified Data.Text as Text
 
 import           Component.Json (Json(..))
@@ -12,8 +15,8 @@ import qualified Utils
 
 data Item = Item
   { index :: Int
-  , name :: String
-  , image :: String
+  , name :: Text
+  , image :: Text
   , cost :: Int
   } deriving (Show)
 
@@ -33,12 +36,11 @@ decode =
        <*> Decoder.field "cost" Decoder.int
 
 instance DBFormat Item where
-  encode = Text.pack . show . Events.Cokk2021.Item.encode
+  encode = Json.toString . Events.Cokk2021.Item.encode
   decode =
     Utils.eitherToMaybe
     . (=<<) (Decoder.run Events.Cokk2021.Item.decode)
     . Json.parseJson
-    . Text.unpack
 
 -- TODO just take the first item in the DB
 initialBase :: Item

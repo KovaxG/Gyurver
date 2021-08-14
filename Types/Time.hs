@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Types.Time where
 
 import Component.Json (Json(JsonNumber, JsonObject))

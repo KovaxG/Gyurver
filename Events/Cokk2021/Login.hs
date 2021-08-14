@@ -1,4 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.Login where
+
+import           Data.Text (Text)
+import qualified Data.Text as Text
 
 import           Events.Cokk2021.User (User(User))
 import qualified Events.Cokk2021.User as User
@@ -6,8 +11,8 @@ import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 
 data Login = Login
-  { user :: String
-  , pass :: String
+  { user :: Text
+  , pass :: Text
   }
 
 decode :: Decoder Login

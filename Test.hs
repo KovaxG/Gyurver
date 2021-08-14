@@ -1,10 +1,13 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
-import Data.Function ((&))
-import Endpoints (Endpoint(..), Operation(..), parse)
-import Types.Blog (Blog(..), Metadata(..), Reference(..), Section(..), parseGyurblog)
-import Types.Date (Date(..))
-import Types.Language (Language(..))
+import           Data.Function ((&))
+import           Data.Text (Text)
+import qualified Data.Text as Text
+import           Endpoints (Endpoint(..), Operation(..), parse)
+import           Types.Blog (Blog(..), Metadata(..), Reference(..), Section(..), parseGyurblog)
+import           Types.Date (Date(..))
+import           Types.Language (Language(..))
 
 data Assertion a = Equality a a deriving (Show)
 
@@ -261,96 +264,96 @@ gyurblogParseTests =
     parseGyurblog 0 extraRef === Left "Not referenced in the text: [2]"
   ]
 
-blankFile :: String
+blankFile :: Text
 blankFile = ""
 
-blankTitle :: String
+blankTitle :: Text
 blankTitle = "title: "
 
-noDate :: String
+noDate :: Text
 noDate = "title: Title"
 
-invalidDate :: String
-invalidDate = unlines
+invalidDate :: Text
+invalidDate = Text.unlines
   [ "title: This is the title"
   , "date: This is the date"
   ]
 
-minimumFile :: String
-minimumFile = unlines
+minimumFile :: Text
+minimumFile = Text.unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   ]
 
-languageFile :: String
-languageFile = unlines
+languageFile :: Text
+languageFile = Text.unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "lang: HU, RO, DE"
   ]
 
-invalidLanguageFile :: String
-invalidLanguageFile = unlines
+invalidLanguageFile :: Text
+invalidLanguageFile = Text.unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "lang: lol"
   ]
 
-topicsFile :: String
-topicsFile = unlines
+topicsFile :: Text
+topicsFile = Text.unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "tags: tag1, tag2, tag3"
   ]
 
-fullMetadata :: String
-fullMetadata = unlines
+fullMetadata :: Text
+fullMetadata = Text.unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "lang: HU, RO, DE"
   , "tags: tag1, tag2, tag3"
   ]
 
-singleMetadata :: String
-singleMetadata = unlines
+singleMetadata :: Text
+singleMetadata = Text.unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "lang: HU"
   , "tags: tag"
   ]
 
-singleIntro :: String
-singleIntro = unlines
+singleIntro :: Text
+singleIntro = Text.unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "(This is the intro.)"
   ]
 
-doubleIntro :: String
-doubleIntro = unlines
+doubleIntro :: Text
+doubleIntro = Text.unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "(Hello)"
   , "(World)"
   ]
 
-badIntro :: String
-badIntro = unlines
+badIntro :: Text
+badIntro = Text.unlines
   [ "title: This is the title"
   , "date: 2021-08-07"
   , "(Hello"
   ]
 
-singleRef :: String
-singleRef = unlines
+singleRef :: Text
+singleRef = Text.unlines
   [ "title: Title"
   , "date: 2021-08-07"
   , "Look, a ref: [1]"
   , "[1] My site (www.totallysafelink.xyz)"
   ]
 
-multiRef :: String
-multiRef = unlines
+multiRef :: Text
+multiRef = Text.unlines
   [ "title: Title"
   , "date: 2021-08-07"
   , "Look, refs: [1][2][3][4][5]"
@@ -361,8 +364,8 @@ multiRef = unlines
   , "[5] My site (www.totallysafelink.xyz)"
   ]
 
-invalidRef :: String
-invalidRef = unlines
+invalidRef :: Text
+invalidRef = Text.unlines
   [ "title: Title"
   , "date: 2021-08-07"
   , "Ok, so look. This is a valid ref [1], however some are not so valid."
@@ -370,8 +373,8 @@ invalidRef = unlines
   , "[1] My site (www.totallysafelink.xyz)"
   ]
 
-extraRef :: String
-extraRef = unlines
+extraRef :: Text
+extraRef = Text.unlines
   [ "title: Title"
   , "date: 2021-08-07"
   , "Ok, so look. This is a valid ref [1], however some are not so valid."

@@ -1,5 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Prelude hiding (log)
@@ -73,7 +75,7 @@ main = do
   cokk2021ItemDB <- DB.getHandle "cokk2021Item"
 
   settings <- readSettings log
-  Logger.info log (show settings)
+  Logger.info log (Text.pack $ show settings)
   Server.run log
             (settings & Settings.hostAddress)
             (settings & Settings.port)
@@ -89,17 +91,17 @@ readSettings log =
       return Settings.defaultSettings
 
     fileFound :: Text -> IO Settings
-    fileFound contents = contents & Text.unpack & Settings.parse & either settingsParseFailed settingsLoaded
+    fileFound contents = contents & Settings.parse & either settingsParseFailed settingsLoaded
 
-    settingsParseFailed :: String -> IO Settings
+    settingsParseFailed :: Text -> IO Settings
     settingsParseFailed msg = do
-      let message = "Found settings file, but failed to parse it (" ++ msg ++ "), using default settings."
+      let message = "Found settings file, but failed to parse it (" <> msg <> "), using default settings."
       Logger.error log message
       return Settings.defaultSettings
 
     settingsLoaded :: Settings -> IO Settings
     settingsLoaded settings = do
-      Logger.info log $ "Loaded settings, ip is " ++ show (Settings.hostAddress settings)
+      Logger.info log $ "Loaded settings, ip is " <> Text.pack (show (Settings.hostAddress settings))
       return settings
 
 process :: DBHandle Cokk2020.Tojas
@@ -107,7 +109,7 @@ process :: DBHandle Cokk2020.Tojas
         -> DBHandle Cokk2021User.User
         -> DBHandle Cokk2021WaterLog.WaterLog
         -> DBHandle Cokk2021Item.Item
-        -> DBHandle String
+        -> DBHandle Text
         -> DBHandle Movie.MovieDiff
         -> DBHandle Blog.Index
         -> Settings
@@ -124,18 +126,18 @@ process tojasDB
         settings
         Request{requestType, path, content} = do
   let
-    movieProcessing :: (String -> MovieDiff) -> String -> IO Response
+    movieProcessing :: (Text -> MovieDiff) -> Text -> IO Response
     movieProcessing diff successMsg =
-      if not (null content)
+      if not (Text.null content)
       then do
         DB.insert movieDiffDB $ diff $ Utils.dequote content
         Response.make OK successMsg
       else
-        Response.make BadRequest "I need the name of the film in the body!"
+        Response.make BadRequest ("I need the name of the film in the body!" :: Text)
 
-  case Endpoint.parse $ unwords [show requestType, path] of
+  case Endpoint.parse $ Text.unwords [Text.pack $ show requestType, path] of
     Endpoint.GetLandingPage -> do
-      Logger.info log $ "Requested landing page, sending " ++ mainPath
+      Logger.info log $ "Requested landing page, sending " <> mainPath
       sendFile mainPath
 
     Endpoint.GetCV -> do
@@ -155,7 +157,7 @@ process tojasDB
       sendFile mainPath
 
     Endpoint.GetBlogItemPage blogNr -> do
-      Logger.info log $ "Requested blog with index " ++ show blogNr
+      Logger.info log $ "Requested blog with index " <> Text.pack (show blogNr)
       sendFile mainPath
 
     Endpoint.GetBlogItemsJSON -> do
@@ -166,15 +168,15 @@ process tojasDB
         <$> Response.make OK (map Blog.toBlogItem blogItems)
 
     Endpoint.GetBlogJSON blogNr -> do
-      Logger.info log $ "Requested blog nr " ++ show blogNr
+      Logger.info log $ "Requested blog nr " <> Text.pack (show blogNr)
       indexes <- DB.everythingList blogDB
       let fileNameMaybe = Blog.getFileName <$> List.find (Blog.withIndex blogNr) indexes
       maybe
-        (Response.make NotFound $ "I have no blog with index " ++ show blogNr)
+        (Response.make NotFound $ "I have no blog with index " <> Text.pack (show blogNr))
         (\fileName -> do
           blog <- Blog.readGyurblog blogNr (blogPath fileName)
           either
-            (const $ Response.make NotFound $ "I have no blog with index " ++ show blogNr ++ ". Missing file!")
+            (const $ Response.make NotFound $ "I have no blog with index " <> Text.pack (show blogNr) <> ". Missing file!")
             (fmap (Response.addHeaders [("Content-Type", "application/json")]) . Response.make OK . Blog.toJson)
             blog
         )
@@ -197,7 +199,7 @@ process tojasDB
         <$> Response.make OK (Video.videosToJson videos)
 
     Endpoint.GetVideoJSON reqNr -> do
-      Logger.info log $ "[API] Requesting video with nr: " ++ show reqNr
+      Logger.info log $ "[API] Requesting video with nr: " <> Text.pack (show reqNr)
       videos <- DB.everythingList vidsDB
       videos & List.find (\v -> Video.nr v == reqNr)
              & maybe badRequest (\v ->
@@ -226,7 +228,7 @@ process tojasDB
 
     Endpoint.PostSuggestion -> do
       Logger.info log "New suggestion!"
-      DB.insert suggestionBoxDB $ "---\n" ++ content
+      DB.insert suggestionBoxDB $ "---\n" <> content
       Response.success
 
     Endpoint.PostCokk2021ParticipantsForUser ->
@@ -240,14 +242,14 @@ process tojasDB
       sendFile mainPath
 
     Endpoint.GetResource resource -> do
-      Logger.info log $ "Requesting resource [" ++ resource ++ "]."
+      Logger.info log $ "Requesting resource [" <> resource <> "]."
       case Endpoint.parseResource resource of
         Just (Endpoint.Resource _ term) -> do
-          let filePath = contentPath </> (term ++ "s") </> resource
-          Logger.info log $ "Sending " ++ filePath ++"... Let's hope it exists..."
+          let filePath = contentPath </> (term <> "s") </> resource
+          Logger.info log $ "Sending " <> filePath <> "... Let's hope it exists..."
           sendFile filePath
         Nothing -> do
-          Logger.warn log $ "No such resource: " ++ path
+          Logger.warn log $ "No such resource: " <> path
           badRequest
 
     Endpoint.GetCokk2021Items -> do
@@ -265,7 +267,7 @@ process tojasDB
             Response.make Unauthorized error
 
     Endpoint.PostVideoJSON reqNr -> do
-      Logger.info log $ "[API] Modified video with nr: " ++ show reqNr
+      Logger.info log $ "[API] Modified video with nr: " <> Text.pack (show reqNr)
       Response.processJsonBody content VideoEdit.decoder $ \video ->
         case VideoEdit.toVideo settings video of
           Right videoWithoutIndex -> do
@@ -291,54 +293,54 @@ process tojasDB
       Cokk2021Handler.incSkill content cokk2021UserDB log settings
 
     Endpoint.PostCokk2021ChangeEggname -> do
-      Logger.info log $ "[API] change egg name with body: " ++ content
+      Logger.info log $ "[API] change egg name with body: " <> content
       if (settings & Settings.cokk2021) == Types.Blocked
       then do
         Logger.info log "Event is locked!"
-        Response.make Forbidden "Event is locked!"
+        Response.make Forbidden ("Event is locked!" :: Text)
       else do
         Response.processJsonBody content Cokk2021ChangeEggnameRequest.decode $ \req -> do
           users <- DB.everythingList cokk2021UserDB
           let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ChangeEggnameRequest.toLogin req) users
           maybe
-            (Response.make Unauthorized "Bad Credentials")
+            (Response.make Unauthorized ("Bad Credentials" :: Text))
             (\user -> do
               let eggs = map Cokk2021User.eggname users
               let newEggname = Cokk2021ChangeEggnameRequest.newEggname req
               if newEggname `elem` eggs
-              then Response.make Forbidden "Egg already exists!"
+              then Response.make Forbidden ("Egg already exists!" :: Text)
               else do
                 DB.modifyData cokk2021UserDB
                   $ (, ()) . Utils.mapIf
                     (\u -> Cokk2021User.username u == Cokk2021User.username user)
                     (\u -> u { Cokk2021User.eggname = Cokk2021ChangeEggnameRequest.newEggname req })
-                Response.make OK "Ok Boomer"
+                Response.make OK ("Ok Boomer" :: Text)
             )
             userOpt
 
     Endpoint.PostCokk2021BuyItem -> do
-      Logger.info log $ "[API] buy request with body: " ++ content
+      Logger.info log $ "[API] buy request with body: " <> content
 
       if (settings & Settings.cokk2021) == Types.Blocked
       then do
         Logger.info log "Event is locked!"
-        Response.make Forbidden "Event is locked!"
+        Response.make Forbidden ("Event is locked!" :: Text)
       else do
         Response.processJsonBody content Cokk2021ItemRequest.decode $ \req -> do
           users <- DB.everythingList cokk2021UserDB
           let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
           maybe
-            (Response.make Unauthorized "Bad Credentials")
+            (Response.make Unauthorized ("Bad Credentials" :: Text))
             (\user -> do
               items <- DB.everythingList cokk2021ItemDB
               let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
               maybe
-                (Response.make BadRequest "This item does not exist!")
+                (Response.make BadRequest ("This item does not exist!" :: Text))
                 (\item -> do
                   if Cokk2021Item.index item `elem` Cokk2021User.items user
-                  then Response.make BadRequest "Item is already owned!"
+                  then Response.make BadRequest ("Item is already owned!" :: Text)
                   else if Cokk2021User.perfume user < Cokk2021Item.cost item
-                  then Response.make PaymentRequired "Not enough perfume"
+                  then Response.make PaymentRequired ("Not enough perfume" :: Text)
                   else do
                     DB.modifyData cokk2021UserDB
                       $ (, ()) . Utils.mapIf
@@ -348,61 +350,61 @@ process tojasDB
                                 , Cokk2021User.base = item
                                 }
                         )
-                    Response.make OK "Ok Boomer"
+                    Response.make OK ("Ok Boomer" :: Text)
                 )
                 itemOpt
             )
             userOpt
 
     Endpoint.PostCokk2021EquipItem -> do
-      Logger.info log $ "[API] requested equip item endpoint with content: " ++ content
+      Logger.info log $ "[API] requested equip item endpoint with content: " <> content
 
       if (settings & Settings.cokk2021) == Types.Blocked
       then do
         Logger.info log "Event is locked!"
-        Response.make Forbidden "Event is locked!"
+        Response.make Forbidden ("Event is locked!" :: Text)
       else do
         Response.processJsonBody content Cokk2021ItemRequest.decode $ \req -> do
           users <- DB.everythingList cokk2021UserDB
           let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
           maybe
-            (Response.make Unauthorized "Bad Credentials")
+            (Response.make Unauthorized ("Bad Credentials" :: Text))
             (\user -> do
               items <- DB.everythingList cokk2021ItemDB
               let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
               maybe
-                (Response.make BadRequest "This item does not exist!")
+                (Response.make BadRequest ("This item does not exist!" :: Text))
                 (\item -> do
                   if Cokk2021Item.index item == Cokk2021Item.index (Cokk2021User.base user)
-                  then Response.make OK "The item is already equiped, but Ok."
+                  then Response.make OK ("The item is already equiped, but Ok." :: Text)
                   else do
                     DB.modifyData cokk2021UserDB
                       $ (, ()) . Utils.mapIf
                         (\u -> Cokk2021User.username u == Cokk2021User.username user)
                         (\u -> u { Cokk2021User.base = item })
-                    Response.make OK "Ok Boomer"
+                    Response.make OK ("Ok Boomer" :: Text)
                 )
                 itemOpt
             )
             userOpt
 
     Endpoint.DeleteVideoJSON reqNr -> do
-      Logger.info log $ "[API] Delete video nr: " ++ show reqNr
+      Logger.info log $ "[API] Delete video nr: " <> Text.pack (show reqNr)
       Response.processJsonBody content Password.decoder $ \(Password pwd) ->
         if pwd == (settings & Settings.password)
         then do
           DB.delete vidsDB (\v -> Video.nr v == reqNr)
           Response.success
         else do
-          Logger.info log ("Bad password: " ++ pwd)
-          Response.make Unauthorized "Bad password!"
+          Logger.info log ("Bad password: " <> pwd)
+          Response.make Unauthorized ("Bad password!" :: Text)
 
     Endpoint.OptionsVideo -> do
       Logger.info log "Someone asked if you can post to /api/videos/new, sure."
       allowHeaders
 
     Endpoint.OptionsVideoJSON reqNr -> do
-      Logger.info log $ "Someone asked if you can post to /api/video/" ++ show reqNr ++ ", sure."
+      Logger.info log $ "Someone asked if you can post to /api/video/" <> Text.pack (show reqNr) <> ", sure."
       allowHeaders
 
     Endpoint.Film operation ->
@@ -416,22 +418,22 @@ process tojasDB
           Response.make OK $ Movie.toJson movies
 
     Endpoint.Other req -> do
-      Logger.warn log $ "Weird request: " ++ req
+      Logger.warn log $ "Weird request: " <> req
       badRequest
 
-contentPath :: String
+contentPath :: Text
 contentPath = "Content"
 
-cvPath :: String
+cvPath :: Text
 cvPath = contentPath </> "pdfs" </> "cv.pdf"
 
-faviconPath :: String
+faviconPath :: Text
 faviconPath = contentPath </> "favicon.ico"
 
-mainPath :: String
+mainPath :: Text
 mainPath = contentPath </> "index.html"
 
-blogPath :: String -> String
+blogPath :: Text -> Text
 blogPath s = "Content" </> "gyurblogs" </> s
 
 allowHeaders :: IO Response
@@ -439,7 +441,7 @@ allowHeaders =
   Response.addHeaders
     [ ("Access-Control-Allow-Headers", "OPTIONS, POST")
     , ("Access-Control-Allow-Origin",  "*") -- Added to allow requests from localhost
-    ] <$> Response.make OK "Wanna try posting stuff? Go ahead."
+    ] <$> Response.make OK ("Wanna try posting stuff? Go ahead." :: Text)
 
 badRequest :: IO Response
 badRequest =
@@ -448,10 +450,10 @@ badRequest =
     [title [] [text "Gyurver"]]
     [h1 [] [text "Your request was bad, and you should feel bad. Nah, just messing with you, have a nice day, but your requests still suck tho."]]
 
-sendFile :: String -> IO Response
+sendFile :: Text -> IO Response
 sendFile path = do
-  contentOpt <- Utils.safeReadBinaryFile path
+  contentOpt <- Utils.safeReadBinaryFile (Text.unpack path)
   maybe
-    (Response.make InternalServerError "Could not read file!")
+    (Response.make InternalServerError ("Could not read file!" :: Text))
     (Response.make OK)
     contentOpt

@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Types.DateTime where
 
 import qualified Data.Time as DTime

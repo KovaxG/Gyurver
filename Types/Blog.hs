@@ -1,4 +1,5 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Types.Blog where
 
 import           Component.Database (DBFormat(..))
@@ -7,7 +8,9 @@ import qualified Component.Json as Json
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 import qualified Data.Char as Char
+import           Data.Text (Text)
 import qualified Data.Text as Text
+import qualified Data.Text.IO as TIO
 import qualified Data.List as List
 import           Data.List ((\\))
 import           Data.Function ((&))
@@ -19,39 +22,39 @@ import qualified Types.Language as Language
 import qualified Text.Parsec as Parsec
 import qualified Utils
 
-type Topic = String
-type Title = String
+type Topic = Text
+type Title = Text
 
 data Blog = Blog
   { identifier :: Int
   , title :: Title
   , date :: Date
-  , intro :: String
+  , intro :: Text
   , sections :: [Section]
   , references :: [Reference]
   , metadata :: Metadata
   } deriving (Show, Eq)
 
-data Section = Paragraph String deriving (Show, Eq)
+data Section = Paragraph Text deriving (Show, Eq)
 
-data Reference = Ref Int String String deriving (Show, Eq)
+data Reference = Ref Int Text Text deriving (Show, Eq)
 
 data Metadata = Metadata
   { languages :: [Language]
   , topics :: [Topic]
   } deriving (Show, Eq)
 
-showSectionASCII :: Section -> String
-showSectionASCII (Paragraph body) = body ++ "\n"
+showSectionASCII :: Section -> Text
+showSectionASCII (Paragraph body) = body <> "\n"
 
-showReferenceASCII :: Reference -> String
-showReferenceASCII (Ref i name url) = "[" ++ show i ++ "] " ++ name ++ " - " ++ url
+showReferenceASCII :: Reference -> Text
+showReferenceASCII (Ref i name url) = "[" <> Text.pack (show i) <> "] " <> name <> " - " <> url
 
-showASCII :: Blog -> String
-showASCII blog = unlines $ mconcat
+showASCII :: Blog -> Text
+showASCII blog = Text.unlines $ mconcat
   [ [title blog]
   , ["------------"]
-  , [show $ date blog]
+  , [Text.pack $ show $ date blog]
   , [""]
   , [intro blog]
   , map showSectionASCII (sections blog)
@@ -105,7 +108,7 @@ refToJson (Ref index name url) = JsonObject
 
 metadataToJson :: Metadata -> Json
 metadataToJson (Metadata languages topics) = JsonObject
-  [ ("languages", JsonArray $ map (JsonString . show) languages)
+  [ ("languages", JsonArray $ map (JsonString . Language.toString) languages)
   , ("topics", JsonArray $ map JsonString topics)
   ]
 
@@ -140,8 +143,8 @@ decodeMetadata =
            <*> Decoder.field "topics" (Decoder.list Decoder.string)
 
 instance DBFormat Blog where
-  encode = Text.pack . show . toJson
-  decode = Utils.eitherToMaybe . (=<<) (Decoder.run decoder) . Json.parseJson . Text.unpack
+  encode = Json.toString . toJson
+  decode = Utils.eitherToMaybe . (=<<) (Decoder.run decoder) . Json.parseJson
 
 toBlogItem :: Blog -> Json
 toBlogItem blog = JsonObject
@@ -149,22 +152,22 @@ toBlogItem blog = JsonObject
   , ("title", JsonString $ title blog)
   , ("date", Date.toJson $ date blog)
   , ("intro", JsonString $ intro blog)
-  , ("languages", JsonArray $ map (JsonString . show) $ languages $ metadata blog)
+  , ("languages", JsonArray $ map (JsonString . Language.toString) $ languages $ metadata blog)
   , ("topics", JsonArray $ map JsonString $ topics $ metadata blog)
   ]
 
-readGyurblog :: Int -> String -> IO (Either String Blog)
-readGyurblog index path = handleFileContents . fmap Text.unpack <$> Utils.safeReadTextFile p
+readGyurblog :: Int -> Text -> IO (Either String Blog)
+readGyurblog index path = handleFileContents <$> Utils.safeReadTextFile p
   where
-    handleFileContents :: Maybe String -> Either String Blog
+    handleFileContents :: Maybe Text -> Either String Blog
     handleFileContents maybeContents = Utils.maybeToEither "Failed to read file." maybeContents >>= parseGyurblog index
-    p = path ++ if suffix `List.isSuffixOf` path then "" else suffix
+    p = path <> if suffix `Text.isSuffixOf` path then "" else suffix
     suffix = ".gyurblog"
 
 -- TODO maybe use a monad transformer here?
-parseGyurblog :: Int -> String -> Either String Blog
+parseGyurblog :: Int -> Text -> Either String Blog
 parseGyurblog index contents = do
-  (s0, title) <- getTitle (filter (not . null) $ map Utils.trim $ lines contents)
+  (s0, title) <- getTitle (filter (not . Text.null) $ map Utils.trim $ Text.lines contents)
   (s1, date) <- getDate s0
   (s2, langs) <- getLanguages s1
   (s3, tags) <- getTopics s2
@@ -182,46 +185,46 @@ parseGyurblog index contents = do
     , metadata = Metadata { languages = langs, topics = tags }
     }
 
-getTitle :: [String] -> Either String ([String], String)
+getTitle :: [Text] -> Either String ([Text], Text)
 getTitle s
-  | any (List.isPrefixOf "title:") s =
+  | any (Text.isPrefixOf "title:") s =
     let (rest, title) = getPrefix "title:" "" s
-    in if null title then Left "Title can't be blank!" else Right (rest, title)
+    in if Text.null title then Left "Title can't be blank!" else Right (rest, title)
   | otherwise = Utils.maybeToEither "Did not find title." $ (\(h, r) -> (r, Utils.trim h)) <$> Utils.safeDeHead s
 
-getDate :: [String] -> Either String ([String], Date)
+getDate :: [Text] -> Either String ([Text], Date)
 getDate s
-  | any (List.isPrefixOf "date:") s =
+  | any (Text.isPrefixOf "date:") s =
     let (rest, dateStr) = getPrefix "date:" "" s
     in Utils.maybeToEither "Invalid Date!"  $ (rest,) <$> Date.parseDate dateStr
   | otherwise = do
       (rest, dateStr) <- Utils.maybeToEither "Did not find date." $ (\(h, r) -> (r, h)) <$> Utils.safeDeHead s
       Utils.maybeToEither "Invalid Date!"  $ (rest,) <$> Date.parseDate dateStr
 
-getLanguages :: [String] -> Either String ([String], [Language])
+getLanguages :: [Text] -> Either String ([Text], [Language])
 getLanguages s
-  | any (List.isPrefixOf "lang:") s =
+  | any (Text.isPrefixOf "lang:") s =
     let (rest, langs) = getPrefix "lang:" "" s
-    in Utils.maybeToEither "Invalid Language!"  $ (rest,) <$> Utils.safeRead ("[" ++ langs ++ "]")
+    in Utils.maybeToEither "Invalid Language!"  $ (rest,) <$> Utils.safeRead ("[" <> langs <> "]")
   | otherwise = Right (s, [EN])
 
-getTopics :: [String] -> Either String ([String], [String])
+getTopics :: [Text] -> Either String ([Text], [Text])
 getTopics s =
   let (rest, tags) = getPrefix "tags:" "" s
-  in Right (rest, words $ Utils.mapIf (==',') (const ' ') tags)
+  in Right (rest, Text.words $ Text.replace "," " " tags)
 
-getIntro :: [String] -> Either String ([String], String)
+getIntro :: [Text] -> Either String ([Text], Text)
 getIntro = Right . getPrefix "(" ")"
 
-getReferences :: [String] -> Either String ([String], [Reference])
+getReferences :: [Text] -> Either String ([Text], [Reference])
 getReferences s =
   let (relevant, rest) = List.partition isRef s
   in (rest,) <$> traverse parseRef relevant
 
-isRef :: String -> Bool
-isRef = List.isPrefixOf "[" . Utils.trim
+isRef :: Text -> Bool
+isRef = Text.isPrefixOf "[" . Utils.trim
 
-parseRef :: String -> Either String Reference
+parseRef :: Text -> Either String Reference
 parseRef = Utils.mapLeft (const "Invalid Refeference.") . Parsec.parse rule "Parsing Reference"
   where
     rule = do
@@ -229,29 +232,30 @@ parseRef = Utils.mapLeft (const "Invalid Refeference.") . Parsec.parse rule "Par
       index <- read <$> Parsec.many1 Parsec.digit
       Parsec.char ']'
       Parsec.spaces
-      title <- Parsec.many (Parsec.noneOf "(")
+      title <- Text.pack <$> Parsec.many (Parsec.noneOf "(")
       Parsec.char '('
-      link <- Parsec.many (Parsec.noneOf ")")
+      link <- Text.pack <$> Parsec.many (Parsec.noneOf ")")
       Parsec.char ')'
       return $ Ref index (Utils.trim title) link
 
-getSections :: [String] -> [Section]
+getSections :: [Text] -> [Section]
 getSections = map Paragraph
 
-getPrefix :: String -> String -> [String] -> ([String], String)
+getPrefix :: Text -> Text -> [Text] -> ([Text], Text)
 getPrefix prefix suffix s =
-  let (relevant, rest) = List.partition (\a -> List.isPrefixOf prefix a && List.isSuffixOf suffix a) s
-      dateStr = concatMap (Utils.trim . Utils.stripPrefix prefix . Utils.stripSuffix suffix) relevant
+  let (relevant, rest) = List.partition (\a -> Text.isPrefixOf prefix a && Text.isSuffixOf suffix a) s
+      dateStr = Text.concat $ map (Utils.trim . Utils.stripPrefix prefix . Utils.stripSuffix suffix) relevant
   in (rest, dateStr)
 
 checkRefs :: [Reference] -> [Section] -> Either String ()
 checkRefs refs secs =
   let textIndexes =
         secs
-        & concatMap (\(Paragraph s) -> s)
-        & filter (`elem` "[]0123456789")
-        & Utils.mapIf (`elem` "[]") (const ' ')
-        & words
+        & map (\(Paragraph s) -> s)
+        & Text.concat
+        & Text.filter (\c -> Text.any (==c) "[]0123456789")
+        & Text.map (\c -> if Text.any (==c) "[]" then ' ' else c)
+        & Text.words
         & Maybe.mapMaybe Utils.safeRead
       refIndexes = map (\(Ref i _ _) -> i) refs
       nonExistentRefs = textIndexes \\ refIndexes
@@ -262,19 +266,19 @@ checkRefs refs secs =
      then Left $ "Not referenced in the text: " ++ show extraRefs
      else Right ()
 
-data Index = Index Int String
+data Index = Index Int Text
 
 withIndex :: Int -> Index -> Bool
 withIndex i2 (Index i1 _) = i1 == i2
 
-getFileName :: Index -> String
+getFileName :: Index -> Text
 getFileName (Index _ s) = s
 
-instance Show Index where
-  show (Index i s) = show i ++ " " ++ s
+
+toStringIndex (Index i s) = Text.pack (show i) <> " " <> s
 
 instance DBFormat Index where
-  encode = Text.pack . show
+  encode = toStringIndex
   decode s =
-    let (a, b) = span Char.isDigit $ Text.unpack s
-    in Index <$> Utils.safeRead a <*> return (drop 1 b)
+    let (a, b) = Text.span Char.isDigit s
+    in Index <$> Utils.safeRead a <*> return (Text.drop 1 b)

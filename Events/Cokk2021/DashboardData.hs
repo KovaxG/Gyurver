@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.DashboardData where
 
 import           Component.Json (Json(..))

@@ -9,6 +9,8 @@
 
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Component.Database (DBHandle, getHandle, insert, insertWithIndex, repsertWithIndex, everythingList, everything, get, delete, modifyData, DBFormat(..)) where
 
 import           Data.Map (Map)
@@ -27,24 +29,24 @@ class DBFormat a where
   encode :: a -> Text
   decode :: Text -> Maybe a
 
-instance DBFormat String where
-  encode = Text.pack
-  decode = Just . Text.unpack
+instance DBFormat Text where
+  encode = id
+  decode = Just
 
 data DBHandle a = DBHandle
   { semaphore :: Semaphore
-  , path :: String
+  , path :: Text
   }
 
-getHandle :: DBFormat a => String -> IO (DBHandle a)
+getHandle :: DBFormat a => Text -> IO (DBHandle a)
 getHandle path = do
   sem <- Sem.new
-  let newPath = "Data/" ++ path ++ ".db"
+  let newPath = "Data/" <> path <> ".db"
   contents <- safeReadTextFile newPath
   maybe (createFile newPath) (return . const ()) contents
   return $ DBHandle sem newPath
 
-createFile :: String -> IO ()
+createFile :: Text -> IO ()
 createFile name = fmap
   (Maybe.fromMaybe $ error "I can't create a new file, probably you need to create a Data file.")
   (safeWriteTextFile name Text.empty)
@@ -52,7 +54,7 @@ createFile name = fmap
 insert :: DBFormat a => DBHandle a -> a -> IO ()
 insert handle a = do
   Sem.block (semaphore handle)
-  TIO.appendFile (path handle) (Text.snoc (encode a) '\n')
+  TIO.appendFile (Text.unpack $ path handle) (Text.snoc (encode a) '\n')
   Sem.unblock (semaphore handle)
 
 insertWithIndex :: DBFormat a => DBHandle a -> (Int -> a) -> (a -> Int) -> IO ()
@@ -60,7 +62,7 @@ insertWithIndex handle mkA index= do
   Sem.block (semaphore handle)
   !raw <- safeReadTextFile (path handle)
   let newId = maybe 0 ((+1) . maximum . (:) 0 . map (index . Maybe.fromJust . decode) . Text.lines) raw
-  TIO.appendFile (path handle) (Text.snoc (encode $ mkA newId) '\n')
+  TIO.appendFile (Text.unpack $ path handle) (Text.snoc (encode $ mkA newId) '\n')
   Sem.unblock (semaphore handle)
 
 repsertWithIndex :: DBFormat a => DBHandle a -> a -> (a -> Int) -> IO ()

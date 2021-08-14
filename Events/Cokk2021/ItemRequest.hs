@@ -1,13 +1,18 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.ItemRequest where
+
+import           Data.Text (Text)
+import qualified Data.Text as Text
 
 import           Events.Cokk2021.Login (Login (..))
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 
 data ItemRequest = IR
-  { username :: String
-  , password :: String
+  { username :: Text
+  , password :: Text
   , index :: Int
   } deriving (Show)
 

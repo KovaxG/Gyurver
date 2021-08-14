@@ -1,6 +1,8 @@
 module Gyurver.Gyurror where
 
-data Gyurror 
+import Data.Text (Text)
+
+data Gyurror
   = FailedReceive
-  | FailedParse String
+  | FailedParse Text
   deriving (Show)

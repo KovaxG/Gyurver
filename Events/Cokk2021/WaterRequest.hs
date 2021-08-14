@@ -1,5 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Events.Cokk2021.WaterRequest where
 
+import           Data.Text (Text)
 import qualified Data.Text as Text
 
 import           Events.Cokk2021.User (User(User))
@@ -12,9 +15,9 @@ import           Types.DateTime (DateTime)
 import qualified Types.DateTime as DateTime
 
 data WaterRequest = WaterRequest
-  { source :: String
-  , target :: String
-  , sourcePass :: String
+  { source :: Text
+  , target :: Text
+  , sourcePass :: Text
   }
 
 decode :: Decoder WaterRequest

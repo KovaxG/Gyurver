@@ -1,6 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Gyurver.Logger (Logger(..), info, error, warn, debug) where
 
-import Prelude hiding (error)
+import           Prelude hiding (error)
+import           Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.IO as TIO
 import           Control.Exception (SomeException)
 import qualified Control.Exception as Exception
 import qualified System.Directory as Dir
@@ -18,37 +23,37 @@ instance Show LogMode where
     Warning -> "WARNING"
     Debug   -> "DEBUG  "
 
-info :: Logger -> String -> IO ()
+info :: Logger -> Text -> IO ()
 info = genericLog Info
 
-warn :: Logger -> String -> IO ()
+warn :: Logger -> Text -> IO ()
 warn = genericLog Warning
 
-error :: Logger -> String -> IO ()
+error :: Logger -> Text -> IO ()
 error = genericLog Error
 
 debug :: (Show a) => Logger -> a -> IO ()
-debug logger a = genericLog Debug logger $ show a
+debug logger a = genericLog Debug logger $ Text.pack $ show a
 
-genericLog :: LogMode -> Logger -> String -> IO ()
+genericLog :: LogMode -> Logger -> Text -> IO ()
 genericLog logMode logger message = do
   time <- Time.getZonedTime
-  let msg = sbrackets (show logMode ++ " " ++ show time) ++ " " ++ message
+  let msg = sbrackets (Text.pack (show logMode) <> " " <> Text.pack (show time)) <> " " <> message
   case logger of
-    Console -> putStrLn msg
+    Console -> TIO.putStrLn msg
     File -> do
-      let folderName = "logs"
-      let fileName = takeWhile (/= ' ') (show time) ++ ".gyurlog"
+      let folderName = "logs" :: Text
+      let fileName = Text.takeWhile (/= ' ') (Text.pack $ show time) <> ".gyurlog"
       let path = folderName </> fileName
-      let tryLogging = appendFile path (msg ++ "\n")
+      let tryLogging = TIO.appendFile (Text.unpack path) (msg <> "\n")
       Exception.catch
         tryLogging
         (\e -> do
           print (e :: SomeException)
-          Dir.createDirectory folderName
+          Dir.createDirectory (Text.unpack folderName)
           tryLogging
         )
-      putStrLn msg
+      TIO.putStrLn msg
 
-sbrackets :: String -> String
-sbrackets s = "[" ++ s ++ "]"
+sbrackets :: Text -> Text
+sbrackets s = "[" <> s <> "]"
