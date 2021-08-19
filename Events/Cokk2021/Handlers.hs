@@ -8,6 +8,7 @@ import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 import           Data.Text (Text)
 import qualified Data.Text as Text
+import           Data.Monoid ((<>))
 import           Gyurver.Response (Status(..), Response)
 import qualified Gyurver.Response as Response
 import qualified Gyurver.Logger as Logger

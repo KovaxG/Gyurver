@@ -4,6 +4,7 @@ module Types.Movie where
 
 import           Data.Text (Text)
 import qualified Data.Text as Text
+import           Data.Monoid ((<>))
 import           Component.Json (Json(..))
 import           Component.Database (DBFormat(..))
 import           Utils ((+:))

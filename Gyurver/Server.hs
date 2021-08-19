@@ -5,6 +5,7 @@ module Gyurver.Server (run, IP(..), Port(..)) where
 import Network.Simple.TCP (serve, HostPreference(..), send, recv, Socket, SockAddr)
 import           Data.Text (Text)
 import qualified Data.Text as Text
+import           Data.Monoid ((<>))
 
 import Gyurver.Gyurror (Gyurror(..))
 import Gyurver.Request (parseRequest, Request)

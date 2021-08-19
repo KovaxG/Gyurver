@@ -15,6 +15,7 @@ import qualified Data.List as List
 import           Data.List ((\\))
 import           Data.Function ((&))
 import qualified Data.Maybe as Maybe
+import           Data.Monoid ((<>))
 import           Types.Date (Date(..))
 import qualified Types.Date as Date
 import           Types.Language (Language(..))

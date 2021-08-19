@@ -6,6 +6,7 @@ import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 import           Data.Function ((&))
 import           Data.Text (Text)
+import           Data.Monoid ((<>))
 import           Types.Date (Date)
 import qualified Types.Date as Date
 import           Types.Video (Video)

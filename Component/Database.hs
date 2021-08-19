@@ -15,13 +15,14 @@ module Component.Database (DBHandle, getHandle, insert, insertWithIndex, repsert
 
 import           Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Function ((&))
+import           Data.Function ((&))
 import qualified Data.Maybe as Maybe
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as TIO
+import           Data.Monoid ((<>))
 
-import Component.Semaphore (Semaphore)
+import           Component.Semaphore (Semaphore)
 import qualified Component.Semaphore as Sem
 import Utils (safeReadTextFile, safeWriteTextFile, readText, mapIf)
 

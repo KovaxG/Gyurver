@@ -10,6 +10,7 @@ import qualified Component.Decoder as Decoder
 import           Data.Function ((&))
 import           Data.Text (Text)
 import qualified Data.Text as Text
+import           Data.Monoid ((<>))
 
 data Language = EN | HU | RO | DE deriving (Eq, Read, Show)
 

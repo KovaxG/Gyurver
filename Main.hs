@@ -17,6 +17,7 @@ import qualified Data.Text as Text
 import           Data.Function ((&))
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
+import           Data.Monoid ((<>))
 
 import qualified Events.Cokk2020 as Cokk2020
 import qualified Events.Cokk2021.Handlers as Cokk2021Handler

@@ -5,6 +5,7 @@ import           Data.Bifunctor (Bifunctor(..))
 import qualified Data.List as List
 import           Data.Text (Text)
 import qualified Data.Text as Text
+import           Data.Monoid ((<>))
 import           Text.Parsec
 import           Text.Printf (printf)
 

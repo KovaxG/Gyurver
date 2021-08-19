@@ -6,6 +6,7 @@ import           Prelude hiding (error)
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as TIO
+import           Data.Monoid ((<>))
 import           Control.Exception (SomeException)
 import qualified Control.Exception as Exception
 import qualified System.Directory as Dir

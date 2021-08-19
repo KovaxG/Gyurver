@@ -5,8 +5,8 @@ module Types.DateTime where
 import qualified Data.Time as DTime
 import qualified Data.Time.Calendar as Calendar
 
-import Component.Json (Json(JsonNumber, JsonObject))
-import Component.Decoder (Decoder)
+import           Component.Json (Json(JsonNumber, JsonObject))
+import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
 
 import           Types.Date (Date(..))

@@ -9,6 +9,7 @@ import           Prelude hiding (maybe)
 import           Data.List (lookup)
 import           Data.Text (Text)
 import qualified Data.Text as Text
+import           Data.Monoid ((<>))
 
 import           Component.Json (Json(..))
 import qualified Component.Json as Json

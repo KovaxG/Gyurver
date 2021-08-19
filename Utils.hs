@@ -7,6 +7,7 @@ import           Data.Bifunctor
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.Maybe as Maybe
+import           Data.Monoid ((<>))
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.List as List
