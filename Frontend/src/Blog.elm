@@ -121,18 +121,20 @@ displayBlogPost bp =
 
 displayInfo : BlogPost -> Html Msg
 displayInfo bp =
-  [ text "👅 "
-  , displayFlags bp.metadata.languages
-  , br [] []
-  , text "📅 "
-  , text <| Date.toIsoString bp.date
-  , br [] []
-  , text "🗜️ "
-  , text <| bp.intro
-  , br [] []
-  , text "🏷️ "
-  , displayTopics bp.metadata.topics
-  ] |> p []
+  ( [ text "👅 "
+    , displayFlags bp.metadata.languages
+    , br [] []
+    , text "📅 "
+    , text <| Date.toIsoString bp.date
+    , br [] []
+    , text "🗜️ "
+    , text <| bp.intro
+    , br [] []
+    ] ++ showTag bp.metadata.topics
+  ) |> p []
+
+showTag : List String -> List (Html Msg)
+showTag ss = if (List.isEmpty ss) then [] else [text "🏷️ ", displayTopics ss]
 
 displayFlags : List Language -> Html Msg
 displayFlags langs = text <| String.concat <| List.map (Language.flag) langs

@@ -96,8 +96,14 @@ viewBlogItem blogItem =
   , text "🗜️ "
   , text blogItem.intro
   , br [] []
-  , div [] (text "🏷️" :: List.map makeBadge blogItem.topics)
+  , showTag blogItem.topics
   ] |> div []
+
+showTag : List String -> Html Msg
+showTag ss =
+  if (List.isEmpty ss)
+  then text ""
+  else div [] (text "🏷️" :: List.map makeBadge ss)
 
 makeBadge : String -> Html Msg
 makeBadge str = Badge.badgePrimary [Spacing.ml1] [text str]
