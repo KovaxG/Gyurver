@@ -62,6 +62,9 @@ log = File
 
 main :: IO ()
 main = do
+  Logger.info log "Caching main file..."
+  fileResponse <- sendFile mainPath
+
   Logger.info log "Gyurver is starting..."
 
   tojasDB <- DB.getHandle "cokkolo2020"
@@ -79,7 +82,7 @@ main = do
   Server.run log
             (settings & Settings.hostAddress)
             (settings & Settings.port)
-            (process tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB suggestionBoxDB movieDiffDB blogDB settings)
+            (process fileResponse tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB suggestionBoxDB movieDiffDB blogDB settings)
 
 readSettings :: Logger -> IO Settings
 readSettings log =
@@ -104,7 +107,8 @@ readSettings log =
       Logger.info log $ "Loaded settings, ip is " <> Text.pack (show (Settings.hostAddress settings))
       return settings
 
-process :: DBHandle Cokk2020.Tojas
+process :: Response
+        -> DBHandle Cokk2020.Tojas
         -> DBHandle Video
         -> DBHandle Cokk2021User.User
         -> DBHandle Cokk2021WaterLog.WaterLog
@@ -115,7 +119,8 @@ process :: DBHandle Cokk2020.Tojas
         -> Settings
         -> Request
         -> IO Response
-process tojasDB
+process mainFile
+        tojasDB
         vidsDB
         cokk2021UserDB
         cokk2021WaterDB
@@ -138,7 +143,7 @@ process tojasDB
   case Endpoint.parse $ Text.unwords [Text.pack $ show requestType, path] of
     Endpoint.GetLandingPage -> do
       Logger.info log $ "Requested landing page, sending " <> mainPath
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetCV -> do
       Logger.info log "Requested CV."
@@ -150,15 +155,15 @@ process tojasDB
 
     Endpoint.GetArticlesPage -> do
       Logger.info log "Requested articles page."
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetBlogPage -> do
       Logger.info log "Requested blog page."
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetBlogItemPage blogNr -> do
       Logger.info log $ "Requested blog with index " <> Text.pack (show blogNr)
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetBlogItemsJSON -> do
       Logger.info log "Requested blog items"
@@ -188,7 +193,7 @@ process tojasDB
 
     Endpoint.GetVideosPage -> do
       Logger.info log "Requested video list."
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetVideosJSON -> do
       Logger.info log "[API] Requested video list."
@@ -203,19 +208,19 @@ process tojasDB
 
     Endpoint.GetCokk2020ResultsPage -> do
       Logger.info log "Requested results for 2020 Cokk."
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetCokk2021ResultsPage -> do
       Logger.info log "Requested results for 2021 Cokk."
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetCokk2020Page -> do
       Logger.info log "Requested cokk 2020 page."
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetCokk2021Page -> do
       Logger.info log "Requested cokk 2021 page"
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetCokk2021Participants ->
       Cokk2021Handler.getParticipants cokk2021UserDB cokk2021WaterDB
@@ -233,7 +238,7 @@ process tojasDB
 
     Endpoint.GetVideosAddPage -> do
       Logger.info log "Requested video add page."
-      sendFile mainPath
+      return mainFile
 
     Endpoint.GetResource resource -> do
       Logger.info log $ "Requesting resource [" <> resource <> "]."

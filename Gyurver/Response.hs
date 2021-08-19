@@ -92,7 +92,7 @@ instance CanSend ByteString where
   toBytes b = Response
     { status = OK
     , address = "localhost"
-    , headers = [("Content-Type", "text/plain")]
+    , headers = [] -- ByteString could be anything!
     , content = b
     }
 
@@ -100,7 +100,7 @@ instance CanSend Text where
   toBytes t = Response
     { status = OK
     , address = "localhost"
-    , headers = [("Content-Type", "text/plain")]
+    , headers = [] -- Text could be anything!
     , content = TextEncoding.encodeUtf8 t
     }
 
