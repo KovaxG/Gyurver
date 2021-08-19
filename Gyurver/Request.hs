@@ -5,19 +5,12 @@ import qualified Data.Text as Text
 import           Data.ByteString.Char8 (ByteString, unpack)
 import           Data.Map (Map)
 import qualified Data.Map as Map
-import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, char, option, sepBy, noneOf, newline, anyChar)
+import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, many1, char, option, sepBy, noneOf, newline, anyChar, parserFail, parserReturn)
 
 import Gyurver.Gyurror
 import Utils
 
-data RequestType = Get | Post | Options | Delete deriving (Read)
-
-instance Show RequestType where
-  show rt = case rt of
-    Get -> "GET"
-    Post -> "POST"
-    Options -> "OPTIONS"
-    Delete -> "DELETE"
+data RequestType = GET | POST | OPTIONS | DELETE | PUT deriving (Show, Read)
 
 data Request = Request
   { requestType :: RequestType
@@ -55,11 +48,9 @@ parseRequest =
         content = content
       }
 
-    requestType = getRequest <|> postRequest <|> optionsRequest <|> deleteRequest
-    getRequest = string "GET" $> Get
-    postRequest = string "POST" $> Post
-    optionsRequest = string "OPTIONS" $> Options
-    deleteRequest = string "DELETE" $> Delete
+    requestType = do
+      requestTypeString <- Text.pack <$> many1 alphaNum
+      maybe (parserFail "Could not decode request type.") parserReturn $ safeRead requestTypeString
 
     path = Text.pack <$> many pathChars
     pathChars = alphaNum <|> char '/' <|> char '.' <|> char '_'

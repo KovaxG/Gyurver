@@ -20,7 +20,7 @@ import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as TextEncoding
 
-import Gyurver.Html (Document)
+import           Gyurver.Html (Document)
 import qualified Component.Json as Json
 import           Component.Json (Json)
 import qualified Component.Decoder as Decoder
@@ -50,7 +50,7 @@ data Response = Response
   , address :: String
   , headers :: [(String, String)]
   , content :: ByteString
-  } deriving (Show)
+  }
 
 toByteString :: Response -> ByteString
 toByteString Response{content, status, headers} =
@@ -68,38 +68,57 @@ addHeaders :: [(String, String)] -> Response -> Response
 addHeaders hs r = r { headers = headers r ++ hs }
 
 make :: CanSend a => Status -> a -> IO Response
-make status content = do
+make status thing = do
   now <- Time.getCurrentTime
-  let payload = toBytes content
-  return $ Response
+  let response = toBytes thing
+  return $ response
     { status = status
     , address = "localhost"
-    , headers =
+    , headers = headers response ++
       [ ("Date", show now)
       , ("Server", "Gyurver") -- TODO maybe add the version here?
-      , ("Content-Length", show $ BS.length payload)
+      , ("Content-Length", show $ BS.length $ content response)
       , ("Connection", "close")
       ]
-    , content = payload
     }
 
 success :: IO Response
 success = make OK ("OK Boomer" :: Text)
 
 class CanSend a where
-  toBytes :: a -> ByteString
+  toBytes :: a -> Response
 
 instance CanSend ByteString where
-  toBytes = id
+  toBytes b = Response
+    { status = OK
+    , address = "localhost"
+    , headers = [("Content-Type", "text/plain")]
+    , content = b
+    }
 
 instance CanSend Text where
-  toBytes = TextEncoding.encodeUtf8
+  toBytes t = Response
+    { status = OK
+    , address = "localhost"
+    , headers = [("Content-Type", "text/plain")]
+    , content = TextEncoding.encodeUtf8 t
+    }
 
 instance CanSend Document where
-  toBytes = BS.pack . show
+  toBytes d = Response
+    { status = OK
+    , address = "localhost"
+    , headers = [("Content-Type", "text/html")]
+    , content = BS.pack $ show d
+    }
 
 instance CanSend Json where
-  toBytes = TextEncoding.encodeUtf8 . Json.toString
+  toBytes j = Response
+    { status = OK
+    , address = "localhost"
+    , headers = [("Content-Type", "application/json")]
+    , content = TextEncoding.encodeUtf8 $ Json.toString j
+    }
 
 instance CanSend [Json] where
   toBytes = toBytes . Json.JsonArray

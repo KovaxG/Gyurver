@@ -164,8 +164,7 @@ process tojasDB
       Logger.info log "Requested blog items"
       indexes <- DB.everythingList blogDB
       blogItems <- Maybe.mapMaybe Utils.eitherToMaybe <$> traverse (\(Index i s) -> Blog.readGyurblog i (blogPath s)) indexes
-      Response.addHeaders [("Content-Type", "application/json")]
-        <$> Response.make OK (map Blog.toBlogItem blogItems)
+      Response.make OK (map Blog.toBlogItem blogItems)
 
     Endpoint.GetBlogJSON blogNr -> do
       Logger.info log $ "Requested blog nr " <> Text.pack (show blogNr)
@@ -177,7 +176,7 @@ process tojasDB
           blog <- Blog.readGyurblog blogNr (blogPath fileName)
           either
             (const $ Response.make NotFound $ "I have no blog with index " <> Text.pack (show blogNr) <> ". Missing file!")
-            (fmap (Response.addHeaders [("Content-Type", "application/json")]) . Response.make OK . Blog.toJson)
+            (Response.make OK . Blog.toJson)
             blog
         )
         fileNameMaybe
@@ -185,8 +184,7 @@ process tojasDB
     Endpoint.GetCokk2020JSON -> do
       Logger.info log "[API] Requested cokkolesi lista."
       tojasok <- DB.everythingList tojasDB
-      Response.addHeaders [("Content-Type", "application/json")]
-        <$> Response.make OK (map Cokk2020.tojasToJson tojasok)
+      Response.make OK (map Cokk2020.tojasToJson tojasok)
 
     Endpoint.GetVideosPage -> do
       Logger.info log "Requested video list."
@@ -195,17 +193,13 @@ process tojasDB
     Endpoint.GetVideosJSON -> do
       Logger.info log "[API] Requested video list."
       videos <- DB.everythingList vidsDB
-      Response.addHeaders [("Content-Type", "application/json")]
-        <$> Response.make OK (Video.videosToJson videos)
+      Response.make OK (Video.videosToJson videos)
 
     Endpoint.GetVideoJSON reqNr -> do
       Logger.info log $ "[API] Requesting video with nr: " <> Text.pack (show reqNr)
       videos <- DB.everythingList vidsDB
       videos & List.find (\v -> Video.nr v == reqNr)
-             & maybe badRequest (\v ->
-               Response.addHeaders [("Content-Type", "application/json")]
-               <$> Response.make OK (Video.videoToJson v)
-             )
+             & maybe badRequest (Response.make OK . Video.videoToJson)
 
     Endpoint.GetCokk2020ResultsPage -> do
       Logger.info log "Requested results for 2020 Cokk."
@@ -415,7 +409,7 @@ process tojasDB
         Endpoint.Obtain -> do
           movieDiffs <- DB.everythingList movieDiffDB
           let movies = Movie.combineDiffs movieDiffs
-          Response.make OK $ Movie.toJson movies
+          Response.make OK (Movie.toJson movies)
 
     Endpoint.Other req -> do
       Logger.warn log $ "Weird request: " <> req
