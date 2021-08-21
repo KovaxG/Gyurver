@@ -42,6 +42,7 @@ import qualified Gyurver.Server as Server
 import           Gyurver.Logger (Logger(..))
 import qualified Gyurver.Logger as Logger
 import qualified Types.Common as Types
+import qualified Types.Date as Date
 import qualified Types.DateTime as DateTime
 import           Types.Movie (Movie, MovieDiff)
 import qualified Types.Movie as Movie
@@ -407,11 +408,16 @@ process mainFile
       Logger.info log $ "Someone asked if you can post to /api/video/" <> Text.pack (show reqNr) <> ", sure."
       allowHeaders
 
-    Endpoint.Film operation ->
+    Endpoint.GetFilmsPage -> do
+      Logger.info log "Requested Films page"
+      return mainFile
+
+    Endpoint.Film operation -> do
+      now <- Date.getCurrentDate
       case operation of
-        Endpoint.Insert -> movieProcessing Movie.NewMovie "added (if doesn't exist)"
-        Endpoint.Modify -> movieProcessing (`Movie.SetWatched` True) "marked as watched (if exists)"
-        Endpoint.Delete -> movieProcessing Movie.Delete "removed (if exists)"
+        Endpoint.Insert -> movieProcessing (Movie.NewMovie now) "added (if doesn't exist)"
+        Endpoint.Modify -> movieProcessing (\s -> Movie.SetWatched now s True) "marked as watched (if exists)"
+        Endpoint.Delete -> movieProcessing (Movie.Delete now) "removed (if exists)"
         Endpoint.Obtain -> do
           movieDiffs <- DB.everythingList movieDiffDB
           let movies = Movie.combineDiffs movieDiffs

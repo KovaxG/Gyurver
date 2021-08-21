@@ -59,6 +59,7 @@ data Endpoint
   | OptionsVideo
   | OptionsVideoJSON Int
   | Film Operation
+  | GetFilmsPage
   | GetBlogPage
   | GetBlogJSON Int
   | GetBlogItemsJSON
@@ -139,6 +140,7 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "PUT /api/films" $> Film Modify
         , Parsec.string "GET /api/films" $> Film Obtain
         , Parsec.string "DELETE /api/films" $> Film Delete
+        , Parsec.string "GET /films" $> GetFilmsPage
 
         , Parsec.string "POST /api/suggestionbox" $> PostSuggestion
 

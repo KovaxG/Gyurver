@@ -128,6 +128,7 @@ endpointTests =
   , test "marking a film as watched API POST" $ parse "PUT /api/films" === Film Modify
   , test "get a list of films API GET" $ parse "GET /api/films" === Film Obtain
   , test "delete a film API DELETE" $ parse "DELETE /api/films" === Film Delete
+  , test "get films page" $ parse "GET /films" === GetFilmsPage
 
   , test "video options HU" $ parse "OPTIONS /api/videok" === OptionsVideo
   , test "video options RO" $ parse "OPTIONS /api/videouri" === OptionsVideo

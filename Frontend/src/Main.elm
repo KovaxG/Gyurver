@@ -19,6 +19,7 @@ import Cokkolo2021.Results
 import Articles
 import BlogList
 import Blog
+import Films
 import Video.VideoAdd as VideoAdd
 import Video.Vids as VideoList
 import Settings
@@ -51,6 +52,7 @@ type Content
   | VideoList VideoList.Model
   | BlogList BlogList.Model
   | Blog Blog.Model
+  | Films Films.Model
   | Invalid Model Msg
   | Loading
   | Test String
@@ -68,6 +70,7 @@ type Msg
   | VideoAddMsg VideoAdd.Msg
   | VideoListMsg VideoList.Msg
   | BlogListMsg BlogList.Msg
+  | FilmsMsg Films.Msg
   | BlogMsg Blog.Msg
 
 subscriptions : Model -> Sub Msg
@@ -92,6 +95,7 @@ update msg model =
     (VideoListMsg vlmsg, VideoList vl) -> VideoList.update vlmsg vl |> liftModelCmd VideoList VideoListMsg model
     (BlogListMsg bmsg, BlogList b) -> BlogList.update bmsg b |> liftModelCmd BlogList BlogListMsg model
     (BlogMsg bmsg, Blog b) -> Blog.update bmsg b |> liftModelCmd Blog BlogMsg model
+    (FilmsMsg fmsg, Films f) -> Films.update fmsg f |> liftModelCmd Films FilmsMsg model
 
     (UrlRequest request, _) ->
       case request of
@@ -121,6 +125,7 @@ validLinks model path =
         Cokk2021ResultsPage -> Cokkolo2021.Results.init |> liftModelCmd CokkoloResults2021 CokkoloResults2021Msg model
         BlogListPage -> BlogList.init |> liftModelCmd BlogList BlogListMsg model
         BlogItemPage index -> Blog.init index |> liftModelCmd Blog BlogMsg model
+        FilmsPage -> Films.init |> liftModelCmd Films FilmsMsg model
   in path
      |> Endpoints.parse
      |> Maybe.map endpointToInit
@@ -146,6 +151,7 @@ view model =
     VideoList videoList -> VideoList.view videoList |> liftDocument model VideoListMsg
     BlogList blog -> BlogList.view blog |> liftDocument model BlogListMsg
     Blog blog -> Blog.view blog |> liftDocument model BlogMsg
+    Films films -> Films.view films |> liftDocument model FilmsMsg
     Loading -> { title = "Loading", body = [text "If you see this just hit refresh :D #developer"] }
     Test msg -> { title = "Test", body = [text msg] }
     Invalid _ _ -> { title = "Error", body = [text "mismatch"] }
@@ -159,6 +165,7 @@ navbar model =
     [ Navbar.itemLink [ href <| Endpoints.show ArticlesPage ] [ text "📑 Articles"]
     , Navbar.itemLink [ href <| Endpoints.show BlogListPage ] [ text "📝 Blog" ]
     , Navbar.itemLink [ href <| Endpoints.show VideosPage ] [ text "📼 Videos"]
+    , Navbar.itemLink [ href <| Endpoints.show FilmsPage ] [ text "🎞️ Films"]
     , Navbar.dropdown
       { id = "Cokkolo_Dropdown"
       , toggle = Navbar.dropdownToggle [] [text "🥚 Cökkölő"]

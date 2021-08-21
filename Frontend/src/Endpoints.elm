@@ -16,6 +16,7 @@ type Endpoint
   | Cokk2021ResultsPage
   | BlogListPage
   | BlogItemPage Int
+  | FilmsPage
 
 parse : String -> Maybe Endpoint
 parse path =
@@ -33,6 +34,7 @@ parse path =
           , map Cokk2021ResultsPage (s "cokk2021" </> s "results")
           , map BlogListPage (s "blog")
           , map BlogItemPage (s "blog" </> int)
+          , map FilmsPage (s "films")
           ]
   in fullUrl
      |> Url.fromString
@@ -50,6 +52,9 @@ show ep = case ep of
   Cokk2021ResultsPage -> "/cokk2021/results"
   BlogListPage -> "/blog"
   BlogItemPage nr -> "/blog/" ++ String.fromInt nr
+  FilmsPage -> "/films"
+
+filmItemsJson = "/api/films"
 
 blogItemsJson = "/api/blog/items"
 blogItemJson = "/api/blog/"
