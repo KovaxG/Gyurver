@@ -1,5 +1,4 @@
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
@@ -23,19 +22,10 @@ import qualified Events.Cokk2020 as Cokk2020
 import qualified Events.Cokk2021.Handlers as Cokk2021Handler
 import qualified Events.Cokk2021.User as Cokk2021User
 import qualified Events.Cokk2021.Item as Cokk2021Item
-import qualified Events.Cokk2021.Login as Cokk2021Login
-import qualified Events.Cokk2021.Skills as Cokk2021Skills
 import qualified Events.Cokk2021.WaterLog as Cokk2021WaterLog
-import qualified Events.Cokk2021.ItemRequest as Cokk2021ItemRequest
-import qualified Events.Cokk2021.Registration as Cokk2021Registration
-import qualified Events.Cokk2021.WaterRequest as Cokk2021WaterRequest
-import qualified Events.Cokk2021.FightRequest as Cokk2021FightRequest
-import qualified Events.Cokk2021.DashboardData as Cokk2021DashboardData
-import qualified Events.Cokk2021.IncSkillRequest as Cokk2021IncSkillRequest
-import qualified Events.Cokk2021.ChangeEggnameRequest as Cokk2021ChangeEggnameRequest
 
-import Gyurver.Html
-import Gyurver.Request
+import           Gyurver.Html (h1, text, title, Document(..))
+import           Gyurver.Request (Request(..))
 import qualified Gyurver.Response as Response
 import           Gyurver.Response (Response, Status(..))
 import qualified Gyurver.Server as Server
@@ -52,7 +42,8 @@ import           Types.Blog (Blog, Index(..))
 import qualified Types.Blog as Blog
 import qualified Types.VideoAdd as VideoAdd
 import qualified Types.VideoEdit as VideoEdit
-import           Types.Password as Password
+import           Types.Password (Password(..))
+import qualified Types.Password as Password
 import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
 import qualified Endpoints as Endpoint
@@ -84,7 +75,17 @@ main = do
   Server.run log
             (settings & Settings.hostAddress)
             (settings & Settings.port)
-            (process fileResponse tojasDB vidsDB cokk2021UserDB cokk2021WaterDB cokk2021ItemDB suggestionBoxDB movieDiffDB blogDB settings)
+            (process fileResponse
+                     tojasDB
+                     vidsDB
+                     cokk2021UserDB
+                     cokk2021WaterDB
+                     cokk2021ItemDB
+                     suggestionBoxDB
+                     movieDiffDB
+                     blogDB
+                     settings
+            )
 
 readSettings :: Logger -> IO Settings
 readSettings log =
@@ -293,111 +294,24 @@ process mainFile
     Endpoint.PostCokk2021IncSkill ->
       Cokk2021Handler.incSkill content cokk2021UserDB log settings
 
-    Endpoint.PostCokk2021ChangeEggname -> do
-      Logger.info log $ "[API] change egg name with body: " <> content
-      if (settings & Settings.cokk2021) == Types.Blocked
-      then do
-        Logger.info log "Event is locked!"
-        Response.make Forbidden ("Event is locked!" :: Text)
-      else do
-        Response.processJsonBody content Cokk2021ChangeEggnameRequest.decode $ \req -> do
-          users <- DB.everythingList cokk2021UserDB
-          let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ChangeEggnameRequest.toLogin req) users
-          maybe
-            (Response.make Unauthorized ("Bad Credentials" :: Text))
-            (\user -> do
-              let eggs = map Cokk2021User.eggname users
-              let newEggname = Cokk2021ChangeEggnameRequest.newEggname req
-              if newEggname `elem` eggs
-              then Response.make Forbidden ("Egg already exists!" :: Text)
-              else do
-                DB.modifyData cokk2021UserDB
-                  $ (, ()) . Utils.mapIf
-                    (\u -> Cokk2021User.username u == Cokk2021User.username user)
-                    (\u -> u { Cokk2021User.eggname = Cokk2021ChangeEggnameRequest.newEggname req })
-                Response.make OK ("Ok Boomer" :: Text)
-            )
-            userOpt
+    Endpoint.PostCokk2021ChangeEggname ->
+      Cokk2021Handler.changeEggName content cokk2021UserDB log settings
 
     Endpoint.PostCokk2021BuyItem -> do
-      Logger.info log $ "[API] buy request with body: " <> content
-
-      if (settings & Settings.cokk2021) == Types.Blocked
-      then do
-        Logger.info log "Event is locked!"
-        Response.make Forbidden ("Event is locked!" :: Text)
-      else do
-        Response.processJsonBody content Cokk2021ItemRequest.decode $ \req -> do
-          users <- DB.everythingList cokk2021UserDB
-          let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
-          maybe
-            (Response.make Unauthorized ("Bad Credentials" :: Text))
-            (\user -> do
-              items <- DB.everythingList cokk2021ItemDB
-              let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
-              maybe
-                (Response.make BadRequest ("This item does not exist!" :: Text))
-                (\item -> do
-                  if Cokk2021Item.index item `elem` Cokk2021User.items user
-                  then Response.make BadRequest ("Item is already owned!" :: Text)
-                  else if Cokk2021User.perfume user < Cokk2021Item.cost item
-                  then Response.make PaymentRequired ("Not enough perfume" :: Text)
-                  else do
-                    DB.modifyData cokk2021UserDB
-                      $ (, ()) . Utils.mapIf
-                        (\u -> Cokk2021User.username u == Cokk2021User.username user)
-                        (\u -> u { Cokk2021User.perfume = Cokk2021User.perfume user - Cokk2021Item.cost item
-                                , Cokk2021User.items = Cokk2021Item.index item : Cokk2021User.items user
-                                , Cokk2021User.base = item
-                                }
-                        )
-                    Response.make OK ("Ok Boomer" :: Text)
-                )
-                itemOpt
-            )
-            userOpt
+      Cokk2021Handler.buyItem content cokk2021UserDB cokk2021ItemDB log settings
 
     Endpoint.PostCokk2021EquipItem -> do
-      Logger.info log $ "[API] requested equip item endpoint with content: " <> content
-
-      if (settings & Settings.cokk2021) == Types.Blocked
-      then do
-        Logger.info log "Event is locked!"
-        Response.make Forbidden ("Event is locked!" :: Text)
-      else do
-        Response.processJsonBody content Cokk2021ItemRequest.decode $ \req -> do
-          users <- DB.everythingList cokk2021UserDB
-          let userOpt = List.find (Cokk2021Login.matchesLogin $ Cokk2021ItemRequest.toLogin req) users
-          maybe
-            (Response.make Unauthorized ("Bad Credentials" :: Text))
-            (\user -> do
-              items <- DB.everythingList cokk2021ItemDB
-              let itemOpt = List.find (\i -> Cokk2021Item.index i == Cokk2021ItemRequest.index req) items
-              maybe
-                (Response.make BadRequest ("This item does not exist!" :: Text))
-                (\item -> do
-                  if Cokk2021Item.index item == Cokk2021Item.index (Cokk2021User.base user)
-                  then Response.make OK ("The item is already equiped, but Ok." :: Text)
-                  else do
-                    DB.modifyData cokk2021UserDB
-                      $ (, ()) . Utils.mapIf
-                        (\u -> Cokk2021User.username u == Cokk2021User.username user)
-                        (\u -> u { Cokk2021User.base = item })
-                    Response.make OK ("Ok Boomer" :: Text)
-                )
-                itemOpt
-            )
-            userOpt
+      Cokk2021Handler.equipItem content cokk2021UserDB cokk2021ItemDB log settings
 
     Endpoint.DeleteVideoJSON reqNr -> do
       Logger.info log $ "[API] Delete video nr: " <> Text.pack (show reqNr)
-      Response.processJsonBody content Password.decoder $ \(Password pwd) ->
+      Response.processJsonBody content Password.decoder $ \pwd@(Password pwdt) ->
         if pwd == (settings & Settings.password)
         then do
           DB.delete vidsDB (\v -> Video.nr v == reqNr)
           Response.success
         else do
-          Logger.info log ("Bad password: " <> pwd)
+          Logger.info log $ "Bad password: " <> pwdt
           Response.make Unauthorized ("Bad password!" :: Text)
 
     Endpoint.OptionsVideo -> do

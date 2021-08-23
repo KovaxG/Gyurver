@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 
 module Events.Cokk2021.Handlers where
 
@@ -24,14 +25,16 @@ import           Events.Cokk2021.Login (Login)
 import qualified Events.Cokk2021.Login as Login
 import qualified Events.Cokk2021.Item as Item
 import           Events.Cokk2021.Item (Item)
-import qualified Events.Cokk2021.DashboardData as Dashboard
+import qualified Events.Cokk2021.Skills as Skills
 import           Events.Cokk2021.WaterLog (WaterLog)
 import qualified Events.Cokk2021.WaterLog as WaterLog
+import qualified Events.Cokk2021.Registration as Register
+import qualified Events.Cokk2021.DashboardData as Dashboard
+import qualified Events.Cokk2021.ItemRequest as ItemRequest
 import qualified Events.Cokk2021.WaterRequest as WaterRequest
 import qualified Events.Cokk2021.FightRequest as FightRequest
-import qualified Events.Cokk2021.Registration as Register
 import qualified Events.Cokk2021.IncSkillRequest as IncSkillRequest
-import qualified Events.Cokk2021.Skills as Skills
+import qualified Events.Cokk2021.ChangeEggnameRequest as ChangeEggnameRequest
 import qualified Utils
 
 getParticipants :: DBHandle User -> DBHandle WaterLog -> IO Response
@@ -230,3 +233,102 @@ incSkill content userDB log settings = do
                   Response.make OK ("OK Boomer" :: Text)
             ) skillOpt
         ) userOpt
+
+changeEggName :: Text -> DBHandle User -> Logger -> Settings -> IO Response
+changeEggName content userDB log settings = do
+  Logger.info log $ "[API] change egg name with body: " <> content
+  if (settings & Settings.cokk2021) == Types.Blocked
+  then do
+    Logger.info log "Event is locked!"
+    Response.make Forbidden ("Event is locked!" :: Text)
+  else do
+    Response.processJsonBody content ChangeEggnameRequest.decode $ \req -> do
+      users <- DB.everythingList userDB
+      let userOpt = List.find (Login.matchesLogin $ ChangeEggnameRequest.toLogin req) users
+      maybe
+        (Response.make Unauthorized ("Bad Credentials" :: Text))
+        (\user -> do
+          let eggs = map User.eggname users
+          let newEggname = ChangeEggnameRequest.newEggname req
+          if newEggname `elem` eggs
+          then Response.make Forbidden ("Egg already exists!" :: Text)
+          else do
+            DB.modifyData userDB
+              $ (, ()) . Utils.mapIf
+                (\u -> User.username u == User.username user)
+                (\u -> u { User.eggname = ChangeEggnameRequest.newEggname req })
+            Response.make OK ("Ok Boomer" :: Text)
+        )
+        userOpt
+
+buyItem :: Text -> DBHandle User -> DBHandle Item -> Logger -> Settings -> IO Response
+buyItem content userDB itemDB log settings = do
+  Logger.info log $ "[API] buy request with body: " <> content
+
+  if (settings & Settings.cokk2021) == Types.Blocked
+  then do
+    Logger.info log "Event is locked!"
+    Response.make Forbidden ("Event is locked!" :: Text)
+  else do
+    Response.processJsonBody content ItemRequest.decode $ \req -> do
+      users <- DB.everythingList userDB
+      let userOpt = List.find (Login.matchesLogin $ ItemRequest.toLogin req) users
+      maybe
+        (Response.make Unauthorized ("Bad Credentials" :: Text))
+        (\user -> do
+          items <- DB.everythingList itemDB
+          let itemOpt = List.find (\i -> Item.index i == ItemRequest.index req) items
+          maybe
+            (Response.make BadRequest ("This item does not exist!" :: Text))
+            (\item -> do
+              if Item.index item `elem` User.items user
+              then Response.make BadRequest ("Item is already owned!" :: Text)
+              else if User.perfume user < Item.cost item
+              then Response.make PaymentRequired ("Not enough perfume" :: Text)
+              else do
+                DB.modifyData userDB
+                  $ (, ()) . Utils.mapIf
+                    (\u -> User.username u == User.username user)
+                    (\u -> u { User.perfume = User.perfume user - Item.cost item
+                             , User.items = Item.index item : User.items user
+                             , User.base = item
+                             }
+                    )
+                Response.make OK ("Ok Boomer" :: Text)
+            )
+            itemOpt
+        )
+        userOpt
+
+equipItem :: Text -> DBHandle User -> DBHandle Item -> Logger -> Settings -> IO Response
+equipItem content userDB itemDB log settings = do
+  Logger.info log $ "[API] requested equip item endpoint with content: " <> content
+
+  if (settings & Settings.cokk2021) == Types.Blocked
+  then do
+    Logger.info log "Event is locked!"
+    Response.make Forbidden ("Event is locked!" :: Text)
+  else do
+    Response.processJsonBody content ItemRequest.decode $ \req -> do
+      users <- DB.everythingList userDB
+      let userOpt = List.find (Login.matchesLogin $ ItemRequest.toLogin req) users
+      maybe
+        (Response.make Unauthorized ("Bad Credentials" :: Text))
+        (\user -> do
+          items <- DB.everythingList itemDB
+          let itemOpt = List.find (\i -> Item.index i == ItemRequest.index req) items
+          maybe
+            (Response.make BadRequest ("This item does not exist!" :: Text))
+            (\item -> do
+              if Item.index item == Item.index (User.base user)
+              then Response.make OK ("The item is already equiped, but Ok." :: Text)
+              else do
+                DB.modifyData userDB
+                  $ (, ()) . Utils.mapIf
+                    (\u -> User.username u == User.username user)
+                    (\u -> u { User.base = item })
+                Response.make OK ("Ok Boomer" :: Text)
+            )
+            itemOpt
+        )
+        userOpt

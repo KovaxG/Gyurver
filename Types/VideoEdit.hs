@@ -13,6 +13,7 @@ import           Types.Video (Video)
 import qualified Types.Video as Video
 import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
+import           Types.Password (Password(..))
 
 
 data Request =  Request
@@ -23,7 +24,7 @@ data Request =  Request
   , comment :: Text
   , watchDate :: Maybe Date
   , tags :: [Text]
-  , password :: Text
+  , password :: Password
   } deriving (Show)
 
 toVideo :: Settings -> Request -> Either Text (Int -> Video)
@@ -38,7 +39,7 @@ toVideo settings request =
     (request & comment)
     (request & watchDate)
     (request & tags)
-  else Left $ "Incorrect Password: \"" <> (request & password) <> "\""
+  else Left "Incorrect Password!"
 
 decoder :: Decoder Request
 decoder = Request
@@ -49,4 +50,4 @@ decoder = Request
     <*> Decoder.field "comment" Decoder.string
     <*> Decoder.field "watchDate" (Decoder.maybe Date.decoder)
     <*> Decoder.field "tags" (Decoder.list Decoder.string)
-    <*> Decoder.field "password" Decoder.string
+    <*> Decoder.field "password" (Password <$> Decoder.string)

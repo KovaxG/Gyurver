@@ -11,11 +11,12 @@ import qualified Text.Parsec as Parsec
 
 import Gyurver.Server
 import Types.Common (Mode(..), EventMode(..))
+import Types.Password (Password(..))
 
 data Settings = Settings
   { hostAddress :: IP
   , port :: Port
-  , password :: Text
+  , password :: Password
   , mode :: Mode
   , cokk2021 :: EventMode
   } deriving (Show, Eq)
@@ -23,7 +24,7 @@ data Settings = Settings
 defaultSettings = Settings
   { hostAddress = IP "localhost"
   , port = Port 8080
-  , password = "nincs jelszo"
+  , password = Password "nincs jelszo"
   , mode = Dev
   , cokk2021 = Locked
   }
@@ -42,7 +43,7 @@ parse = Bifunctor.first (Text.pack . show) . Parsec.parse settings "Parsing Sett
       Parsec.newline
       Parsec.string "password"
       Parsec.spaces
-      password <- Text.pack <$> Parsec.many1 Parsec.alphaNum
+      password <- Password . Text.pack <$> Parsec.many1 Parsec.alphaNum
       Parsec.newline
       Parsec.string "mode"
       Parsec.spaces
@@ -61,6 +62,3 @@ parse = Bifunctor.first (Text.pack . show) . Parsec.parse settings "Parsing Sett
     running = Parsec.string "running" >> return Running
     locked = Parsec.string "locked" >> return Locked
     blocked = Parsec.string "blocked" >> return Blocked
-
-
--- Tugyatok mier ros ha ninci civel beseietek perte cet, unatkostok és fel idegesite te magatokat semiert. Oian egyedű letet erestek. És csak a olvasad és a iras nuktat engemet.
