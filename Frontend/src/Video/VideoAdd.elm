@@ -8,6 +8,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Spinner as Spinner
+import Bootstrap.Form.Checkbox as Checkbox
 import Browser.Navigation as Nav
 import Html exposing (Html, text, h1, a, br, iframe, div)
 import Html.Attributes exposing (src)
@@ -34,12 +35,12 @@ type alias Model =
   , author : String
   , date : String
   , comment : String
-  , watchDate : String
+  , watchDate : Maybe String
   , tags : String
   , status : Status
   , password : String
+  , currentDate : String
   }
-
 
 toRequest : Model -> Maybe NewVideoRequest
 toRequest model =
@@ -49,7 +50,7 @@ toRequest model =
   |> Maybe.andMap (nonEmpty model.author)
   |> Maybe.andMap (Result.toMaybe <| Date.fromIsoString model.date)
   |> Maybe.andMap (Just model.comment)
-  |> Maybe.andMap (Just <| Result.toMaybe <| Date.fromIsoString model.watchDate)
+  |> Maybe.andMap (Just <| Maybe.andThen (Result.toMaybe << Date.fromIsoString) model.watchDate)
   |> Maybe.andMap (Just <| List.map String.trim <| String.split "," model.tags)
   |> Maybe.andMap (Just model.password)
 
@@ -67,12 +68,14 @@ type Msg
   | AuthorChanged String
   | DateChanged String
   | CommentChanged String
+  | WatchDateShow Bool
   | WatchDateChanged String
   | TagsChanged String
   | PasswordChanged String
   | SaveData
   | Success
   | Response String
+  | GotCurrentDate String
 
 init : (Model, Cmd Msg)
 init =
@@ -81,12 +84,13 @@ init =
     , author = ""
     , date = ""
     , comment = "No Comment"
-    , watchDate = Date.toIsoString <| Date.fromCalendarDate 2020 May 13
+    , watchDate = Just <| Date.toIsoString <| Date.fromCalendarDate 2020 May 13
     , tags = ""
     , status = Editing
     , password = ""
+    , currentDate = Date.toIsoString <| Date.fromCalendarDate 2021 Aug 24
     }
-  , Task.perform (WatchDateChanged << Date.toIsoString) Date.today
+  , Task.perform (GotCurrentDate << Date.toIsoString) Date.today
   )
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -96,7 +100,9 @@ update msg model = case msg of
   AuthorChanged author -> ({ model | author = author }, Cmd.none)
   DateChanged date -> ({ model | date = date }, Cmd.none)
   CommentChanged comment -> ({ model | comment = comment }, Cmd.none)
-  WatchDateChanged watchDate -> ({ model | watchDate = watchDate }, Cmd.none)
+  GotCurrentDate date -> ({ model | watchDate = Just date, currentDate = date }, Cmd.none)
+  WatchDateShow b -> ({ model | watchDate = if b then Just model.currentDate else Nothing }, Cmd.none)
+  WatchDateChanged watchDate -> ({ model | watchDate = Just watchDate }, Cmd.none)
   TagsChanged tags -> ({ model | tags = tags }, Cmd.none)
   PasswordChanged pass -> ({ model | password = pass }, Cmd.none)
   Success -> ({ model | status = Received "OK" }, Nav.load <| Endpoints.show VideosPage)
@@ -112,6 +118,7 @@ update msg model = case msg of
           }
         )
       Nothing ->
+      -- TODO this message should appear before pressing the button!
         ({ model | status = Received "Invalid Form. Can not send." }, Cmd.none)
 
 view : Model -> Document Msg
@@ -125,13 +132,13 @@ view model =
         , text "Title"
         , textInput model.title TitleChanged
         , text "Author / Channel"
-        , textInput model.author AuthorChanged
+        , authorInput model
         , text "Date of the Video"
         , dateInput model.date DateChanged
         , text "Comment"
         , commentInput model
         , text "Watch Date"
-        , dateInput model.watchDate WatchDateChanged
+        , maybeDateInput model.watchDate WatchDateChanged WatchDateShow
         , text "Tags"
         , textInput model.tags TagsChanged
         , text "Password"
@@ -179,11 +186,10 @@ textInput value msg = Input.text
     else Input.id ""
   ]
 
--- TODO use this for author input instead of text input!
 authorInput : Model -> Html Msg
 authorInput model = Input.text
   [ Input.value model.author
-  , Input.placeholder "creator or youtube channel goes here"
+  , Input.placeholder "Le Artist"
   , Input.onInput AuthorChanged
   , if String.isEmpty model.author
     then Input.danger
@@ -198,6 +204,21 @@ dateInput value msg = Input.date
     then Input.danger
     else Input.id ""
   ]
+
+maybeDateInput : Maybe String -> (String -> Msg) -> (Bool -> Msg) -> Html Msg
+maybeDateInput valueMaybe dateChange checkMark =
+  [ Checkbox.checkbox [ Checkbox.onCheck checkMark, Checkbox.checked (Maybe.isJust valueMaybe)] "I remember when I watched it"
+  , case valueMaybe of
+      Nothing -> text ""
+      Just value ->
+        Input.date
+          [ Input.onInput dateChange
+          , Input.value value
+          , if String.isEmpty value
+            then Input.danger
+            else Input.id ""
+          ]
+    ] |> div []
 
 commentInput : Model -> Html Msg
 commentInput model = Textarea.textarea
