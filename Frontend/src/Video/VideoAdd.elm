@@ -17,6 +17,7 @@ import Date
 import Task
 import Time exposing (Month(..))
 import Maybe.Extra as Maybe
+import List.Extra as List
 
 import Settings
 import Endpoints exposing (Endpoint(..))
@@ -30,7 +31,8 @@ type Status
   | Received String
 
 type alias Model =
-  { url : String
+  { urlRaw : String
+  , url : String
   , title : String
   , author : String
   , date : String
@@ -79,7 +81,8 @@ type Msg
 
 init : (Model, Cmd Msg)
 init =
-  ( { url = ""
+  ( { urlRaw = ""
+    , url = ""
     , title = ""
     , author = ""
     , date = ""
@@ -95,7 +98,7 @@ init =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
-  UrlChanged url -> ({ model | url = url }, Cmd.none)
+  UrlChanged url -> ({ model | urlRaw = url, url = Maybe.withDefault url <| parseEmbeddedURL url }, Cmd.none)
   TitleChanged title -> ({ model | title = title }, Cmd.none)
   AuthorChanged author -> ({ model | author = author }, Cmd.none)
   DateChanged date -> ({ model | date = date }, Cmd.none)
@@ -127,52 +130,58 @@ view model =
   , body =
     [ [ CDN.stylesheet
       , [ [ h1 [] [text "📼 New Video"]
-        , text "URL"
-        , urlInput model
-        , text "Title"
-        , textInput model.title TitleChanged
-        , text "Author / Channel"
-        , authorInput model
-        , text "Date of the Video"
-        , dateInput model.date DateChanged
-        , text "Comment"
-        , commentInput model
-        , text "Watch Date"
-        , maybeDateInput model.watchDate WatchDateChanged WatchDateShow
-        , text "Tags"
-        , textInput model.tags TagsChanged
-        , text "Password"
-        , passwordInput model
-        , Button.button
-          [ Button.primary
-          , Button.attrs [ Spacing.m2 ]
-          , Button.disabled (isInvalid model)
-          , Button.onClick SaveData
-          ]
-          [ if model.status == Waiting
-            then Spinner.spinner
-                  [ Spinner.small, Spinner.attrs [ Spacing.mr1 ]  ]
-                  []
-            else text ""
-          , text "Save"
-          ]
-        , br [] []
-        , case model.status of
-            Received msg -> text msg
-            _ -> text ""
-      ] |> Grid.col [],
-      [div [] [text "Preview", br [] [], iframe [src model.url] []]] |> Grid.col []
-      ] |> Grid.row []
+          , text "URL"
+          , urlInput model
+          , text "Title"
+          , textInput model.title TitleChanged
+          , text "Author / Channel"
+          , authorInput model
+          , text "Date of the Video"
+          , dateInput model.date DateChanged
+          , text "Comment"
+          , commentInput model
+          , text "Watch Date"
+          , maybeDateInput model.watchDate WatchDateChanged WatchDateShow
+          , text "Tags"
+          , textInput model.tags TagsChanged
+          , text "Password"
+          , passwordInput model
+          , Button.button
+            [ Button.primary
+            , Button.attrs [ Spacing.m2 ]
+            , Button.disabled (isInvalid model)
+            , Button.onClick SaveData
+            ]
+            [ if model.status == Waiting
+              then Spinner.spinner
+                    [ Spinner.small, Spinner.attrs [ Spacing.mr1 ]  ]
+                    []
+              else text ""
+            , text "Save"
+            ]
+          , br [] []
+          , case model.status of
+              Received msg -> text msg
+              _ -> text ""
+          ] |> Grid.col [],
+          [ [ text "Preview"
+            , br [] []
+            , text <| "🔗 " ++ model.url
+            , br [] []
+            , iframe [src model.url] []
+            ] |> div []
+          ] |> Grid.col []
+        ] |> Grid.row []
       ] |> Grid.container []
     ]
   }
 
 urlInput : Model -> Html Msg
 urlInput model = Input.url
-  [ Input.value model.url
+  [ Input.value model.urlRaw
   , Input.placeholder "http://youtube.com/stuff"
   , Input.onInput UrlChanged
-  , if String.isEmpty model.url
+  , if String.isEmpty model.urlRaw
     then Input.danger
     else Input.id ""
   ]
@@ -234,3 +243,9 @@ passwordInput model = Input.password
 
 flip : (a -> b -> c) -> b -> a -> c
 flip f b a = f a b
+
+parseEmbeddedURL : String -> Maybe String
+parseEmbeddedURL =
+  String.words
+  >> List.find (String.startsWith "src")
+  >> Maybe.map (String.dropRight 1 << String.dropLeft 5)
