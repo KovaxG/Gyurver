@@ -46,6 +46,7 @@ import           Types.Password (Password(..))
 import qualified Types.Password as Password
 import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
+import qualified Types.Rights as Rights
 import qualified Endpoints as Endpoint
 import           Utils (($>), (</>))
 import qualified Utils
@@ -65,6 +66,7 @@ main = do
   movieDiffDB <- DB.getHandle "movieDiff"
   suggestionBoxDB <- DB.getHandle "suggestionBox"
   blogDB <- DB.getHandle "blogLookup"
+  rightsDB <- DB.getHandle "rights"
 
   cokk2021UserDB <- DB.getHandle "cokk2021User"
   cokk2021WaterDB <- DB.getHandle "cokk2021Water"
@@ -84,6 +86,7 @@ main = do
                      suggestionBoxDB
                      movieDiffDB
                      blogDB
+                     rightsDB
                      settings
             )
 
@@ -119,6 +122,7 @@ process :: Response
         -> DBHandle Text
         -> DBHandle Movie.MovieDiff
         -> DBHandle Blog.Index
+        -> DBHandle Rights.Row
         -> Settings
         -> Request
         -> IO Response
@@ -131,6 +135,7 @@ process mainFile
         suggestionBoxDB
         movieDiffDB
         blogDB
+        rightsDB
         settings
         Request{requestType, path, content} = do
   let
@@ -336,6 +341,22 @@ process mainFile
           movieDiffs <- DB.everythingList movieDiffDB
           let movies = Movie.combineDiffs movieDiffs
           Response.make OK (Movie.toJson movies)
+
+    Endpoint.Rights operation ->
+      -- TODO check some header for the pass :D
+      case operation of
+        Endpoint.GetAll -> do
+          Logger.info log "Requested rights."
+          rows <- Rights.getAll rightsDB
+          Response.make OK (Rights.toJsonRows rows)
+
+        Endpoint.AddSecret -> do
+          Logger.info log "Requested adding a new right."
+          Response.processJsonBody content Rights.rowDecoder $ \req -> do
+            result <- Rights.addSecret rightsDB req
+            case result of
+              Rights.AddedSuccessfully -> Response.make OK ("Added" :: Text)
+              Rights.SecretExists -> Response.make BadRequest ("Secret already exists!" :: Text)
 
     Endpoint.Other req -> do
       Logger.warn log $ "Weird request: " <> req

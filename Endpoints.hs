@@ -1,4 +1,11 @@
-module Endpoints (Endpoint(..), Resource(..), Operation(..), parse, parseResource) where
+module Endpoints
+  ( Endpoint(..)
+  , Resource(..)
+  , Operation(..)
+  , RightsOperation(..)
+  , parse
+  , parseResource
+  ) where
 
 import           Data.Text (Text)
 import qualified Data.Text as Text
@@ -14,6 +21,11 @@ data Operation
   | Modify
   | Obtain
   | Delete
+  deriving (Show, Eq)
+
+data RightsOperation
+  = GetAll
+  | AddSecret
   deriving (Show, Eq)
 
 parseResource :: Text -> Maybe Resource
@@ -65,6 +77,7 @@ data Endpoint
   | GetBlogItemsJSON
   | GetBlogItemPage Int
   | Other Text
+  | Rights RightsOperation
   deriving (Eq, Show)
 
 
@@ -141,6 +154,9 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "GET /api/films" $> Film Obtain
         , Parsec.string "DELETE /api/films" $> Film Delete
         , Parsec.string "GET /films" $> GetFilmsPage
+
+        , Parsec.string "GET /api/rights" $> Rights GetAll
+        , Parsec.string "POST /api/rights" $> Rights AddSecret
 
         , Parsec.string "POST /api/suggestionbox" $> PostSuggestion
 

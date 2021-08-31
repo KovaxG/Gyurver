@@ -9,7 +9,7 @@ import Types.EventState exposing (EventState(..))
   * 2021.04.16 - 0.6.8
 -}
 debug : Bool
-debug = True
+debug = False
 
 cokk2021 : EventState
 cokk2021 = Blocked

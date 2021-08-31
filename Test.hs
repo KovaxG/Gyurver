@@ -4,7 +4,7 @@
 import           Data.Function ((&))
 import           Data.Text (Text)
 import qualified Data.Text as Text
-import           Endpoints (Endpoint(..), Operation(..), parse)
+import           Endpoints (Endpoint(..), Operation(..), RightsOperation(..), parse)
 import           Types.Blog (Blog(..), Metadata(..), Reference(..), Section(..), parseGyurblog)
 import           Types.Date (Date(..))
 import           Types.Language (Language(..))
@@ -133,6 +133,9 @@ endpointTests =
   , test "video options HU" $ parse "OPTIONS /api/videok" === OptionsVideo
   , test "video options RO" $ parse "OPTIONS /api/videouri" === OptionsVideo
   , test "video options EN" $ parse "OPTIONS /api/videos" === OptionsVideo
+
+  , test "get rights" $ parse "GET /api/rights" === Rights GetAll
+  , test "add secret" $ parse "POST /api/rights" === Rights AddSecret
 
   , test "requesting pdf resource: test.pdf" $ parse "GET /res/test.pdf" === GetResource "test.pdf"
   , test "requesting pdf resource: test_underscore.pdf" $ parse "GET /res/test_underscore.pdf" === GetResource "test_underscore.pdf"

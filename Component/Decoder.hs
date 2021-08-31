@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Component.Decoder (
-  Decoder(..), int, double, bool, string, list, maybe, field, success, failure
+  Decoder(..), int, double, bool, string, list, maybe, field, success, failure, withParser
 ) where
 
 import           Prelude hiding (maybe)
@@ -10,6 +10,7 @@ import           Data.List (lookup)
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Data.Monoid ((<>))
+import qualified Data.Maybe as Maybe
 
 import           Component.Json (Json(..))
 import qualified Component.Json as Json
@@ -67,6 +68,9 @@ field name itemDecoder =
       Nothing -> Left $ "Field " <> name <> " is not present in object."
 
     other -> Left $ "Could not decode object field " <> name <> ", was given " <> Json.toString other
+
+withParser :: (Text -> Maybe a) -> Text -> Decoder a
+withParser parser errMsg = string >>= Maybe.maybe (failure errMsg) success . parser
 
 success :: a -> Decoder a
 success a = Decoder $ \_ -> Right a
