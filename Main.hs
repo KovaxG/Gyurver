@@ -360,8 +360,16 @@ process mainFile
             Response.processJsonBody content Rights.rowDecoder $ \req -> do
               result <- Rights.addSecret rightsDB req
               case result of
-                Rights.AddedSuccessfully -> Response.make OK ("Added" :: Text)
+                Rights.AddedSuccessfully -> Response.make OK ()
                 Rights.SecretExists -> Response.make BadRequest ("Secret already exists!" :: Text)
+
+          Endpoint.UpdateSecret ->  do
+            Logger.info log "Update secret."
+            Response.processJsonBody content Rights.rowDecoder $ \req -> do
+              result <- Rights.updateSecret rightsDB req
+              case result of
+                Rights.UpdatedSuccessfuly -> Response.make OK ()
+                Rights.SecretNotExists -> Response.make BadRequest ("Secret does not exist!" :: Text)
 
     Endpoint.Other req -> do
       Logger.warn log $ "Weird request: " <> req

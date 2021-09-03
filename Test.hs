@@ -136,6 +136,7 @@ endpointTests =
 
   , test "get rights" $ parse "GET /api/rights" === Rights GetAll
   , test "add secret" $ parse "POST /api/rights" === Rights AddSecret
+  , test "update secret" $ parse "PUT /api/rights" === Rights UpdateSecret
 
   , test "requesting pdf resource: test.pdf" $ parse "GET /res/test.pdf" === GetResource "test.pdf"
   , test "requesting pdf resource: test_underscore.pdf" $ parse "GET /res/test_underscore.pdf" === GetResource "test_underscore.pdf"

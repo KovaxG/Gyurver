@@ -5,6 +5,8 @@ module Types.Rights
   , readSecret
   , addSecret
   , AddSecretResponse(..)
+  , updateSecret
+  , UpdateSecretResponse(..)
   , rowDecoder
   , toJsonRows
   , getAll
@@ -25,9 +27,9 @@ import qualified Component.Decoder as Decoder
 import           Component.Database (DBHandle, DBFormat(..))
 import qualified Component.Database as DB
 import           Types.Password (Password(..))
+import qualified Utils
 
--- Alphanum ONLY + @
-newtype Secret = Secret Text deriving (Eq, Show)
+newtype Secret = Secret Text deriving (Eq)
 
 showSecret :: Secret -> Text
 showSecret (Secret s) = s
@@ -41,23 +43,19 @@ readSecret txt =
       else Nothing
     _ -> Nothing
 
-data Right = Movie deriving (Eq, Enum, Show, Ord)
+data Right = Movie deriving (Eq, Enum, Show, Read, Ord)
 
 showRight :: Right -> Text
-showRight right = case right of
-    Movie -> "Movie"
+showRight = Text.pack . show
 
 readRight :: Text -> Maybe Right
-readRight text = case text of
-  "Movie" -> Just Movie
-  _ -> Nothing
+readRight = Utils.safeRead
 
--- TODO Remove show!
 data Row = Row
   { enabled :: Bool
   , secret :: Secret
   , rights :: Set Right
-  } deriving (Show)
+  }
 
 toJsonRows :: [Row] -> Json
 toJsonRows = JsonArray . fmap toJsonRow
@@ -120,3 +118,12 @@ addSecret rowDB newRow = do
 
 getAll :: DBHandle Row -> IO [Row]
 getAll = DB.everythingList
+
+data UpdateSecretResponse = UpdatedSuccessfuly | SecretNotExists
+
+updateSecret :: DBHandle Row -> Row -> IO UpdateSecretResponse
+updateSecret rowDB row =
+  DB.modifyData rowDB $ \rows ->
+    if secret row `elem` (secret <$> rows)
+    then (Utils.mapIf (\r -> secret r == secret row) (const row) rows, UpdatedSuccessfuly)
+    else (rows, SecretNotExists)
