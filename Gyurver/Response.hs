@@ -88,6 +88,14 @@ success = make OK ("OK Boomer" :: Text)
 class CanSend a where
   toBytes :: a -> Response
 
+instance CanSend () where
+  toBytes () = Response
+    { status = OK
+    , address = "localhost"
+    , headers = []
+    , content = BS.empty
+    }
+
 instance CanSend ByteString where
   toBytes b = Response
     { status = OK

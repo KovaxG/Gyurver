@@ -16,6 +16,7 @@ import qualified Data.Text as Text
 import           Data.Function ((&))
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
+import qualified Data.Map as Map
 import           Data.Monoid ((<>))
 
 import qualified Events.Cokk2020 as Cokk2020
@@ -137,7 +138,7 @@ process mainFile
         blogDB
         rightsDB
         settings
-        Request{requestType, path, content} = do
+        Request{requestType, path, content, attributes} = do
   let
     movieProcessing :: (Text -> MovieDiff) -> Text -> IO Response
     movieProcessing diff successMsg =
@@ -342,21 +343,25 @@ process mainFile
           let movies = Movie.combineDiffs movieDiffs
           Response.make OK (Movie.toJson movies)
 
-    Endpoint.Rights operation ->
-      -- TODO check some header for the pass :D
-      case operation of
-        Endpoint.GetAll -> do
-          Logger.info log "Requested rights."
-          rows <- Rights.getAll rightsDB
-          Response.make OK (Rights.toJsonRows rows)
+    Endpoint.Rights operation -> do
+      let pass = Maybe.fromMaybe "" $ Map.lookup "Gyurpass" attributes
 
-        Endpoint.AddSecret -> do
-          Logger.info log "Requested adding a new right."
-          Response.processJsonBody content Rights.rowDecoder $ \req -> do
-            result <- Rights.addSecret rightsDB req
-            case result of
-              Rights.AddedSuccessfully -> Response.make OK ("Added" :: Text)
-              Rights.SecretExists -> Response.make BadRequest ("Secret already exists!" :: Text)
+      if Password.invalid (Settings.password settings) pass
+      then Response.make Unauthorized ("Invalid Password!" :: Text)
+      else
+        case operation of
+          Endpoint.GetAll -> do
+            Logger.info log "Requested rights."
+            rows <- Rights.getAll rightsDB
+            Response.make OK (Rights.toJsonRows rows)
+
+          Endpoint.AddSecret -> do
+            Logger.info log "Requested adding a new right."
+            Response.processJsonBody content Rights.rowDecoder $ \req -> do
+              result <- Rights.addSecret rightsDB req
+              case result of
+                Rights.AddedSuccessfully -> Response.make OK ("Added" :: Text)
+                Rights.SecretExists -> Response.make BadRequest ("Secret already exists!" :: Text)
 
     Endpoint.Other req -> do
       Logger.warn log $ "Weird request: " <> req
