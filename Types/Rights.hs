@@ -7,6 +7,8 @@ module Types.Rights
   , AddSecretResponse(..)
   , updateSecret
   , UpdateSecretResponse(..)
+  , deleteSecret
+  , DeleteSecretResponse(..)
   , rowDecoder
   , toJsonRows
   , getAll
@@ -127,3 +129,16 @@ updateSecret rowDB row =
     if secret row `elem` (secret <$> rows)
     then (Utils.mapIf (\r -> secret r == secret row) (const row) rows, UpdatedSuccessfuly)
     else (rows, SecretNotExists)
+
+data DeleteSecretResponse = DeletedSuccessfuly | SecretNotFound | InvalidSecret
+
+deleteSecret :: DBHandle Row -> Text -> IO DeleteSecretResponse
+deleteSecret rowDB sec =
+  maybe (return InvalidSecret)
+        (\sec ->
+          DB.modifyData rowDB $ \rows ->
+            if sec `elem` (secret <$> rows)
+            then (filter (\r -> secret r /= sec) rows, DeletedSuccessfuly)
+            else (rows, SecretNotFound)
+        )
+        (readSecret sec)

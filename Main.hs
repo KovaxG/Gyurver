@@ -371,6 +371,14 @@ process mainFile
                 Rights.UpdatedSuccessfuly -> Response.make OK ()
                 Rights.SecretNotExists -> Response.make BadRequest ("Secret does not exist!" :: Text)
 
+          Endpoint.DeleteSecret -> do
+            Logger.info log "Delete secret."
+            result <- Rights.deleteSecret rightsDB content
+            case result of
+              Rights.DeletedSuccessfuly -> Response.make OK ()
+              Rights.SecretNotFound -> Response.make BadRequest ("Secret does not exist!" :: Text)
+              Rights.InvalidSecret -> Response.make BadRequest ("Invalid Secret!" :: Text)
+
     Endpoint.Other req -> do
       Logger.warn log $ "Weird request: " <> req
       badRequest

@@ -27,6 +27,7 @@ data RightsOperation
   = GetAll
   | AddSecret
   | UpdateSecret
+  | DeleteSecret
   deriving (Show, Eq)
 
 parseResource :: Text -> Maybe Resource
@@ -159,6 +160,7 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "GET /api/rights" $> Rights GetAll
         , Parsec.string "POST /api/rights" $> Rights AddSecret
         , Parsec.string "PUT /api/rights" $> Rights UpdateSecret
+        , Parsec.string "DELETE /api/rights" $> Rights DeleteSecret
 
         , Parsec.string "POST /api/suggestionbox" $> PostSuggestion
 
