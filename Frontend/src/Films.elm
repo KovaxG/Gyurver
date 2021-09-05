@@ -6,16 +6,13 @@ import Bootstrap.Button as Button
 import Bootstrap.Utilities.Spacing as Spacing
 import Browser exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
-import Date
-import Html exposing (Html, div, br, h3, a, text, p)
+import Html exposing (Html, div, text)
 import Time exposing (Month(..))
 import Http
 import List.Extra as List
 import Random
 
-import Types.Date as Date
-import Types.Language as Language exposing (Language(..))
-import Types.Date exposing (Date)
+import Types.Language exposing (Language(..))
 import Endpoints
 import Util
 import Settings

@@ -343,6 +343,10 @@ process mainFile
           let movies = Movie.combineDiffs movieDiffs
           Response.make OK (Movie.toJson movies)
 
+    Endpoint.RightsPage -> do
+      Logger.info log "Endpoints page requested."
+      return mainFile
+
     Endpoint.Rights operation -> do
       let pass = Maybe.fromMaybe "" $ Map.lookup "Gyurpass" attributes
 

@@ -80,6 +80,7 @@ data Endpoint
   | GetBlogItemPage Int
   | Other Text
   | Rights RightsOperation
+  | RightsPage
   deriving (Eq, Show)
 
 
@@ -161,6 +162,8 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "POST /api/rights" $> Rights AddSecret
         , Parsec.string "PUT /api/rights" $> Rights UpdateSecret
         , Parsec.string "DELETE /api/rights" $> Rights DeleteSecret
+
+        , Parsec.string "GET /jogok" $> RightsPage
 
         , Parsec.string "POST /api/suggestionbox" $> PostSuggestion
 

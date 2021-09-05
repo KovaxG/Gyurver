@@ -23,6 +23,7 @@ import Films
 import Video.VideoAdd as VideoAdd
 import Video.Vids as VideoList
 import Settings
+import Rights
 import Endpoints exposing (Endpoint(..))
 
 main : Program () Model Msg
@@ -53,6 +54,7 @@ type Content
   | BlogList BlogList.Model
   | Blog Blog.Model
   | Films Films.Model
+  | Rights Rights.Model
   | Invalid Model Msg
   | Loading
   | Test String
@@ -71,6 +73,7 @@ type Msg
   | VideoListMsg VideoList.Msg
   | BlogListMsg BlogList.Msg
   | FilmsMsg Films.Msg
+  | RightsMsg Rights.Msg
   | BlogMsg Blog.Msg
 
 subscriptions : Model -> Sub Msg
@@ -126,6 +129,7 @@ validLinks model path =
         BlogListPage -> BlogList.init |> liftModelCmd BlogList BlogListMsg model
         BlogItemPage index -> Blog.init index |> liftModelCmd Blog BlogMsg model
         FilmsPage -> Films.init |> liftModelCmd Films FilmsMsg model
+        RightsPage -> Rights.init |> liftModelCmd Rights RightsMsg model
   in path
      |> Endpoints.parse
      |> Maybe.map endpointToInit
@@ -152,6 +156,7 @@ view model =
     BlogList blog -> BlogList.view blog |> liftDocument model BlogListMsg
     Blog blog -> Blog.view blog |> liftDocument model BlogMsg
     Films films -> Films.view films |> liftDocument model FilmsMsg
+    Rights rights -> Rights.view rights |> liftDocument model RightsMsg
     Loading -> { title = "Loading", body = [text "If you see this just hit refresh :D #developer"] }
     Test msg -> { title = "Test", body = [text msg] }
     Invalid _ _ -> { title = "Error", body = [text "mismatch"] }
