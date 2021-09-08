@@ -99,6 +99,7 @@ update msg model =
     (BlogListMsg bmsg, BlogList b) -> BlogList.update bmsg b |> liftModelCmd BlogList BlogListMsg model
     (BlogMsg bmsg, Blog b) -> Blog.update bmsg b |> liftModelCmd Blog BlogMsg model
     (FilmsMsg fmsg, Films f) -> Films.update fmsg f |> liftModelCmd Films FilmsMsg model
+    (RightsMsg rmsg, Rights r) -> Rights.update rmsg r |> liftModelCmd Rights RightsMsg model
 
     (UrlRequest request, _) ->
       case request of
