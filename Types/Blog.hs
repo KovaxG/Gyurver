@@ -22,6 +22,7 @@ import           Types.Language (Language(..))
 import qualified Types.Language as Language
 import qualified Text.Parsec as Parsec
 import qualified Utils
+import Language.Haskell.TH (pragAnnD)
 
 type Topic = Text
 type Title = Text
@@ -37,6 +38,9 @@ data Blog = Blog
   } deriving (Show, Eq)
 
 data Section = Paragraph Text deriving (Show, Eq)
+
+wordCount :: Section -> Int
+wordCount (Paragraph body) = length $ Text.words body
 
 data Reference = Ref Int Text Text deriving (Show, Eq)
 
@@ -155,6 +159,7 @@ toBlogItem blog = JsonObject
   , ("intro", JsonString $ intro blog)
   , ("languages", JsonArray $ map (JsonString . Language.toString) $ languages $ metadata blog)
   , ("topics", JsonArray $ map JsonString $ topics $ metadata blog)
+  , ("words", JsonNumber $ fromIntegral $ sum $ map wordCount $ sections blog)
   ]
 
 readGyurblog :: Int -> Text -> IO (Either String Blog)

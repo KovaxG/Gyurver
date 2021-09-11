@@ -26,11 +26,12 @@ type alias BlogItem =
   , intro : String
   , languages : List Language
   , topics : List String
+  , words : Int
   }
 
 blogItemDecoder : Decoder BlogItem
 blogItemDecoder =
-  Decode.map6
+  Decode.map7
     BlogItem
     (Decode.field "identifier" Decode.int)
     (Decode.field "title" Decode.string)
@@ -38,6 +39,7 @@ blogItemDecoder =
     (Decode.field "intro" Decode.string)
     (Decode.field "languages" (Decode.list Language.decoder))
     (Decode.field "topics" (Decode.list Decode.string))
+    (Decode.field "words" Decode.int)
 
 type Model
   = Populated (List BlogItem)
@@ -97,6 +99,8 @@ viewBlogItem blogItem =
   , text blogItem.intro
   , br [] []
   , showTag blogItem.topics
+  , text "🗣️ "
+  , text <| String.fromInt blogItem.words
   ] |> div []
 
 showTag : List String -> Html Msg
