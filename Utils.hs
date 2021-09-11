@@ -98,3 +98,10 @@ stripPrefix prefix s = Maybe.fromMaybe s $ Text.stripPrefix prefix s
 
 stripSuffix :: Text -> Text -> Text
 stripSuffix suffix s = maybe s Text.reverse $ Text.stripPrefix (Text.reverse suffix) $ Text.reverse s
+
+-- Generate footnote symbol given the footnote nr
+foot :: Int -> Text
+foot n = Text.replicate (nr + 1) (symbols !! index)
+  where
+    (nr, index) = divMod n (length symbols)
+    symbols = ["*", "†", "††", "¶", "§", "||", "#"]
