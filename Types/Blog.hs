@@ -257,6 +257,7 @@ checkRefs refs secs =
         & Text.filter (\c -> Text.any (==c) "[]0123456789")
         & Text.map (\c -> if Text.any (==c) "[]" then ' ' else c)
         & Text.words
+        & filter (\w -> Text.head w == ' ')
         & Maybe.mapMaybe Utils.safeRead
       refIndexes = map (\(Ref i _ _) -> i) refs
       nonExistentRefs = textIndexes \\ refIndexes
