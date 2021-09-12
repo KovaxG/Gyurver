@@ -50,6 +50,9 @@ type Msg
   | GetData String
   | PasswordCheckFailed
   | Populate String (List Row)
+  | DeleteRow Row String
+  | DeleteRowSuccess Row
+  | DeleteRowFailed String
 
 init : (Model, Cmd Msg)
 init = (initModel, Cmd.none)
@@ -66,7 +69,7 @@ update msg model =
       ( model,
         Http.request
         { method = "GET"
-        , headers = [Http.header "Gyurpass" pass]
+        , headers = [ Http.header "Gyurpass" pass ]
         , url = Settings.path ++ Endpoints.rightsPageJson
         , body = Http.emptyBody
         , expect = Http.expectJson
@@ -76,6 +79,25 @@ update msg model =
         , tracker = Nothing
         }
       )
+    DeleteRow row pass ->
+      ( model
+      , Http.request
+        { method = "DELETE"
+        , headers = [ Http.header "Gyurpass" pass ]
+        , url = Settings.path ++ Endpoints.rightsPageJson
+        , body = Http.stringBody "" row.secret
+        , expect = Http.expectWhatever <| Util.processMessage (always <| DeleteRowSuccess row) DeleteRowFailed
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+      )
+    DeleteRowFailed _ -> (model, Cmd.none)
+    DeleteRowSuccess row -> case model of
+      Ok okmodel ->
+        ( Ok { okmodel | data = okmodel.data |> List.filter (\r -> r.secret /= row.secret) }
+        , Cmd.none
+        )
+      _ -> (model, Cmd.none)
 
 view : Model -> Document Msg
 view model =
@@ -97,11 +119,12 @@ dataPage info =
       { options = []
       , thead =
           Table.simpleThead
-            [ Table.th [] [text "Enabled"]
+            [ Table.th [] []
+            , Table.th [] [text "Enabled"]
             , Table.th [] [text "Secret"]
             , Table.th [] [text "Rights"]
             ]
-      , tbody = info.data |> List.map dataRow |> Table.tbody []
+      , tbody = info.data |> List.map (dataRow info.password) |> Table.tbody []
       }
   , Button.button
       [ Button.outlineSuccess
@@ -109,13 +132,17 @@ dataPage info =
       ] [text "Refresh"]
   ] |> div []
 
-dataRow : Row -> Table.Row Msg
-dataRow row =
+dataRow : String -> Row -> Table.Row Msg
+dataRow pass row =
   Table.tr []
-    [ Table.td [] [text <| if row.enabled then "enabled" else "disabled"]
+    [ Table.td [] [deleteButton pass row]
+    , Table.td [] [text <| if row.enabled then "enabled" else "disabled"]
     , Table.td [] [text row.secret]
     , Table.td [] [row.rights |> List.intersperse ", " |> String.concat |> text]
     ]
+
+deleteButton : String -> Row -> Html Msg
+deleteButton pass row = Button.button [ Button.danger, Button.onClick <| DeleteRow row pass ] [text "🗑️"]
 
 passwordPage : PasswordScr -> Html Msg
 passwordPage info =
