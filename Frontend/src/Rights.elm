@@ -23,9 +23,8 @@ type alias PasswordScr =
 type alias OkScr =
   { data : List Row
   , password : String
-  , newRowEnabled : Bool
-  , newRowSecret : String
-  , newRowRights : String
+  , newRow : InputRow
+  , editRow : InputRow
   , message : String
   }
 
@@ -41,6 +40,15 @@ type alias Row =
   , secret : String
   , rights : List String
   }
+
+type alias InputRow =
+  { enabled : Bool
+  , secret : String
+  , rights : String
+  }
+
+blankInputRow : InputRow
+blankInputRow = InputRow True "" ""
 
 rowDecoder : Decoder Row
 rowDecoder =
@@ -58,12 +66,12 @@ encodeRow row =
     , ("rights", Encode.list Encode.string row.rights)
     ]
 
-parseNewRow : OkScr -> Row
-parseNewRow info =
-  { enabled = info.newRowEnabled
-  , secret = info.newRowSecret
+parseNewRow : InputRow -> Row
+parseNewRow row =
+  { enabled = row.enabled
+  , secret = row.secret
   , rights =
-    info.newRowRights
+    row.rights
     |> String.replace "," " "
     |> String.words
   }
@@ -92,7 +100,7 @@ update msg model =
     PasswordChanged pass -> case model of
       PasswordScreen pswdm -> (PasswordScreen {pswdm | password = pass }, Cmd.none)
       _ -> (model, Cmd.none)
-    Populate pass data -> (Ok { password = pass, data = data, newRowEnabled = True, newRowSecret = "", newRowRights = "", message = ""}, Cmd.none)
+    Populate pass data -> (Ok { password = pass, data = data, newRow = blankInputRow, editRow = blankInputRow, message = ""}, Cmd.none)
     PasswordCheckFailed -> (model, Cmd.none)
     GetData pass ->
       ( model,
@@ -127,17 +135,17 @@ update msg model =
       Ok okmodel -> (Ok { okmodel | data = okmodel.data |> List.filter (\r -> r.secret /= row.secret) }, Cmd.none)
       _ -> (model, Cmd.none)
     NewRowEnabledChanged -> case model of
-      Ok okmodel -> (Ok { okmodel | newRowEnabled = not okmodel.newRowEnabled }, Cmd.none)
+      Ok info -> let newRow = info.newRow in (Ok { info | newRow = { newRow | enabled = not newRow.enabled } }, Cmd.none)
       _ -> (model, Cmd.none)
     NewRowSecretChanged new -> case model of
-      Ok okmodel -> (Ok { okmodel | newRowSecret = new }, Cmd.none)
+      Ok info -> let newRow = info.newRow in (Ok { info | newRow = { newRow | secret = new } }, Cmd.none)
       _ -> (model, Cmd.none)
     NewRowRightsChanged new -> case model of
-      Ok okmodel -> (Ok { okmodel | newRowRights = new }, Cmd.none)
+      Ok info -> let newRow = info.newRow in (Ok { info | newRow = { newRow | rights = new } }, Cmd.none)
       _ -> (model, Cmd.none)
     AddRow pass -> case model of
       Ok info ->
-        let newRow = parseNewRow info
+        let newRow = parseNewRow info.newRow
         in
           ( model
           , Http.request
@@ -152,7 +160,7 @@ update msg model =
           )
       _ -> (model, Cmd.none)
     AddRowSuccess row -> case model of
-      Ok okmodel -> (Ok { okmodel | data = okmodel.data ++ [row] }, Cmd.none)
+      Ok okmodel -> (Ok { okmodel | data = okmodel.data ++ [row], newRow = blankInputRow }, Cmd.none)
       _ -> (model, Cmd.none)
     AddRowFailure err -> case model of
       Ok okmodel -> (Ok { okmodel | message = err }, Cmd.none)
@@ -176,7 +184,7 @@ view model =
 dataPage : OkScr -> Html Msg
 dataPage info =
   [ Table.table
-      { options = []
+      { options = [ Table.hover ]
       , thead =
           Table.simpleThead
             [ Table.th [] []
@@ -207,9 +215,9 @@ newDataRow : OkScr -> Table.Row Msg
 newDataRow info =
   Table.tr []
     [ Table.td [] [Button.button [Button.success, Button.onClick <| AddRow info.password] [text "➕"]]
-    , Table.td [] [Button.button [Button.onClick NewRowEnabledChanged] [text <| if info.newRowEnabled then "enabled" else "disabled"]]
-    , Table.td [] [Input.text [Input.small, Input.value info.newRowSecret, Input.onInput NewRowSecretChanged]]
-    , Table.td [] [Input.text [Input.small, Input.value info.newRowRights, Input.onInput NewRowRightsChanged]]
+    , Table.td [] [Button.button [Button.onClick NewRowEnabledChanged] [text <| if info.newRow.enabled then "enabled" else "disabled"]]
+    , Table.td [] [Input.text [Input.small, Input.value info.newRow.secret, Input.onInput NewRowSecretChanged]]
+    , Table.td [] [Input.text [Input.small, Input.value info.newRow.rights, Input.onInput NewRowRightsChanged]]
     ]
 
 deleteButton : String -> Row -> Html Msg
