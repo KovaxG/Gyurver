@@ -24,7 +24,7 @@ data Settings = Settings
 defaultSettings = Settings
   { hostAddress = IP "localhost"
   , port = Port 8080
-  , password = Password "nincs jelszo"
+  , password = Password "nincs"
   , mode = Dev
   , cokk2021 = Locked
   }

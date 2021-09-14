@@ -8,6 +8,7 @@ import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
 import Bootstrap.Form.InputGroup as InputGroup
 import Html exposing (Html, div, text, br)
+import Html.Events exposing (onClick)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 import Endpoints
@@ -25,6 +26,7 @@ type alias OkScr =
   , password : String
   , newRow : InputRow
   , editRow : InputRow
+  , editIndex : Maybe Int
   , message : String
   }
 
@@ -66,14 +68,18 @@ encodeRow row =
     , ("rights", Encode.list Encode.string row.rights)
     ]
 
-parseNewRow : InputRow -> Row
-parseNewRow row =
+populateRow : Row -> InputRow
+populateRow row = InputRow row.enabled row.secret (row.rights |> String.join ", ")
+
+parseInputRow : InputRow -> Row
+parseInputRow row =
   { enabled = row.enabled
   , secret = row.secret
   , rights =
     row.rights
     |> String.replace "," " "
     |> String.words
+    |> List.filter (\w -> w /= "")
   }
 
 type Msg
@@ -90,6 +96,13 @@ type Msg
   | AddRow String
   | AddRowSuccess Row
   | AddRowFailure String
+  | EditRow Row Int
+  | CancelEdit
+  | EditRowEnabledChanged
+  | EditRowRightsChanged String
+  | UpdateRow Int String
+  | UpdateRowSuccess Int Row
+  | UpdateRowFailure String
 
 init : (Model, Cmd Msg)
 init = (initModel, Cmd.none)
@@ -100,7 +113,7 @@ update msg model =
     PasswordChanged pass -> case model of
       PasswordScreen pswdm -> (PasswordScreen {pswdm | password = pass }, Cmd.none)
       _ -> (model, Cmd.none)
-    Populate pass data -> (Ok { password = pass, data = data, newRow = blankInputRow, editRow = blankInputRow, message = ""}, Cmd.none)
+    Populate pass data -> (Ok { password = pass, data = data, newRow = blankInputRow, editRow = blankInputRow, editIndex = Nothing, message = ""}, Cmd.none)
     PasswordCheckFailed -> (model, Cmd.none)
     GetData pass ->
       ( model,
@@ -143,9 +156,15 @@ update msg model =
     NewRowRightsChanged new -> case model of
       Ok info -> let newRow = info.newRow in (Ok { info | newRow = { newRow | rights = new } }, Cmd.none)
       _ -> (model, Cmd.none)
+    EditRowEnabledChanged -> case model of
+      Ok info -> let editRow = info.editRow in (Ok { info | editRow = { editRow | enabled = not editRow.enabled } }, Cmd.none)
+      _ -> (model, Cmd.none)
+    EditRowRightsChanged new -> case model of
+      Ok info -> let editRow = info.editRow in (Ok { info | editRow = { editRow | rights = new } }, Cmd.none)
+      _ -> (model, Cmd.none)
     AddRow pass -> case model of
       Ok info ->
-        let newRow = parseNewRow info.newRow
+        let newRow = parseInputRow info.newRow
         in
           ( model
           , Http.request
@@ -165,6 +184,41 @@ update msg model =
     AddRowFailure err -> case model of
       Ok okmodel -> (Ok { okmodel | message = err }, Cmd.none)
       _ -> (model, Cmd.none)
+    EditRow row index -> case model of
+      Ok okmodel -> if okmodel.editIndex == Nothing then (Ok { okmodel | editIndex = Just index, editRow = populateRow row}, Cmd.none) else (model, Cmd.none)
+      _ -> (model, Cmd.none)
+    CancelEdit -> case model of
+      Ok okmodel -> (Ok { okmodel | editIndex = Nothing, editRow = blankInputRow }, Cmd.none)
+      _ -> (model, Cmd.none)
+    UpdateRow index pass -> case model of
+      Ok info ->
+        let updateRow = parseInputRow info.editRow
+        in
+          ( model
+          , Http.request
+            { method = "PUT"
+            , headers = [ Http.header "Gyurpass" pass ]
+            , url = Settings.path ++ Endpoints.rightsPageJson
+            , body = Http.jsonBody <| encodeRow updateRow
+            , expect = Http.expectWhatever <| Util.processMessage (always <| UpdateRowSuccess index updateRow) UpdateRowFailure
+            , timeout = Nothing
+            , tracker = Nothing
+            }
+          )
+      _ -> (model, Cmd.none)
+    UpdateRowSuccess index row -> case model of
+      Ok okmodel ->
+        ( Ok { okmodel
+             | editIndex = Nothing
+             , editRow = blankInputRow
+             , data = okmodel.data |> List.indexedMap (\i r -> if (i == index) then row else r)
+             }
+        , Cmd.none
+        )
+      _ -> (model, Cmd.none)
+    UpdateRowFailure err -> case model of
+      Ok okmodel -> (Ok { okmodel | message = err }, Cmd.none)
+      _ -> (model, Cmd.none)
 
 view : Model -> Document Msg
 view model =
@@ -174,7 +228,6 @@ view model =
     , [ [ [ case model of
               PasswordScreen info -> passwordPage info
               Ok data -> dataPage data
-          --, text <| Debug.toString model
           ] |> Grid.col []
         ] |> Grid.row []
       ] |> Grid.container []
@@ -192,36 +245,60 @@ dataPage info =
             , Table.th [] [text "Secret"]
             , Table.th [] [text "Rights"]
             ]
-      , tbody = (info.data |> List.map (dataRow info.password)) ++ [newDataRow info] |> Table.tbody []
+      , tbody = (info.data |> List.indexedMap (dataRow info)) ++ [newDataRow info] |> Table.tbody []
       }
   , text info.message
   , br [] []
-  , Button.button
-      [ Button.outlineSuccess
-      , Button.onClick <| GetData info.password
-      ] [text "Refresh"]
+  , case info.editIndex of
+      Just _ ->
+        Button.button
+          [ Button.outlineDark
+          , Button.onClick CancelEdit
+          ] [text "Cancel"]
+      Nothing ->
+        Button.button
+          [ Button.outlineSuccess
+          , Button.onClick <| GetData info.password
+          ] [text "Refresh"]
   ] |> div []
 
-dataRow : String -> Row -> Table.Row Msg
-dataRow pass row =
-  Table.tr []
-    [ Table.td [] [deleteButton pass row]
-    , Table.td [] [text <| if row.enabled then "enabled" else "disabled"]
-    , Table.td [] [text row.secret]
-    , Table.td [] [row.rights |> List.intersperse ", " |> String.concat |> text]
-    ]
+dataRow : OkScr -> Int -> Row -> Table.Row Msg
+dataRow info index row =
+  info.editIndex
+    |> Maybe.andThen (\eindex ->
+      if eindex == index
+      then
+        Just <| Table.tr []
+        [ Table.td [] [updateButton info.password eindex]
+        , Table.td [] [Button.button [Button.onClick EditRowEnabledChanged] [text <| showEnabled info.editRow.enabled]]
+        , Table.td [] [text row.secret]
+        , Table.td [] [Input.text [Input.small, Input.value info.editRow.rights, Input.onInput EditRowRightsChanged]]
+        ]
+      else
+        Nothing
+    ) |> Maybe.withDefault (
+      Table.tr [ Table.rowAttr <| onClick <| EditRow row index ]
+        [ Table.td [] [deleteButton info.password row]
+        , Table.td [] [text <| showEnabled row.enabled]
+        , Table.td [] [text row.secret]
+        , Table.td [] [row.rights |> List.intersperse ", " |> String.concat |> text]
+        ]
+    )
 
 newDataRow : OkScr -> Table.Row Msg
 newDataRow info =
   Table.tr []
     [ Table.td [] [Button.button [Button.success, Button.onClick <| AddRow info.password] [text "➕"]]
-    , Table.td [] [Button.button [Button.onClick NewRowEnabledChanged] [text <| if info.newRow.enabled then "enabled" else "disabled"]]
+    , Table.td [] [Button.button [Button.onClick NewRowEnabledChanged] [text <| showEnabled info.newRow.enabled]]
     , Table.td [] [Input.text [Input.small, Input.value info.newRow.secret, Input.onInput NewRowSecretChanged]]
     , Table.td [] [Input.text [Input.small, Input.value info.newRow.rights, Input.onInput NewRowRightsChanged]]
     ]
 
 deleteButton : String -> Row -> Html Msg
 deleteButton pass row = Button.button [ Button.danger, Button.onClick <| DeleteRow row pass ] [text "🗑️"]
+
+updateButton : String -> Int -> Html Msg
+updateButton pass index = Button.button [ Button.primary, Button.onClick <| UpdateRow index pass ] [text "✔️"]
 
 passwordPage : PasswordScr -> Html Msg
 passwordPage info =
@@ -233,3 +310,6 @@ passwordPage info =
       [ InputGroup.button [ Button.outlinePrimary, Button.onClick <| GetData info.password ] [ text "Go"] ]
       |> InputGroup.view
   ] |> div []
+
+showEnabled : Bool -> String
+showEnabled b = if b then "✔️" else "❌"
