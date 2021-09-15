@@ -140,14 +140,17 @@ process mainFile
         settings
         Request{requestType, path, content, attributes} = do
   let
-    movieProcessing :: (Text -> MovieDiff) -> Text -> IO Response
-    movieProcessing diff successMsg =
-      if not (Text.null content)
-      then do
-        DB.insert movieDiffDB $ diff $ Utils.dequote content
-        Response.make OK successMsg
-      else
-        Response.make BadRequest ("I need the name of the film in the body!" :: Text)
+    movieProcessing :: Maybe Text -> (Text -> MovieDiff) -> Text -> IO Response
+    movieProcessing secret diff successMsg =
+      Rights.allowed rightsDB secret Rights.Movie mainLogic (Response.make Unauthorized ())
+      where
+        mainLogic =
+          if not (Text.null content)
+          then do
+            DB.insert movieDiffDB $ diff $ Utils.dequote content
+            Response.make OK successMsg
+          else
+            Response.make BadRequest ("I need the name of the film in the body!" :: Text)
 
   case Endpoint.parse $ Text.unwords [Text.pack $ show requestType, path] of
     Endpoint.GetLandingPage -> do
@@ -189,7 +192,10 @@ process mainFile
         (\fileName -> do
           blog <- Blog.readGyurblog blogNr (blogPath fileName)
           either
-            (const $ Response.make NotFound $ "I have no blog with index " <> Text.pack (show blogNr) <> ". Missing file!")
+            (\error -> do
+              Logger.warn log $ "Failed to read blog because: " <> error
+              Response.make NotFound $ "I have no blog with index " <> Text.pack (show blogNr) <> ". Missing file!"
+            )
             (Response.make OK . Blog.toJson)
             blog
         )
@@ -334,10 +340,11 @@ process mainFile
 
     Endpoint.Film operation -> do
       now <- Date.getCurrentDate
+      let secret = Map.lookup "Gyursecret" attributes
       case operation of
-        Endpoint.Insert -> movieProcessing (Movie.NewMovie now) "added (if doesn't exist)"
-        Endpoint.Modify -> movieProcessing (\s -> Movie.SetWatched now s True) "marked as watched (if exists)"
-        Endpoint.Delete -> movieProcessing (Movie.Delete now) "removed (if exists)"
+        Endpoint.Insert -> movieProcessing secret (Movie.NewMovie now) "added (if doesn't exist)"
+        Endpoint.Modify -> movieProcessing secret (Movie.SetWatched now True) "marked as watched (if exists)"
+        Endpoint.Delete -> movieProcessing secret (Movie.Delete now) "removed (if exists)"
         Endpoint.Obtain -> do
           movieDiffs <- DB.everythingList movieDiffDB
           let movies = Movie.combineDiffs movieDiffs

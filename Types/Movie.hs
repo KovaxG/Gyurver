@@ -14,14 +14,14 @@ import qualified Utils
 
 data MovieDiff
   = NewMovie Date Text
-  | SetWatched Date Text Bool
+  | SetWatched Date Bool Text
   | Delete Date Text
   deriving (Show)
 
 diffName :: MovieDiff -> Text
 diffName d = case d of
   NewMovie _ n -> n
-  SetWatched _ n _ -> n
+  SetWatched _ _ n -> n
   Delete _ n -> n
 
 data Movie = Movie Text Bool deriving (Show)
@@ -38,7 +38,7 @@ combineDiffs = foldl update []
 update :: [Movie] -> MovieDiff -> [Movie]
 update ms d = case d of
   NewMovie _ n -> if n `elem` map movieName ms then ms else ms +: Movie n False
-  SetWatched _ n b -> Utils.mapIf (\m -> movieName m == n) (setWatched b) ms
+  SetWatched _ b n -> Utils.mapIf (\m -> movieName m == n) (setWatched b) ms
   Delete _ n -> Utils.filterNot (\m -> movieName m == n) ms
 
 toJson :: [Movie] -> Json
@@ -59,8 +59,8 @@ instance DBFormat MovieDiff where
       prefix :: Text
       prefix = case d of
         NewMovie _ _ ->  "NM"
-        SetWatched _ _ True -> "WT"
-        SetWatched _ _ False -> "WF"
+        SetWatched _ True _ -> "WT"
+        SetWatched _ False _ -> "WF"
         Delete _ _ -> "DM"
 
   decode s =
@@ -72,8 +72,8 @@ instance DBFormat MovieDiff where
         Just d ->
           case cmd of
             "NM" -> Just $ NewMovie d movie
-            "WT" -> Just $ SetWatched d movie True
-            "WF" -> Just $ SetWatched d movie False
+            "WT" -> Just $ SetWatched d True movie
+            "WF" -> Just $ SetWatched d False movie
             "DM" -> Just $ Delete d movie
             _ -> Nothing
         Nothing -> Nothing

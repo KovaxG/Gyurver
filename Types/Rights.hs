@@ -2,6 +2,7 @@
 
 module Types.Rights
   ( Row
+  , Right(..)
   , readSecret
   , addSecret
   , AddSecretResponse(..)
@@ -12,6 +13,7 @@ module Types.Rights
   , rowDecoder
   , toJsonRows
   , getAll
+  , allowed
   ) where
 
 import qualified Data.Char as Char
@@ -69,11 +71,13 @@ toJsonRow row = JsonObject
   , ("rights", JsonArray $ fmap (JsonString . showRight) $ Set.toList $ rights row)
   ]
 
-allowed :: DBHandle Row -> Password -> Right -> IO Bool
-allowed rightsDB pass right = do
+allowed :: DBHandle Row -> Maybe Text -> Right -> IO a -> IO a -> IO a
+allowed _ Nothing _ _ sad = sad
+allowed rightsDB (Just pass) right happy sad = do
   rows <- DB.everythingList rightsDB
-  let maybeRow = List.find (\(Row enabled (Secret secret) _) -> Password secret == pass && enabled) rows
-  return $ maybe False (\(Row _ _ rs) -> right `elem` rs) maybeRow
+  let maybeRow = List.find (\(Row enabled (Secret secret) _) -> secret == pass && enabled) rows
+  let isHappy = maybe False (\(Row _ _ rs) -> right `elem` rs) maybeRow
+  if isHappy then happy else sad
 
 showEnabled :: Bool -> Text
 showEnabled b = if b then "+" else "-"

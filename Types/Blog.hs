@@ -1,5 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 module Types.Blog where
 
 import           Component.Database (DBFormat(..))
@@ -162,16 +163,16 @@ toBlogItem blog = JsonObject
   , ("words", JsonNumber $ fromIntegral $ sum $ map wordCount $ sections blog)
   ]
 
-readGyurblog :: Int -> Text -> IO (Either String Blog)
+readGyurblog :: Int -> Text -> IO (Either Text Blog)
 readGyurblog index path = handleFileContents <$> Utils.safeReadTextFile p
   where
-    handleFileContents :: Maybe Text -> Either String Blog
+    handleFileContents :: Maybe Text -> Either Text Blog
     handleFileContents maybeContents = Utils.maybeToEither "Failed to read file." maybeContents >>= parseGyurblog index
     p = path <> if suffix `Text.isSuffixOf` path then "" else suffix
     suffix = ".gyurblog"
 
 -- TODO maybe use a monad transformer here?
-parseGyurblog :: Int -> Text -> Either String Blog
+parseGyurblog :: Int -> Text -> Either Text Blog
 parseGyurblog index contents = do
   (s0, title) <- getTitle (filter (not . Text.null) $ map Utils.trim $ Text.lines contents)
   (s1, date) <- getDate s0
@@ -191,14 +192,14 @@ parseGyurblog index contents = do
     , metadata = Metadata { languages = langs, topics = tags }
     }
 
-getTitle :: [Text] -> Either String ([Text], Text)
+getTitle :: [Text] -> Either Text ([Text], Text)
 getTitle s
   | any (Text.isPrefixOf "title:") s =
     let (rest, title) = getPrefix "title:" "" s
     in if Text.null title then Left "Title can't be blank!" else Right (rest, title)
   | otherwise = Utils.maybeToEither "Did not find title." $ (\(h, r) -> (r, Utils.trim h)) <$> Utils.safeDeHead s
 
-getDate :: [Text] -> Either String ([Text], Date)
+getDate :: [Text] -> Either Text ([Text], Date)
 getDate s
   | any (Text.isPrefixOf "date:") s =
     let (rest, dateStr) = getPrefix "date:" "" s
@@ -207,22 +208,22 @@ getDate s
       (rest, dateStr) <- Utils.maybeToEither "Did not find date." $ (\(h, r) -> (r, h)) <$> Utils.safeDeHead s
       Utils.maybeToEither "Invalid Date!"  $ (rest,) <$> Date.parseDate dateStr
 
-getLanguages :: [Text] -> Either String ([Text], [Language])
+getLanguages :: [Text] -> Either Text ([Text], [Language])
 getLanguages s
   | any (Text.isPrefixOf "lang:") s =
     let (rest, langs) = getPrefix "lang:" "" s
     in Utils.maybeToEither "Invalid Language!"  $ (rest,) <$> Utils.safeRead ("[" <> langs <> "]")
   | otherwise = Right (s, [EN])
 
-getTopics :: [Text] -> Either String ([Text], [Text])
+getTopics :: [Text] -> Either Text ([Text], [Text])
 getTopics s =
   let (rest, tags) = getPrefix "tags:" "" s
   in Right (rest, Text.words $ Text.replace "," " " tags)
 
-getIntro :: [Text] -> Either String ([Text], Text)
+getIntro :: [Text] -> Either Text ([Text], Text)
 getIntro = Right . getPrefix "(" ")"
 
-getReferences :: [Text] -> Either String ([Text], [Reference])
+getReferences :: [Text] -> Either Text ([Text], [Reference])
 getReferences s =
   let (relevant, rest) = List.partition isRef s
   in (rest,) <$> traverse parseRef relevant
@@ -230,7 +231,7 @@ getReferences s =
 isRef :: Text -> Bool
 isRef = Text.isPrefixOf "[" . Utils.trim
 
-parseRef :: Text -> Either String Reference
+parseRef :: Text -> Either Text Reference
 parseRef = Utils.mapLeft (const "Invalid Refeference.") . Parsec.parse rule "Parsing Reference"
   where
     rule = do
@@ -253,7 +254,7 @@ getPrefix prefix suffix s =
       dateStr = Text.concat $ map (Utils.trim . Utils.stripPrefix prefix . Utils.stripSuffix suffix) relevant
   in (rest, dateStr)
 
-checkRefs :: [Reference] -> [Section] -> Either String ()
+checkRefs :: [Reference] -> [Section] -> Either Text ()
 checkRefs refs secs =
   let textIndexes =
         secs
@@ -268,9 +269,9 @@ checkRefs refs secs =
       nonExistentRefs = textIndexes \\ refIndexes
       extraRefs = refIndexes \\ textIndexes
   in if not $ null nonExistentRefs
-     then Left $ "Referencing non existent ref: " ++ show nonExistentRefs
+     then Left $ "Referencing non existent ref: " <> Text.pack (show nonExistentRefs)
      else if not $ null extraRefs
-     then Left $ "Not referenced in the text: " ++ show extraRefs
+     then Left $ "Not referenced in the text: " <> Text.pack (show extraRefs)
      else Right ()
 
 data Index = Index Int Text
