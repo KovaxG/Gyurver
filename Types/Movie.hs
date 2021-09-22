@@ -14,14 +14,14 @@ import qualified Utils
 
 data MovieDiff
   = NewMovie Date Text
-  | SetWatched Date Bool Text
+  | ToggleWatched Date Text
   | Delete Date Text
   deriving (Show)
 
 diffName :: MovieDiff -> Text
 diffName d = case d of
   NewMovie _ n -> n
-  SetWatched _ _ n -> n
+  ToggleWatched _ n -> n
   Delete _ n -> n
 
 data Movie = Movie Text Bool deriving (Show)
@@ -29,8 +29,8 @@ data Movie = Movie Text Bool deriving (Show)
 movieName :: Movie -> Text
 movieName (Movie n _) = n
 
-setWatched :: Bool -> Movie -> Movie
-setWatched b (Movie n _) = Movie n b
+toggleWatched :: Movie -> Movie
+toggleWatched (Movie n b) = Movie n (not b)
 
 combineDiffs :: [MovieDiff] -> [Movie]
 combineDiffs = foldl update []
@@ -38,7 +38,7 @@ combineDiffs = foldl update []
 update :: [Movie] -> MovieDiff -> [Movie]
 update ms d = case d of
   NewMovie _ n -> if n `elem` map movieName ms then ms else ms +: Movie n False
-  SetWatched _ b n -> Utils.mapIf (\m -> movieName m == n) (setWatched b) ms
+  ToggleWatched _ n -> Utils.mapIf (\m -> movieName m == n) toggleWatched ms
   Delete _ n -> Utils.filterNot (\m -> movieName m == n) ms
 
 toJson :: [Movie] -> Json
@@ -53,14 +53,13 @@ instance DBFormat MovieDiff where
       date :: Text
       date = case d of
         NewMovie d _ -> dateToText d
-        SetWatched d _ _ -> dateToText d
+        ToggleWatched d _ -> dateToText d
         Delete d _ -> dateToText d
 
       prefix :: Text
       prefix = case d of
         NewMovie _ _ ->  "NM"
-        SetWatched _ True _ -> "WT"
-        SetWatched _ False _ -> "WF"
+        ToggleWatched _ _ -> "TW"
         Delete _ _ -> "DM"
 
   decode s =
@@ -72,8 +71,7 @@ instance DBFormat MovieDiff where
         Just d ->
           case cmd of
             "NM" -> Just $ NewMovie d movie
-            "WT" -> Just $ SetWatched d True movie
-            "WF" -> Just $ SetWatched d False movie
+            "TW" -> Just $ ToggleWatched d movie
             "DM" -> Just $ Delete d movie
             _ -> Nothing
         Nothing -> Nothing

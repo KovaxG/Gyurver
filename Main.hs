@@ -343,7 +343,7 @@ process mainFile
       let secret = Map.lookup "Gyursecret" attributes
       case operation of
         Endpoint.Insert -> movieProcessing secret (Movie.NewMovie now) "added (if doesn't exist)"
-        Endpoint.Modify -> movieProcessing secret (Movie.SetWatched now True) "marked as watched (if exists)"
+        Endpoint.Modify -> movieProcessing secret (Movie.ToggleWatched now) "marked as watched (if exists)"
         Endpoint.Delete -> movieProcessing secret (Movie.Delete now) "removed (if exists)"
         Endpoint.Obtain -> do
           movieDiffs <- DB.everythingList movieDiffDB

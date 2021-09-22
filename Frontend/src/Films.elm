@@ -32,6 +32,7 @@ type alias OkState =
   , secret : String
   , errorMsg : String
   , editMode : Bool
+  , deleteMode : Bool
   }
 
 type Model
@@ -60,6 +61,10 @@ type Msg
   | DeleteMovie String Password
   | DeleteMovieSuccess String
   | DeleteMovieFailure String
+  | FilmWatched String Password
+  | FilmWatchedSuccess String
+  | FilmWatchedFailure String -- same as DeletMovieFailure and AddNewFilmFailure
+  | ToggleDeleteMode
 
 init : (Model, Cmd Msg)
 init =
@@ -76,7 +81,7 @@ init =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
   PopulateError err -> (ShowMessage err, Cmd.none)
-  Populate films -> (Ok { films = films, random = Nothing, newFilm = Nothing, secret = "", errorMsg = "", editMode = False }, Cmd.none)
+  Populate films -> (Ok { films = films, random = Nothing, newFilm = Nothing, secret = "", errorMsg = "", editMode = False, deleteMode = False }, Cmd.none)
   ChooseRandomFilm ->
     case model of
       ShowMessage _ -> (model, Cmd.none)
@@ -144,6 +149,30 @@ update msg model = case msg of
     case model of
       ShowMessage _ -> (model, Cmd.none)
       Ok state -> (Ok { state | errorMsg = err }, Cmd.none)
+  FilmWatched title secret ->
+    ( model
+    , Http.request
+      { method = "PUT"
+      , headers = [ Http.header "Gyursecret" secret ]
+      , url = Settings.path ++ Endpoints.filmItemsJson
+      , body = Http.stringBody "text" title
+      , expect = Http.expectWhatever <| Util.processMessage (always <| FilmWatchedSuccess title) FilmWatchedFailure
+      , timeout = Nothing
+      , tracker = Nothing
+      }
+    )
+  FilmWatchedSuccess title ->
+    case model of
+      ShowMessage _ -> (model, Cmd.none)
+      Ok state -> (Ok { state | errorMsg = "", films = state.films |> List.map (\f -> if f.title == title then { f | watched = not f.watched} else f) }, Cmd.none)
+  FilmWatchedFailure err ->
+    case model of
+      ShowMessage _ -> (model, Cmd.none)
+      Ok state -> (Ok { state | errorMsg = err }, Cmd.none)
+  ToggleDeleteMode ->
+    case model of
+      ShowMessage _ -> (model, Cmd.none)
+      Ok state -> (Ok { state | deleteMode = not state.deleteMode }, Cmd.none)
 
 getRandomUnwatched : Int -> List Film -> Maybe Film
 getRandomUnwatched index films =
@@ -167,22 +196,29 @@ showModel model =
       [ Grid.col [] [ text msg ] ]
     Ok state ->
       [ showFilmPanel state
-      , showFilms state.secret state.editMode state.films
+      , showFilms state.secret state.deleteMode state.editMode state.films
       ]
 
-showFilms : Password -> Bool -> List Film -> Grid.Column Msg
-showFilms secret editMode films = [ div [] (List.indexedMap (showFilm secret editMode) films) ] |> Grid.col []
+showFilms : Password -> Bool -> Bool -> List Film -> Grid.Column Msg
+showFilms secret deleteMode editMode films = [ div [] (List.indexedMap (showFilm secret deleteMode editMode) films) ] |> Grid.col []
 
-showFilm : Password -> Bool -> Int -> Film -> Html Msg
-showFilm secret editMode index film =
+showFilm : Password -> Bool -> Bool -> Int -> Film -> Html Msg
+showFilm secret deleteMode editMode index film =
   let deleteButton =
         Button.button
           [ Button.danger
           , Button.attrs [ Spacing.m1 ]
           , Button.onClick <| DeleteMovie film.title secret
           ] [text "🗑️"]
+      watchedButton =
+        Button.button
+          [ Button.info
+          , Button.attrs [ Spacing.m1 ]
+          , Button.onClick <| FilmWatched film.title secret
+          ] [text <| if film.watched then "✖️" else "✔️"]
   in
-    (  (if editMode then deleteButton else text "")
+    (  (if editMode && deleteMode then deleteButton else text "")
+    :: (if editMode then watchedButton else text "")
     :: text (String.fromInt (index + 1) ++ ". ")
     :: text film.title :: if film.watched then [text " ✔️"] else []
     ) |> div []
@@ -215,6 +251,13 @@ editPanel state =
       [ newFilmSection state
       , text "Secret: "
       , Input.password [ Input.small, Input.value state.secret, Input.onInput SecretChanged ]
+      , br [] []
+      , Button.button
+        [ Button.outlineDanger
+        , Button.attrs [ Spacing.m1 ]
+        , Button.onClick ToggleDeleteMode
+        ] [text "🗑️"]
+  , br [] []
       ]
     else []
   , text state.errorMsg
