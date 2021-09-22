@@ -18,6 +18,8 @@ import Endpoints
 import Util
 import Settings
 
+type alias Password = String
+
 type alias Film =
   { title : String
   , watched : Bool
@@ -28,7 +30,8 @@ type alias OkState =
   , random : Maybe Film
   , newFilm : Maybe String
   , secret : String
-  , addFilmErrorMsg : String
+  , errorMsg : String
+  , editMode : Bool
   }
 
 type Model
@@ -50,9 +53,13 @@ type Msg
   | ShowInputField Bool
   | NewFilmChanged String
   | SecretChanged String
-  | AddNewFilm String String
+  | AddNewFilm String Password
   | AddNewFilmSuccess String
   | AddNewFilmFailure String
+  | ChangeEditMode
+  | DeleteMovie String Password
+  | DeleteMovieSuccess String
+  | DeleteMovieFailure String
 
 init : (Model, Cmd Msg)
 init =
@@ -69,7 +76,7 @@ init =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
   PopulateError err -> (ShowMessage err, Cmd.none)
-  Populate films -> (Ok { films = films, random = Nothing, newFilm = Nothing, secret = "", addFilmErrorMsg = ""}, Cmd.none)
+  Populate films -> (Ok { films = films, random = Nothing, newFilm = Nothing, secret = "", errorMsg = "", editMode = False }, Cmd.none)
   ChooseRandomFilm ->
     case model of
       ShowMessage _ -> (model, Cmd.none)
@@ -83,8 +90,8 @@ update msg model = case msg of
       ShowMessage _ -> (model, Cmd.none)
       Ok state ->
         if b
-        then (Ok { state | newFilm = Just "", secret = "", addFilmErrorMsg = "" }, Cmd.none)
-        else (Ok { state | newFilm = Nothing, secret = "", addFilmErrorMsg = "" }, Cmd.none)
+        then (Ok { state | newFilm = Just "", errorMsg = "" }, Cmd.none)
+        else (Ok { state | newFilm = Nothing, errorMsg = "" }, Cmd.none)
   NewFilmChanged ft ->
     case model of
       ShowMessage _ -> (model, Cmd.none)
@@ -108,11 +115,35 @@ update msg model = case msg of
   AddNewFilmSuccess title ->
     case model of
       ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | newFilm = Just "", addFilmErrorMsg = "", films = state.films ++ [Film title False] }, Cmd.none)
+      Ok state -> (Ok { state | newFilm = Just "", errorMsg = "", films = state.films ++ [Film title False] }, Cmd.none)
   AddNewFilmFailure err ->
     case model of
       ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | addFilmErrorMsg = err }, Cmd.none)
+      Ok state -> (Ok { state | errorMsg = err }, Cmd.none)
+  ChangeEditMode ->
+    case model of
+      ShowMessage _ -> (model, Cmd.none)
+      Ok state -> (Ok { state | editMode = not state.editMode, secret = "", errorMsg = "" }, Cmd.none)
+  DeleteMovie title secret ->
+    ( model
+    , Http.request
+      { method = "DELETE"
+      , headers = [ Http.header "Gyursecret" secret ]
+      , url = Settings.path ++ Endpoints.filmItemsJson
+      , body = Http.stringBody "text" title
+      , expect = Http.expectWhatever <| Util.processMessage (always <| DeleteMovieSuccess title) DeleteMovieFailure
+      , timeout = Nothing
+      , tracker = Nothing
+      }
+    )
+  DeleteMovieSuccess title ->
+    case model of
+      ShowMessage _ -> (model, Cmd.none)
+      Ok state -> (Ok { state | films = state.films |> List.filter (\f -> f.title /= title), errorMsg = "" }, Cmd.none)
+  DeleteMovieFailure err ->
+    case model of
+      ShowMessage _ -> (model, Cmd.none)
+      Ok state -> (Ok { state | errorMsg = err }, Cmd.none)
 
 getRandomUnwatched : Int -> List Film -> Maybe Film
 getRandomUnwatched index films =
@@ -136,18 +167,30 @@ showModel model =
       [ Grid.col [] [ text msg ] ]
     Ok state ->
       [ showFilmPanel state
-      , showFilms state.films
+      , showFilms state.secret state.editMode state.films
       ]
 
-showFilms : List Film -> Grid.Column Msg
-showFilms films = [ div [] (List.indexedMap showFilm films) ] |> Grid.col []
+showFilms : Password -> Bool -> List Film -> Grid.Column Msg
+showFilms secret editMode films = [ div [] (List.indexedMap (showFilm secret editMode) films) ] |> Grid.col []
 
-showFilm : Int -> Film -> Html Msg
-showFilm index film = div [] (text (String.fromInt (index + 1) ++ ". ") :: text film.title :: if film.watched then [text " ✔️"] else [])
+showFilm : Password -> Bool -> Int -> Film -> Html Msg
+showFilm secret editMode index film =
+  let deleteButton =
+        Button.button
+          [ Button.danger
+          , Button.attrs [ Spacing.m1 ]
+          , Button.onClick <| DeleteMovie film.title secret
+          ] [text "🗑️"]
+  in
+    (  (if editMode then deleteButton else text "")
+    :: text (String.fromInt (index + 1) ++ ". ")
+    :: text film.title :: if film.watched then [text " ✔️"] else []
+    ) |> div []
+
 showFilmPanel : OkState -> Grid.Column Msg
 showFilmPanel state =
   [ randomFilmSection state.random
-  , newFilmSection state
+  , editPanel state
   ] |> Grid.col []
 
 randomFilmSection : Maybe Film -> Html Msg
@@ -158,6 +201,23 @@ randomFilmSection selected =
     , Button.onClick ChooseRandomFilm
     ] [text "Random Film"]
   , selected |> Maybe.map (text << .title) |> Maybe.withDefault (text "")
+  ] |> div []
+
+editPanel  : OkState -> Html Msg
+editPanel state =
+  [ Button.button
+    [ if state.editMode then Button.outlineDark else Button.outlineInfo
+    , Button.attrs [ Spacing.m2 ]
+    , Button.onClick ChangeEditMode
+    ] [text <| if state.editMode then "🔙" else "✍️"]
+  , div [] <| if state.editMode
+    then
+      [ newFilmSection state
+      , text "Secret: "
+      , Input.password [ Input.small, Input.value state.secret, Input.onInput SecretChanged ]
+      ]
+    else []
+  , text state.errorMsg
   ] |> div []
 
 newFilmSection : OkState -> Html Msg
@@ -184,8 +244,4 @@ newFilmSection state =
       , br [] []
       , text "Film: "
       , Input.text [Input.small, Input.value newFilm, Input.onInput NewFilmChanged]
-      , text "Secret: "
-      , Input.password [Input.small, Input.value state.secret, Input.onInput SecretChanged]
-      , br [] []
-      , text state.addFilmErrorMsg
       ] |> div []
