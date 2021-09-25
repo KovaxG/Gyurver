@@ -56,15 +56,13 @@ type Msg
   | SecretChanged String
   | AddNewFilm String Password
   | AddNewFilmSuccess String
-  | AddNewFilmFailure String
   | ChangeEditMode
   | DeleteMovie String Password
   | DeleteMovieSuccess String
-  | DeleteMovieFailure String
   | FilmWatched String Password
   | FilmWatchedSuccess String
-  | FilmWatchedFailure String -- same as DeletMovieFailure and AddNewFilmFailure
   | ToggleDeleteMode
+  | Failure String
 
 init : (Model, Cmd Msg)
 init =
@@ -112,7 +110,7 @@ update msg model = case msg of
       , headers = [ Http.header "Gyursecret" secret ]
       , url = Settings.path ++ Endpoints.filmItemsJson
       , body = Http.stringBody "text" title
-      , expect = Http.expectWhatever <| Util.processMessage (always <| AddNewFilmSuccess title) AddNewFilmFailure
+      , expect = Http.expectWhatever <| Util.processMessage (always <| AddNewFilmSuccess title) Failure
       , timeout = Nothing
       , tracker = Nothing
       }
@@ -121,7 +119,7 @@ update msg model = case msg of
     case model of
       ShowMessage _ -> (model, Cmd.none)
       Ok state -> (Ok { state | newFilm = Just "", errorMsg = "", films = state.films ++ [Film title False] }, Cmd.none)
-  AddNewFilmFailure err ->
+  Failure err ->
     case model of
       ShowMessage _ -> (model, Cmd.none)
       Ok state -> (Ok { state | errorMsg = err }, Cmd.none)
@@ -136,7 +134,7 @@ update msg model = case msg of
       , headers = [ Http.header "Gyursecret" secret ]
       , url = Settings.path ++ Endpoints.filmItemsJson
       , body = Http.stringBody "text" title
-      , expect = Http.expectWhatever <| Util.processMessage (always <| DeleteMovieSuccess title) DeleteMovieFailure
+      , expect = Http.expectWhatever <| Util.processMessage (always <| DeleteMovieSuccess title) Failure
       , timeout = Nothing
       , tracker = Nothing
       }
@@ -145,10 +143,6 @@ update msg model = case msg of
     case model of
       ShowMessage _ -> (model, Cmd.none)
       Ok state -> (Ok { state | films = state.films |> List.filter (\f -> f.title /= title), errorMsg = "" }, Cmd.none)
-  DeleteMovieFailure err ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | errorMsg = err }, Cmd.none)
   FilmWatched title secret ->
     ( model
     , Http.request
@@ -156,7 +150,7 @@ update msg model = case msg of
       , headers = [ Http.header "Gyursecret" secret ]
       , url = Settings.path ++ Endpoints.filmItemsJson
       , body = Http.stringBody "text" title
-      , expect = Http.expectWhatever <| Util.processMessage (always <| FilmWatchedSuccess title) FilmWatchedFailure
+      , expect = Http.expectWhatever <| Util.processMessage (always <| FilmWatchedSuccess title) Failure
       , timeout = Nothing
       , tracker = Nothing
       }
@@ -165,10 +159,6 @@ update msg model = case msg of
     case model of
       ShowMessage _ -> (model, Cmd.none)
       Ok state -> (Ok { state | errorMsg = "", films = state.films |> List.map (\f -> if f.title == title then { f | watched = not f.watched} else f) }, Cmd.none)
-  FilmWatchedFailure err ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | errorMsg = err }, Cmd.none)
   ToggleDeleteMode ->
     case model of
       ShowMessage _ -> (model, Cmd.none)
