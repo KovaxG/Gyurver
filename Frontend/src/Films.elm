@@ -25,7 +25,7 @@ type alias Film =
   , watched : Bool
   }
 
-type alias OkState =
+type alias Model =
   { films : List Film
   , random : Maybe Film
   , newFilm : Maybe String
@@ -35,9 +35,16 @@ type alias OkState =
   , deleteMode : Bool
   }
 
-type Model
-  = ShowMessage String
-  | Ok OkState
+initialModel : Model
+initialModel =
+  { films = []
+  , random = Nothing
+  , newFilm = Nothing
+  , secret = ""
+  , errorMsg = ""
+  , editMode = False
+  , deleteMode = False
+  }
 
 decodeFilm : Decoder Film
 decodeFilm =
@@ -48,7 +55,6 @@ decodeFilm =
 
 type Msg
   = Populate (List Film)
-  | PopulateError String
   | ChooseRandomFilm
   | RandomFilm Int
   | ShowInputField Bool
@@ -66,103 +72,50 @@ type Msg
 
 init : (Model, Cmd Msg)
 init =
-  ( ShowMessage "Waiting for server to send me some films..."
+  ( { initialModel | errorMsg = "Waiting for server to send me some films..."}
   , Http.get
     { url = Settings.path ++ Endpoints.filmItemsJson
     , expect =
       Http.expectJson
-        (Util.processMessage Populate PopulateError)
+        (Util.processMessage Populate Failure)
         (Decode.list decodeFilm)
     }
   )
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
-  PopulateError err -> (ShowMessage err, Cmd.none)
-  Populate films -> (Ok { films = films, random = Nothing, newFilm = Nothing, secret = "", errorMsg = "", editMode = False, deleteMode = False }, Cmd.none)
-  ChooseRandomFilm ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (model, Random.generate RandomFilm <| Random.int 0 (List.length state.films))
-  RandomFilm index ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | random = getRandomUnwatched index state.films }, Cmd.none)
+  Populate films -> ({ initialModel | films = films }, Cmd.none)
+  ChooseRandomFilm -> (model, Random.generate RandomFilm <| Random.int 0 (List.length model.films))
+  RandomFilm index -> ({ model | random = getRandomUnwatched index model.films }, Cmd.none)
   ShowInputField b ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state ->
-        if b
-        then (Ok { state | newFilm = Just "", errorMsg = "" }, Cmd.none)
-        else (Ok { state | newFilm = Nothing, errorMsg = "" }, Cmd.none)
-  NewFilmChanged ft ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | newFilm = Just ft }, Cmd.none)
-  SecretChanged ss ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | secret = ss }, Cmd.none)
-  AddNewFilm title secret ->
-    ( model
-    , Http.request
-      { method = "POST"
-      , headers = [ Http.header "Gyursecret" secret ]
-      , url = Settings.path ++ Endpoints.filmItemsJson
-      , body = Http.stringBody "text" title
-      , expect = Http.expectWhatever <| Util.processMessage (always <| AddNewFilmSuccess title) Failure
-      , timeout = Nothing
-      , tracker = Nothing
-      }
-    )
+    if b
+    then ({ model | newFilm = Just "", errorMsg = "" }, Cmd.none)
+    else ({ model | newFilm = Nothing, errorMsg = "" }, Cmd.none)
+  NewFilmChanged ft -> ({ model | newFilm = Just ft }, Cmd.none)
+  SecretChanged ss -> ({ model | secret = ss }, Cmd.none)
+  AddNewFilm title secret -> (model, request "POST" secret title AddNewFilmSuccess)
   AddNewFilmSuccess title ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | newFilm = Just "", errorMsg = "", films = state.films ++ [Film title False] }, Cmd.none)
-  Failure err ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | errorMsg = err }, Cmd.none)
-  ChangeEditMode ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | editMode = not state.editMode, secret = "", errorMsg = "" }, Cmd.none)
-  DeleteMovie title secret ->
-    ( model
-    , Http.request
-      { method = "DELETE"
-      , headers = [ Http.header "Gyursecret" secret ]
-      , url = Settings.path ++ Endpoints.filmItemsJson
-      , body = Http.stringBody "text" title
-      , expect = Http.expectWhatever <| Util.processMessage (always <| DeleteMovieSuccess title) Failure
-      , timeout = Nothing
-      , tracker = Nothing
-      }
-    )
-  DeleteMovieSuccess title ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | films = state.films |> List.filter (\f -> f.title /= title), errorMsg = "" }, Cmd.none)
-  FilmWatched title secret ->
-    ( model
-    , Http.request
-      { method = "PUT"
-      , headers = [ Http.header "Gyursecret" secret ]
-      , url = Settings.path ++ Endpoints.filmItemsJson
-      , body = Http.stringBody "text" title
-      , expect = Http.expectWhatever <| Util.processMessage (always <| FilmWatchedSuccess title) Failure
-      , timeout = Nothing
-      , tracker = Nothing
-      }
-    )
+    ({ model | newFilm = Just "", errorMsg = "", films = model.films ++ [Film title False] }, Cmd.none)
+  Failure err -> ({ model | errorMsg = err }, Cmd.none)
+  ChangeEditMode -> ({ model | editMode = not model.editMode, secret = "", errorMsg = "" }, Cmd.none)
+  DeleteMovie title secret -> (model, request "DELETE" secret title DeleteMovieSuccess)
+  DeleteMovieSuccess title -> ({ model | films = model.films |> List.filter (\f -> f.title /= title), errorMsg = "" }, Cmd.none)
+  FilmWatched title secret -> (model, request "PUT" secret title FilmWatchedSuccess)
   FilmWatchedSuccess title ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | errorMsg = "", films = state.films |> List.map (\f -> if f.title == title then { f | watched = not f.watched} else f) }, Cmd.none)
-  ToggleDeleteMode ->
-    case model of
-      ShowMessage _ -> (model, Cmd.none)
-      Ok state -> (Ok { state | deleteMode = not state.deleteMode }, Cmd.none)
+    ({ model | errorMsg = "", films = model.films |> List.map (\f -> if f.title == title then { f | watched = not f.watched} else f) }, Cmd.none)
+  ToggleDeleteMode -> ({ model | deleteMode = not model.deleteMode }, Cmd.none)
+
+request : String -> String -> String -> (String -> Msg) -> Cmd Msg
+request method secret title successMsg =
+  Http.request
+    { method = method
+    , headers = [ Http.header "Gyursecret" secret ]
+    , url = Settings.path ++ Endpoints.filmItemsJson
+    , body = Http.stringBody "text" title
+    , expect = Http.expectWhatever <| Util.processMessage (always <| successMsg title) Failure
+    , timeout = Nothing
+    , tracker = Nothing
+    }
 
 getRandomUnwatched : Int -> List Film -> Maybe Film
 getRandomUnwatched index films =
@@ -181,16 +134,14 @@ view state =
 
 showModel : Model -> List (Grid.Column Msg)
 showModel model =
-  case model of
-    ShowMessage msg ->
-      [ Grid.col [] [ text msg ] ]
-    Ok state ->
-      [ showFilmPanel state
-      , showFilms state.secret state.deleteMode state.editMode state.films
-      ]
+  [ showFilmPanel model
+  , showFilms model
+  ]
 
-showFilms : Password -> Bool -> Bool -> List Film -> Grid.Column Msg
-showFilms secret deleteMode editMode films = [ div [] (List.indexedMap (showFilm secret deleteMode editMode) films) ] |> Grid.col []
+showFilms : Model -> Grid.Column Msg
+showFilms model =
+  [ div [] (List.indexedMap (showFilm model.secret model.deleteMode model.editMode) model.films)
+  ] |> Grid.col []
 
 showFilm : Password -> Bool -> Bool -> Int -> Film -> Html Msg
 showFilm secret deleteMode editMode index film =
@@ -213,10 +164,10 @@ showFilm secret deleteMode editMode index film =
     :: text film.title :: if film.watched then [text " ✔️"] else []
     ) |> div []
 
-showFilmPanel : OkState -> Grid.Column Msg
-showFilmPanel state =
-  [ randomFilmSection state.random
-  , editPanel state
+showFilmPanel : Model -> Grid.Column Msg
+showFilmPanel model =
+  [ randomFilmSection model.random
+  , editPanel model
   ] |> Grid.col []
 
 randomFilmSection : Maybe Film -> Html Msg
@@ -229,33 +180,33 @@ randomFilmSection selected =
   , selected |> Maybe.map (text << .title) |> Maybe.withDefault (text "")
   ] |> div []
 
-editPanel  : OkState -> Html Msg
-editPanel state =
+editPanel  : Model -> Html Msg
+editPanel model =
   [ Button.button
-    [ if state.editMode then Button.outlineDark else Button.outlineInfo
+    [ if model.editMode then Button.outlineDark else Button.outlineInfo
     , Button.attrs [ Spacing.m2 ]
     , Button.onClick ChangeEditMode
-    ] [text <| if state.editMode then "🔙" else "✍️"]
-  , div [] <| if state.editMode
+    ] [text <| if model.editMode then "🔙" else "✍️"]
+  , div [] <| if model.editMode
     then
-      [ newFilmSection state
+      [ newFilmSection model
       , text "Secret: "
-      , Input.password [ Input.small, Input.value state.secret, Input.onInput SecretChanged ]
+      , Input.password [ Input.small, Input.value model.secret, Input.onInput SecretChanged ]
       , br [] []
       , Button.button
         [ Button.outlineDanger
         , Button.attrs [ Spacing.m1 ]
         , Button.onClick ToggleDeleteMode
         ] [text "🗑️"]
-  , br [] []
+      , br [] []
       ]
     else []
-  , text state.errorMsg
+  , text model.errorMsg
   ] |> div []
 
-newFilmSection : OkState -> Html Msg
-newFilmSection state =
-  case state.newFilm of
+newFilmSection : Model -> Html Msg
+newFilmSection model =
+  case model.newFilm of
     Nothing ->
       [ Button.button
         [ Button.outlineSuccess
@@ -272,7 +223,7 @@ newFilmSection state =
       , Button.button
         [ Button.outlineSuccess
         , Button.attrs [ Spacing.m2 ]
-        , Button.onClick (AddNewFilm newFilm state.secret)
+        , Button.onClick (AddNewFilm newFilm model.secret)
         ] [text "✔️"]
       , br [] []
       , text "Film: "
