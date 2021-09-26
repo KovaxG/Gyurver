@@ -172,6 +172,7 @@ readGyurblog index path = handleFileContents <$> Utils.safeReadTextFile p
     suffix = ".gyurblog"
 
 -- TODO maybe use a monad transformer here?
+-- might break Raspberry Pi compatibility :[]
 parseGyurblog :: Int -> Text -> Either Text Blog
 parseGyurblog index contents = do
   (s0, title) <- getTitle (filter (not . Text.null) $ map Utils.trim $ Text.lines contents)
@@ -261,10 +262,10 @@ checkRefs refs secs =
         & map (\(Paragraph s) -> s)
         & Text.concat
         & Text.filter (\c -> Text.any (==c) "[]0123456789")
-        & Text.map (\c -> if Text.any (==c) "[]" then ' ' else c)
+        & Text.concatMap (\c -> if c == '[' then " [" else if c == ']' then "] " else Text.singleton c)
         & Text.words
-        & filter (\w -> Text.head w == ' ')
-        & Maybe.mapMaybe Utils.safeRead
+        & filter (\w -> Text.isPrefixOf (Text.singleton '[') w && Text.isSuffixOf (Text.singleton ']') w)
+        & Maybe.mapMaybe (Utils.safeRead . Text.init . Text.tail)
       refIndexes = map (\(Ref i _ _) -> i) refs
       nonExistentRefs = textIndexes \\ refIndexes
       extraRefs = refIndexes \\ textIndexes
@@ -282,7 +283,7 @@ withIndex i2 (Index i1 _) = i1 == i2
 getFileName :: Index -> Text
 getFileName (Index _ s) = s
 
-
+toStringIndex :: Index -> Text
 toStringIndex (Index i s) = Text.pack (show i) <> " " <> s
 
 instance DBFormat Index where

@@ -145,7 +145,7 @@ endpointTests =
   , test "requesting pdf resource: test_underscore.pdf" $ parse "GET /res/test_underscore.pdf" === GetResource "test_underscore.pdf"
   ]
 
-gyurblogParseTests :: [Test (Either String Blog)]
+gyurblogParseTests :: [Test (Either Text Blog)]
 gyurblogParseTests =
   [ test "Empty file" $
     parseGyurblog 0 blankFile === Left "Did not find title."
