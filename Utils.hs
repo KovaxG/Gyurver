@@ -12,7 +12,7 @@ import           Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.List as List
 import qualified Data.Text.IO as IO
-
+import qualified Data.Text.Encoding as Encoding
 
 ($>) :: Functor f => f a -> b -> f b
 ($>) = flip (<$)
@@ -35,7 +35,7 @@ startsWith ss s = (length ss <= length s) && and (zipWith (==) ss s)
 
 safeReadTextFile :: Text -> IO (Maybe Text)
 safeReadTextFile path = do
-  contents <- try (IO.readFile (Text.unpack path)) :: IO (Either IOException Text)
+  contents <- try (Encoding.decodeUtf8 <$> ByteString.readFile (Text.unpack path)) :: IO (Either IOException Text)
   return $ eitherToMaybe contents
 
 safeWriteTextFile :: Text -> Text -> IO (Maybe ())
