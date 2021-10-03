@@ -108,7 +108,7 @@ instance CanSend Text where
   toBytes t = Response
     { status = OK
     , address = "localhost"
-    , headers = [] -- Text could be anything!
+    , headers = [ ("Content-Type", "text/html; charset=utf-8") ]
     , content = TextEncoding.encodeUtf8 t
     }
 
@@ -116,7 +116,7 @@ instance CanSend Document where
   toBytes d = Response
     { status = OK
     , address = "localhost"
-    , headers = [("Content-Type", "text/html")]
+    , headers = [("Content-Type", "text/html; charset=utf-8")]
     , content = BS.pack $ show d
     }
 
@@ -124,7 +124,7 @@ instance CanSend Json where
   toBytes j = Response
     { status = OK
     , address = "localhost"
-    , headers = [("Content-Type", "application/json")]
+    , headers = [("Content-Type", "application/json; charset=utf-8")]
     , content = TextEncoding.encodeUtf8 $ Json.toString j
     }
 
