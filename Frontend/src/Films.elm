@@ -152,8 +152,11 @@ showModel model =
 
 showFilms : Model -> Grid.Column Msg
 showFilms model =
-  [ div [] (List.indexedMap (showFilm model.dateView model.secret model.deleteMode model.editMode) model.films)
-  ] |> Grid.col []
+  let filmsDivStyle = [style "height" "75vh", style "overflow" "scroll"]
+  in
+
+    [ div filmsDivStyle (List.indexedMap (showFilm model.dateView model.secret model.deleteMode model.editMode) model.films)
+    ] |> Grid.col []
 
 showFilm : Bool -> Password -> Bool -> Bool -> Int -> Film -> Html Msg
 showFilm dateView secret deleteMode editMode index film =
