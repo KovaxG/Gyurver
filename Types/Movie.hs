@@ -7,8 +7,10 @@ import qualified Data.Text as Text
 import           Text.Printf (printf)
 import           Data.Monoid ((<>))
 import           Component.Json (Json(..))
+import qualified Component.Json as Json
 import           Component.Database (DBFormat(..))
 import           Types.Date (Date(..))
+import qualified Types.Date as Date
 import           Utils ((+:))
 import qualified Utils
 
@@ -24,28 +26,36 @@ diffName d = case d of
   ToggleWatched _ n -> n
   Delete _ n -> n
 
-data Movie = Movie Text Bool deriving (Show)
+data Movie = Movie
+  { title :: Text
+  , watched :: Bool
+  , added :: Date
+  , lastDiff :: Maybe Date
+  } deriving (Show)
 
-movieName :: Movie -> Text
-movieName (Movie n _) = n
-
-toggleWatched :: Movie -> Movie
-toggleWatched (Movie n b) = Movie n (not b)
+toggleWatched :: Date -> Movie -> Movie
+toggleWatched d m = m { watched = not $ watched m, lastDiff = Just d }
 
 combineDiffs :: [MovieDiff] -> [Movie]
 combineDiffs = foldl update []
 
 update :: [Movie] -> MovieDiff -> [Movie]
 update ms d = case d of
-  NewMovie _ n -> if n `elem` map movieName ms then ms else ms +: Movie n False
-  ToggleWatched _ n -> Utils.mapIf (\m -> movieName m == n) toggleWatched ms
-  Delete _ n -> Utils.filterNot (\m -> movieName m == n) ms
+  NewMovie d n -> if n `elem` map title ms then ms else ms +: Movie { title = n, watched = False, added = d, lastDiff = Nothing }
+  ToggleWatched d n -> Utils.mapIf (\m -> title m == n) (toggleWatched d) ms
+  Delete _ n -> Utils.filterNot (\m -> title m == n) ms
 
 toJson :: [Movie] -> Json
 toJson = JsonArray . map movieToJson
   where
     movieToJson :: Movie -> Json
-    movieToJson (Movie name watched) = JsonObject [("title", JsonString name), ("watched", JsonBool watched)]
+    movieToJson m =
+      JsonObject
+        [ ("title", JsonString $ title m)
+        , ("watched", JsonBool $ watched m)
+        , ("added", Date.toJson $ added m)
+        , ("lastModified", Json.nullable Date.toJson $ lastDiff m)
+        ]
 
 instance DBFormat MovieDiff where
   encode d = date <> prefix <> diffName d

@@ -1,4 +1,4 @@
-module Types.Date exposing (Date, decode, encode)
+module Types.Date exposing (Date, decode, encode, toIsoString)
 
 import Date as ElmDate
 import Json.Decode as Decode exposing (Decoder)
@@ -25,3 +25,6 @@ encode date =
     , ("month", Encode.int <| ElmDate.monthNumber date)
     , ("day", Encode.int <| ElmDate.day date)
     ]
+
+toIsoString : Date -> String
+toIsoString = ElmDate.toIsoString

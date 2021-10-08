@@ -4,7 +4,6 @@ import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Browser exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
-import Date
 import Html exposing (Html, div, br, h3, a, text, p, hr)
 import Time exposing (Month(..))
 import Http

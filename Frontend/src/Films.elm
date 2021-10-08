@@ -7,12 +7,14 @@ import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Form.Input as Input
 import Browser exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
-import Html exposing (Html, div, text, br)
+import Html exposing (Html, div, text, br, span)
+import Html.Attributes exposing (style)
 import Time exposing (Month(..))
 import Http
 import List.Extra as List
 import Random
 
+import Types.Date as Date exposing (Date)
 import Types.Language exposing (Language(..))
 import Endpoints
 import Util
@@ -23,6 +25,8 @@ type alias Password = String
 type alias Film =
   { title : String
   , watched : Bool
+  , added : Result String Date
+  , lastDiff : Maybe Date
   }
 
 type alias Model =
@@ -33,6 +37,7 @@ type alias Model =
   , errorMsg : String
   , editMode : Bool
   , deleteMode : Bool
+  , dateView : Bool
   }
 
 initialModel : Model
@@ -44,14 +49,17 @@ initialModel =
   , errorMsg = ""
   , editMode = False
   , deleteMode = False
+  , dateView = False
   }
 
 decodeFilm : Decoder Film
 decodeFilm =
-  Decode.map2
+  Decode.map4
     Film
     (Decode.field "title" Decode.string)
     (Decode.field "watched" Decode.bool)
+    (Decode.field "added" <| Decode.map Ok Date.decode)
+    (Decode.field "lastModified" <| Decode.maybe Date.decode)
 
 type Msg
   = Populate (List Film)
@@ -69,6 +77,7 @@ type Msg
   | FilmWatchedSuccess String
   | ToggleDeleteMode
   | Failure String
+  | ToggleDateView
 
 init : (Model, Cmd Msg)
 init =
@@ -95,15 +104,18 @@ update msg model = case msg of
   SecretChanged ss -> ({ model | secret = ss }, Cmd.none)
   AddNewFilm title secret -> (model, request "POST" secret title AddNewFilmSuccess)
   AddNewFilmSuccess title ->
-    ({ model | newFilm = Just "", errorMsg = "", films = model.films ++ [Film title False] }, Cmd.none)
+    ({ model | newFilm = Just "", errorMsg = "", films = model.films ++ [Film title False (Err "just now") Nothing] }, Cmd.none)
   Failure err -> ({ model | errorMsg = err }, Cmd.none)
   ChangeEditMode -> ({ model | editMode = not model.editMode, secret = "", errorMsg = "" }, Cmd.none)
   DeleteMovie title secret -> (model, request "DELETE" secret title DeleteMovieSuccess)
   DeleteMovieSuccess title -> ({ model | films = model.films |> List.filter (\f -> f.title /= title), errorMsg = "" }, Cmd.none)
   FilmWatched title secret -> (model, request "PUT" secret title FilmWatchedSuccess)
   FilmWatchedSuccess title ->
-    ({ model | errorMsg = "", films = model.films |> List.map (\f -> if f.title == title then { f | watched = not f.watched} else f) }, Cmd.none)
+    ( { model | errorMsg = "", films = model.films |> List.map (\f -> if f.title == title then { f | watched = not f.watched, lastDiff = Nothing } else f) }
+    , Cmd.none
+    )
   ToggleDeleteMode -> ({ model | deleteMode = not model.deleteMode }, Cmd.none)
+  ToggleDateView -> ({ model | dateView = not model.dateView }, Cmd.none)
 
 request : String -> String -> String -> (String -> Msg) -> Cmd Msg
 request method secret title successMsg =
@@ -140,11 +152,11 @@ showModel model =
 
 showFilms : Model -> Grid.Column Msg
 showFilms model =
-  [ div [] (List.indexedMap (showFilm model.secret model.deleteMode model.editMode) model.films)
+  [ div [] (List.indexedMap (showFilm model.dateView model.secret model.deleteMode model.editMode) model.films)
   ] |> Grid.col []
 
-showFilm : Password -> Bool -> Bool -> Int -> Film -> Html Msg
-showFilm secret deleteMode editMode index film =
+showFilm : Bool -> Password -> Bool -> Bool -> Int -> Film -> Html Msg
+showFilm dateView secret deleteMode editMode index film =
   let deleteButton =
         Button.button
           [ Button.danger
@@ -157,18 +169,39 @@ showFilm secret deleteMode editMode index film =
           , Button.attrs [ Spacing.m1 ]
           , Button.onClick <| FilmWatched film.title secret
           ] [text <| if film.watched then "✖️" else "✔️"]
+      addedStr = case film.added of
+        Ok date -> Date.toIsoString date
+        Err str -> str
+
+      modifiedStr =
+        film.lastDiff
+        |> Maybe.map Date.toIsoString
+        |> Maybe.withDefault "now"
+
+      dateStyle = style "color" "lightgray"
   in
     (  (if editMode && deleteMode then deleteButton else text "")
     :: (if editMode then watchedButton else text "")
     :: text (String.fromInt (index + 1) ++ ". ")
-    :: text film.title :: if film.watched then [text " ✔️"] else []
+    :: text film.title
+    :: (if dateView then span [dateStyle] [text <| " " ++ addedStr] else text "")
+    :: (if film.watched then [ text " ✔️ " , span [dateStyle] [text <| if dateView then modifiedStr else ""] ] else [])
     ) |> div []
 
 showFilmPanel : Model -> Grid.Column Msg
 showFilmPanel model =
   [ randomFilmSection model.random
+  , dateViewPanel
   , editPanel model
   ] |> Grid.col []
+
+dateViewPanel : Html Msg
+dateViewPanel =
+  Button.button
+    [ Button.outlinePrimary
+    , Button.attrs [ Spacing.m2 ]
+    , Button.onClick ToggleDateView
+    ] [text "📅"]
 
 randomFilmSection : Maybe Film -> Html Msg
 randomFilmSection selected =

@@ -6,7 +6,6 @@ import Bootstrap.Badge as Badge
 import Bootstrap.Utilities.Spacing as Spacing
 import Browser exposing (Document)
 import Json.Decode as Decode exposing (Decoder)
-import Date
 import Html exposing (Html, div, br, h3, a, text)
 import Html.Attributes exposing (href)
 import Time exposing (Month(..))
