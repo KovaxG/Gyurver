@@ -13,8 +13,8 @@ Gyurblog file will have the following file format: `example.gyurblog`
 - The title cannot be empty space. In this situation the file is invalid.
 
 ### Date
-- If there is a line that begins with `"date:"` followed by a valid ISO date string, it will be considered the date. If the date is not valid ISO, the file is invalid. 
-- If there is no line that starts with `"date:"`, then the line following the date (igoring blank lines) will be considered the date, if it is a valid ISO date. 
+- If there is a line that begins with `"date:"` followed by a valid ISO date string, it will be considered the date. If the date is not valid ISO, the file is invalid.
+- If there is no line that starts with `"date:"`, then the line following the date (igoring blank lines) will be considered the date, if it is a valid ISO date.
 - If it is not a valid date, the file is invalid.
 
 ### Language
@@ -31,6 +31,10 @@ Gyurblog file will have the following file format: `example.gyurblog`
 ### Reference
 - If a line starts with a positive integer surrounded by square brackets, followed by at least a string, it is considered a reference. If it ends with a string surrounded by braces, the content in the braces is considered the url of the reference. A reference is only valid if the content of the blogpost contains a citation of the reference. This means that a reference is only valid, if the square bracket part of the reference appears in the sections of the blogpost.
 - Otherwise the file is not considered valid.
+
+### Footnote
+- sections can contain footnotes
+- a footnote is a section of text surrounded by braces, and the first word in the braces is footnote
 
 ### Section
 
@@ -63,11 +67,28 @@ Hello, this is my example [1].
 title: Example Title
 date: 2021-08-07
 lang: EN, RO, HU
-tags: tag1, tag2 
+tags: tag1, tag2
 
 (This is a short description)
 
 This is a paragraph [1].
+
+This is another paragraph [2].
+
+[1] This is a reference (www.google.com)
+[2] This is another reference (some book or other)
+```
+
+### Footnote example
+```
+title: Example Title
+date: 2021-08-07
+lang: EN, RO, HU
+tags: tag1, tag2
+
+(This is a short description)
+
+This is a paragraph(footnote a really short one) [1].
 
 This is another paragraph [2].
 
