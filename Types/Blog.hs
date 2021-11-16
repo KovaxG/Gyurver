@@ -14,6 +14,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.IO as TIO
 import qualified Data.List as List
 import           Data.List ((\\))
+import qualified Data.Bifunctor as Bifunctor
 import           Data.Function ((&))
 import qualified Data.Maybe as Maybe
 import           Data.Monoid ((<>))
@@ -34,6 +35,7 @@ data Blog = Blog
   , date :: Date
   , intro :: Text
   , sections :: [Section]
+  , footnotes :: [Footnote]
   , references :: [Reference]
   , metadata :: Metadata
   } deriving (Show, Eq)
@@ -44,6 +46,8 @@ wordCount :: Section -> Int
 wordCount (Paragraph body) = length $ Text.words body
 
 data Reference = Ref Int Text Text deriving (Show, Eq)
+
+data Footnote = Footnote Text Text deriving (Show, Eq)
 
 data Metadata = Metadata
   { languages :: [Language]
@@ -77,6 +81,10 @@ testBlog = Blog
   , sections =
       [ Paragraph "Hey, this is the first test blog. It is not intended to be shared, it is only intended for testing. Here is how I will refer to stuff: I like youtube [1]"
       , Paragraph "This is the second paragraph. I think I will not add newlines in paragraphs, because that way it will be much simpler for me to work with the stuff."
+      , Paragraph "Now we also support footnotes(*)."
+      ]
+  , footnotes =
+      [ Footnote "*" "This is a footnote"
       ]
   , references =
       [ Ref 1 "Youtube" "www.youtube.com"
@@ -96,6 +104,7 @@ toJson blog = JsonObject
   , ("intro", JsonString $ intro blog)
   , ("sections", JsonArray $ map sectionToJson $ sections blog)
   , ("references", JsonArray $ map refToJson $ references blog)
+  , ("footnotes", JsonArray $ map footToJson $ footnotes blog)
   , ("metadata", metadataToJson $ metadata blog)
   ]
 
@@ -112,6 +121,12 @@ refToJson (Ref index name url) = JsonObject
   , ("url", JsonString url)
   ]
 
+footToJson :: Footnote -> Json
+footToJson (Footnote symbol text) = JsonObject
+  [ ("symbol", JsonString symbol)
+  , ("text", JsonString text)
+  ]
+
 metadataToJson :: Metadata -> Json
 metadataToJson (Metadata languages topics) = JsonObject
   [ ("languages", JsonArray $ map (JsonString . Language.toString) languages)
@@ -125,6 +140,7 @@ decoder =
        <*> Decoder.field "date" Date.decoder
        <*> Decoder.field "intro" Decoder.string
        <*> Decoder.field "sections" (Decoder.list decodeSection)
+       <*> Decoder.field "footnotes" (Decoder.list decodeFootnote)
        <*> Decoder.field "references" (Decoder.list decodeReference)
        <*> Decoder.field "metadata" decodeMetadata
 
@@ -136,6 +152,12 @@ decodeSection =
     )
     <$> Decoder.field "section" Decoder.string
     <*> Decoder.field "content" Decoder.string
+
+decodeFootnote :: Decoder Footnote
+decodeFootnote =
+  Footnote <$> Decoder.field "mark" Decoder.string
+           <*> Decoder.field "note" Decoder.string
+
 
 decodeReference :: Decoder Reference
 decodeReference =
@@ -182,13 +204,15 @@ parseGyurblog index contents = do
   (s4, intro) <- getIntro s3
   (s5, refs) <- getReferences s4
   let secs = getSections s5
+  let (secs2, footnotes) = getFootnotes secs
   _ <- checkRefs refs secs
   return Blog
     { identifier = index
     , title = title
     , date = date
     , intro = intro
-    , sections = secs
+    , sections = secs2
+    , footnotes = footnotes
     , references = refs
     , metadata = Metadata { languages = langs, topics = tags }
     }
@@ -249,6 +273,30 @@ parseRef = Utils.mapLeft (const "Invalid Refeference.") . Parsec.parse rule "Par
 getSections :: [Text] -> [Section]
 getSections = map Paragraph
 
+getFootnotes :: [Section] -> ([Section], [Footnote])
+getFootnotes secs =
+  if wellFormed texts
+  then  (map Paragraph $ Text.lines $ maskFootnotes semantic, extractFootnotes semantic)
+  else (secs, [])
+  where
+    semantic = parseSemanticText $ Text.unlines texts
+    texts = map sectionText secs
+
+sectionText :: Section -> Text
+sectionText (Paragraph txt) = txt
+
+wellFormed :: [Text] -> Bool
+wellFormed = (==0)
+           . sum
+           . fmap toNr
+           . Text.unpack
+           . Text.filter (`elem` ['(', ')'])
+           . Text.concat
+  where
+    toNr :: Char -> Int
+    toNr '(' = 1
+    toNr _ = -1
+
 getPrefix :: Text -> Text -> [Text] -> ([Text], Text)
 getPrefix prefix suffix s =
   let (relevant, rest) = List.partition (\a -> Text.isPrefixOf prefix a && Text.isSuffixOf suffix a) s
@@ -291,3 +339,42 @@ instance DBFormat Index where
   decode s =
     let (a, b) = Text.span Char.isDigit s
     in Index <$> Utils.safeRead a <*> return (Text.drop 1 b)
+
+data SemanticText = Out Text | In Text deriving (Show)
+
+isIn :: SemanticText -> Bool
+isIn (In _) = True
+isIn _ = False
+
+getSemanticText :: SemanticText -> Text
+getSemanticText (In t) = t
+getSemanticText (Out t) = t
+
+-- TODO if the brackest are ill formed so is the semantic text
+parseSemanticText :: Text -> [SemanticText]
+parseSemanticText =
+  filter ((/="") . getSemanticText)
+  . (\(sts, t) -> sts ++ [Out t])
+  . Text.foldl rule ([], Text.empty)
+  where
+    rule :: ([SemanticText], Text) -> Char -> ([SemanticText], Text)
+    rule (sts, t) '(' = (sts ++ [Out t], Text.empty)
+    rule (sts, t) ')' = (sts ++ [In t], Text.empty)
+    rule (sts, t) c = (sts, Text.snoc t c)
+
+extractFootnotes :: [SemanticText] -> [Footnote]
+extractFootnotes =
+  zipWith (Footnote . Utils.foot) [0 ..]
+  . map (Text.strip . Text.drop (Text.length "footnote"))
+  . filter (Text.isPrefixOf "footnote")
+  . map getSemanticText
+  . filter isIn
+
+maskFootnotes :: [SemanticText] -> Text
+maskFootnotes = fst . foldl rule (Text.empty, 0)
+  where
+    rule :: (Text, Int) -> SemanticText -> (Text, Int)
+    rule (txt, n) (Out t) = (Text.append txt t, n)
+    rule (txt, n) (In t)
+      | Text.isPrefixOf "footnote" t = (Text.append txt (Utils.foot n), n + 1)
+      | otherwise = (Text.concat [txt, "(", t, ")"], n)

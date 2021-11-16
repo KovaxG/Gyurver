@@ -54,6 +54,7 @@ defaultSettings = Settings
 - `/cokk2021/results` The results of the 2021 Cokkoles contest
 - `/blog` A page where you can browse the blog
 - `/blog/#` A page that displays the blog with the given index
+- `/films` A page that displays the film list
 
 ### Resources
 - `/favicon.ico` Get the favicon
@@ -64,6 +65,7 @@ defaultSettings = Settings
 - `/res/anomaly_detection_metrics.pdf` Anomaly detection metrics article
 
 ### JSON
+- `/api/ping` pings the server and it returns nothing as fast as possible (Get)
 - `/api/videos` list of videos endpoint (Get, Post, Options)
 - `/api/video/#` data about a certain video (Get, Post, Delete)
 - `/api/cokk2020` list of contestants of the 2020 Cokkoles

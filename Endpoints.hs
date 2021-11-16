@@ -40,7 +40,8 @@ parseResource = eitherToMaybe . Parsec.parse rule "Parsing Resource"
       return $ Resource name term
 
 data Endpoint
-  = GetLandingPage
+  = Ping
+  | GetLandingPage
   | GetCV
   | GetFavicon
   | GetArticlesPage
@@ -92,7 +93,9 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
     rule =
       foldl (<|>) (limit landingPage)
       $ limit <$>
-        [ landingPage
+        [ Parsec.string "GET /api/ping" $> Ping
+
+        , landingPage
 
         , Parsec.string "GET /articles" $> GetArticlesPage
         , Parsec.string "GET /cikkek" $> GetArticlesPage

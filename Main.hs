@@ -153,6 +153,9 @@ process mainFile
             Response.make BadRequest ("I need the name of the film in the body!" :: Text)
 
   case Endpoint.parse $ Text.unwords [Text.pack $ show requestType, path] of
+    Endpoint.Ping ->
+      Response.make OK ()
+
     Endpoint.GetLandingPage -> do
       Logger.info log $ "Requested landing page, sending " <> mainPath
       return mainFile

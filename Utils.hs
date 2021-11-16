@@ -105,14 +105,3 @@ foot n = Text.replicate (nr + 1) (symbols !! index)
   where
     (nr, index) = divMod n (length symbols)
     symbols = ["*", "†", "††", "¶", "§", "||", "#"]
-
-bracketedText :: String -> [String]
-bracketedText = go []
-  where
-    go :: [String] -> String -> [String]
-    go acc "" = acc
-    go acc t  =
-      let start = dropWhile (/= '(') t
-          bracketed = if ')' `elem` start then takeWhile (/= ')') $ filter (/= '(') start else ""
-          rest = dropWhile (/= ')') start
-      in go (acc ++ [bracketed | not $ null bracketed]) rest

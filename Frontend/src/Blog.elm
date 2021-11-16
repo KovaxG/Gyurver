@@ -21,12 +21,15 @@ type alias BlogPost =
   , date : Date
   , intro : String
   , sections : List Section
+  , footnotes : List Footnote
   , references : List Reference
   , metadata : Metadata
   }
 
 type Section = Paragraph String
 type Reference = Ref Int String String
+
+type Footnote = Foot String String
 
 type alias Metadata =
   { languages : List Language
@@ -35,13 +38,14 @@ type alias Metadata =
 
 blogPostDecoder : Decoder BlogPost
 blogPostDecoder =
-  Decode.map7
+  Decode.map8
     BlogPost
     (Decode.field "identifier" Decode.int)
     (Decode.field "title" Decode.string)
     (Decode.field "date" Date.decode)
     (Decode.field "intro" Decode.string)
     (Decode.field "sections" <| Decode.list sectionDecoder)
+    (Decode.field "footnotes" <| Decode.list footnoteDecoder)
     (Decode.field "references" <| Decode.list referenceDecoder)
     (Decode.field "metadata" metadataDecoder)
 
@@ -59,6 +63,13 @@ referenceDecoder =
     (Decode.field "index" Decode.int)
     (Decode.field "name" Decode.string)
     (Decode.field "url" Decode.string)
+
+footnoteDecoder : Decoder Footnote
+footnoteDecoder =
+  Decode.map2
+    Foot
+    (Decode.field "symbol" Decode.string)
+    (Decode.field "text" Decode.string)
 
 metadataDecoder : Decoder Metadata
 metadataDecoder =
@@ -116,6 +127,8 @@ displayBlogPost bp =
   :: displayInfo bp
   :: (List.map displaySection bp.sections)
   ++ [hr [] []]
+  ++ (List.map displayFoot bp.footnotes)
+  ++ [br [] []]
   ++ (List.map displayRef bp.references)
   |> div []
 
@@ -149,6 +162,10 @@ displayTopics tags =
 displayRef : Reference -> Html Msg
 displayRef (Ref i a link) =
   div [] [text <| "[" ++ String.fromInt i ++ "] " ++ a ++ " - " ++ link]
+
+displayFoot : Footnote -> Html Msg
+displayFoot (Foot sym txt) =
+  div [] [text <| sym ++ " " ++ txt]
 
 displaySection : Section -> Html Msg
 displaySection section =

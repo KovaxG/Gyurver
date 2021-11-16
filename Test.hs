@@ -5,10 +5,11 @@ import           Data.Function ((&))
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Endpoints (Endpoint(..), Operation(..), RightsOperation(..), parse)
-import           Types.Blog (Blog(..), Metadata(..), Reference(..), Section(..), parseGyurblog)
+import           Types.Blog (Blog(..), Metadata(..), Reference(..), Section(..), Footnote(..), parseGyurblog, getFootnotes)
 import           Types.Date (Date(..))
 import           Types.Language (Language(..))
 import qualified Utils
+import SimplMonad (getFamEnvs)
 
 data Assertion a = Equality a a deriving (Show)
 
@@ -51,7 +52,8 @@ redText = "\ESC[01;31m"
 
 endpointTests :: [Test Endpoint]
 endpointTests =
-  [ test "landing page" $ parse "GET /" === GetLandingPage
+  [ test "ping" $ parse "GET /api/ping" === Ping
+  , test "landing page" $ parse "GET /" === GetLandingPage
   , test "CV" $ parse "GET /cv" === GetCV
   , test "favicon" $ parse "GET /favicon.ico" === GetFavicon
 
@@ -271,6 +273,25 @@ gyurblogParseTests =
 
   , test "Having extra references" $
     parseGyurblog 0 extraRef === Left "Not referenced in the text: [2]"
+
+  , test "Simple footnote" $
+    let
+      simpleFoot :: Text
+      simpleFoot = Text.unlines
+        [ "title: Title"
+        , "date: 2021-08-07"
+        , "Ok, so look. This is a valid footnote(footnote Hi, I'm a footnote.)."
+        ]
+    in
+      parseGyurblog 0 simpleFoot === Right (
+        defaultBlog
+          { title = "Title"
+          , date = Date 2021 8 7
+          , sections = [Paragraph "Ok, so look. This is a valid footnote*."]
+          , footnotes = [Footnote "*" "Hi, I'm a footnote."]
+          , metadata = defaultMetadata { languages = [EN] }
+          }
+      )
   ]
 
 blankFile :: Text
@@ -398,6 +419,7 @@ defaultBlog = Blog
   , date = Date 2020 1 1
   , intro  = ""
   , sections  = []
+  , footnotes = []
   , references = []
   , metadata = defaultMetadata
   }
@@ -405,21 +427,21 @@ defaultBlog = Blog
 defaultMetadata :: Metadata
 defaultMetadata = Metadata { languages = [], topics = [] }
 
-bracketedStringTest :: [Test [String]]
-bracketedStringTest =
-  [ test "no parens" $ Utils.bracketedText "this text has no brackets" === []
-  , test "no fill parens" $ Utils.bracketedText "this text has a terminating bracket ( lol" === []
-  , test "simple example" $ Utils.bracketedText "this text (example) has a thingy" === ["example"]
-  , test "edge case: empty parans" $ Utils.bracketedText "int main(): Unit " === []
-  , test "edge case: invalid parans" $ Utils.bracketedText " :) Earth (: " === []
-  , test "multi parens" $ Utils.bracketedText "this (yea) is a (lol) example (ok)" === ["yea", "lol", "ok"]
+getFootnotesTests :: [Test ([Section], [Footnote])]
+getFootnotesTests =
+  [ test "null" $ getFootnotes [] === ([], [])
+  , test "null footnote" $ getFootnotes [Paragraph ""] === ([Paragraph ""], [])
+  , test "simple no footnote" $ getFootnotes [Paragraph "This is an example"] === ([Paragraph "This is an example"], [])
+  , test "no footnote ill formed" $ getFootnotes [Paragraph "1) Thingy"] === ([Paragraph "1) Thingy"], [])
+  , test "no footnote well formed" $ getFootnotes [Paragraph "This (is) crazy"] === ([Paragraph "This (is) crazy"], [])
+  , test "footnote well formed" $ getFootnotes [Paragraph "This (footnote is) crazy"] === ([Paragraph "This * crazy"], [Footnote "*" "is"])
   ]
 
 main :: IO ()
 main = do
   putStrLn $ runTests "Endpoint tests" endpointTests
   putStrLn $ runTests "Gyurblog tests" gyurblogParseTests
-  putStrLn $ runTests "Bracketed tests" bracketedStringTest
+  putStrLn $ runTests "getFootnotesTests tests" getFootnotesTests
 
 zipMap :: (a -> b) -> [a] -> [(a, b)]
 zipMap f = fmap (\a -> (a, f a))
