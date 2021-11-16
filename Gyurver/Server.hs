@@ -2,7 +2,8 @@
 
 module Gyurver.Server (run, IP(..), Port(..)) where
 
-import Network.Simple.TCP (serve, HostPreference(..), send, recv, Socket, SockAddr)
+import qualified Control.Exception as Exception
+import           Network.Simple.TCP (serve, HostPreference(..), send, recv, Socket, SockAddr)
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Data.Monoid ((<>))
@@ -13,6 +14,8 @@ import Gyurver.Response (make, toByteString, Response, Status(BadRequest))
 import Gyurver.Logger (Logger)
 import qualified Gyurver.Logger as Log
 import Utils (maybeToEither)
+import Control.Exception (SomeException(SomeException))
+import qualified Control.Concurrent as Concurrent
 
 type RequestProcessor = Request -> IO Response
 newtype IP = IP String deriving (Show, Eq)
@@ -20,7 +23,20 @@ newtype Port = Port Int deriving (Show, Eq)
 
 run:: Logger -> IP -> Port -> RequestProcessor -> IO ()
 run log (IP address) (Port port) processRequest =
-  serve (Host address) (show port) (processConnection log processRequest)
+  Exception.catch
+    (serve (Host address) (show port) (processConnection log processRequest))
+    handleException
+  where
+    handleException :: SomeException -> IO ()
+    handleException e = do
+      Log.warn log $ "Failed to start server with error: " <> Text.pack (show e) <> ", restarting in " <> Text.pack (show waitSeconds) <> " seconds..."
+      Concurrent.threadDelay (secondsToMicro waitSeconds)
+      run log (IP address) (Port port) processRequest
+
+    secondsToMicro s = s * 1000000
+
+    waitSeconds = 30
+
 
 processConnection :: Logger -> RequestProcessor -> (Socket, SockAddr) -> IO ()
 processConnection log processRequest (connectionSocket, _) = do
