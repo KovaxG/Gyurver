@@ -27,14 +27,14 @@ encode :: WaterLog -> Json
 encode wl = JsonObject
   [ ("source", JsonString $ wlSource wl)
   , ("target", JsonString $ wlTarget wl)
-  , ("time", DateTime.toJson $ wlDateTime wl)
+  , ("time", DateTime.jsonEncoder $ wlDateTime wl)
   ]
 
 decode :: Decoder WaterLog
 decode =
   WaterLog <$> Decoder.field "source" Decoder.string
            <*> Decoder.field "target" Decoder.string
-           <*> Decoder.field "time" DateTime.decoder
+           <*> Decoder.field "time" DateTime.jsonDecoder
 
 instance DBFormat WaterLog where
   encode = Json.toString . Events.Cokk2021.WaterLog.encode

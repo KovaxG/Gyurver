@@ -26,7 +26,7 @@ import qualified Events.Cokk2021.Item as Cokk2021Item
 import qualified Events.Cokk2021.WaterLog as Cokk2021WaterLog
 
 import           Gyurver.Html (h1, text, title, Document(..))
-import           Gyurver.Request (Request(..))
+import           Gyurver.Request (Request(..), RequestType)
 import qualified Gyurver.Response as Response
 import           Gyurver.Response (Response, Status(..))
 import qualified Gyurver.Server as Server
@@ -48,6 +48,8 @@ import qualified Types.Password as Password
 import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
 import qualified Types.Rights as Rights
+import           Types.PageHit (PageHit)
+import qualified Types.PageHit as PageHit
 import qualified Endpoints as Endpoint
 import           Utils (($>), (</>))
 import qualified Utils
@@ -73,6 +75,8 @@ main = do
   cokk2021WaterDB <- DB.getHandle "cokk2021Water"
   cokk2021ItemDB <- DB.getHandle "cokk2021Item"
 
+  pageHitDB <- DB.getHandle "pageHit"
+
   settings <- readSettings log
   Logger.info log (Text.pack $ show settings)
   Server.run log
@@ -88,6 +92,7 @@ main = do
                      movieDiffDB
                      blogDB
                      rightsDB
+                     pageHitDB
                      settings
             )
 
@@ -124,6 +129,7 @@ process :: Response
         -> DBHandle Movie.MovieDiff
         -> DBHandle Blog.Index
         -> DBHandle Rights.Row
+        -> DBHandle PageHit
         -> Settings
         -> Request
         -> IO Response
@@ -137,6 +143,7 @@ process mainFile
         movieDiffDB
         blogDB
         rightsDB
+        pageHitDB
         settings
         Request{requestType, path, content, attributes} = do
   let
@@ -151,6 +158,8 @@ process mainFile
             Response.make OK successMsg
           else
             Response.make BadRequest ("I need the name of the film in the body!" :: Text)
+
+  savePageHit pageHitDB requestType path
 
   case Endpoint.parse $ Text.unwords [Text.pack $ show requestType, path] of
     Endpoint.Ping ->
@@ -429,3 +438,9 @@ sendFile path = do
     (Response.make InternalServerError ("Could not read file!" :: Text))
     (Response.make OK)
     contentOpt
+
+savePageHit :: DBHandle PageHit -> RequestType -> Text -> IO ()
+savePageHit db requestType path = do
+  now <- DateTime.getCurrentDateTime
+  let pageHit = PageHit.make now (Text.pack $ show requestType) path
+  DB.insert db pageHit
