@@ -12,7 +12,7 @@ type alias NewVideoRequest =
   , comment : String
   , watchDate : Maybe Date
   , tags : List String
-  , password : String
+  , secret : String
   }
 
 encode : NewVideoRequest -> Value
@@ -25,5 +25,5 @@ encode var =
     , ("comment", Encode.string var.comment)
     , ("watchDate", Maybe.withDefault Encode.null <| Maybe.map Date.encode var.watchDate)
     , ("tags", Encode.list Encode.string var.tags)
-    , ("password", Encode.string var.password)
+    , ("secret", Encode.string var.secret)
     ]

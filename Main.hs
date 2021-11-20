@@ -275,13 +275,9 @@ process mainFile
     Endpoint.PostVideo -> do
       Logger.info log "[API] Adding new video to list."
       Response.processJsonBody content VideoAdd.decoder $ \request ->
-        case VideoAdd.toVideo settings request of
-          Right videoWithoutIndex -> do
-            DB.insertWithIndex vidsDB videoWithoutIndex Video.nr
-            Response.success
-          Left error -> do
-            Logger.info log error
-            Response.make Unauthorized error
+        Rights.allowed rightsDB (Just $ VideoAdd.secret request) Rights.Video
+          (DB.insertWithIndex vidsDB (VideoAdd.toVideo request) Video.nr >> Response.success)
+          (Response.make Unauthorized ("Who even are you?" :: Text))
 
     Endpoint.PostVideoJSON reqNr -> do
       Logger.info log $ "[API] Modified video with nr: " <> Text.pack (show reqNr)

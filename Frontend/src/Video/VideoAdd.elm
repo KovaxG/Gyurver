@@ -40,7 +40,7 @@ type alias Model =
   , watchDate : Maybe String
   , tags : String
   , status : Status
-  , password : String
+  , secret : String
   , currentDate : String
   }
 
@@ -54,7 +54,7 @@ toRequest model =
   |> Maybe.andMap (Just model.comment)
   |> Maybe.andMap (Just <| Maybe.andThen (Result.toMaybe << Date.fromIsoString) model.watchDate)
   |> Maybe.andMap (Just <| List.map String.trim <| String.split "," model.tags)
-  |> Maybe.andMap (Just model.password)
+  |> Maybe.andMap (Just model.secret)
 
 nonEmpty : String -> Maybe String
 nonEmpty s = if String.isEmpty s then Nothing else Just s
@@ -73,7 +73,7 @@ type Msg
   | WatchDateShow Bool
   | WatchDateChanged String
   | TagsChanged String
-  | PasswordChanged String
+  | SecretChanged String
   | SaveData
   | Success
   | Response String
@@ -90,7 +90,7 @@ init =
     , watchDate = Just <| Date.toIsoString <| Date.fromCalendarDate 2020 May 13
     , tags = ""
     , status = Editing
-    , password = ""
+    , secret = ""
     , currentDate = Date.toIsoString <| Date.fromCalendarDate 2021 Aug 24
     }
   , Task.perform (GotCurrentDate << Date.toIsoString) Date.today
@@ -107,7 +107,7 @@ update msg model = case msg of
   WatchDateShow b -> ({ model | watchDate = if b then Just model.currentDate else Nothing }, Cmd.none)
   WatchDateChanged watchDate -> ({ model | watchDate = Just watchDate }, Cmd.none)
   TagsChanged tags -> ({ model | tags = tags }, Cmd.none)
-  PasswordChanged pass -> ({ model | password = pass }, Cmd.none)
+  SecretChanged pass -> ({ model | secret = pass }, Cmd.none)
   Success -> ({ model | status = Received "OK" }, Nav.load <| Endpoints.show VideosPage)
   Response message -> ({ model | status = Received message }, Cmd.none)
   SaveData ->
@@ -237,8 +237,8 @@ commentInput model = Textarea.textarea
 
 passwordInput : Model -> Html Msg
 passwordInput model = Input.password
-  [ Input.onInput PasswordChanged
-  , Input.value model.password
+  [ Input.onInput SecretChanged
+  , Input.value model.secret
   ]
 
 flip : (a -> b -> c) -> b -> a -> c

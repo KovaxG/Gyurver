@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Types.VideoAdd (Request, toVideo, decoder) where
+module Types.VideoAdd (Request(..), toVideo, decoder) where
 
 import           Component.Decoder (Decoder)
 import qualified Component.Decoder as Decoder
@@ -14,6 +14,7 @@ import qualified Types.Video as Video
 import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
 import           Types.Password (Password(..))
+import qualified Types.Rights as Rights
 
 data Request =  Request
   { link :: Text
@@ -23,14 +24,12 @@ data Request =  Request
   , comment :: Text
   , watchDate :: Maybe Date
   , tags :: [Text]
-  , password :: Password
+  , secret :: Text
   } deriving (Show)
 
-toVideo :: Settings -> Request -> Either Text (Int -> Video)
-toVideo settings request =
-  if (settings & Settings.password)  == (request & password)
-  then Right $ \vid ->
-    Video.Video vid
+toVideo :: Request -> Int -> Video
+toVideo request vid =
+  Video.Video vid
     (request & link)
     (request & title)
     (request & channel)
@@ -38,7 +37,6 @@ toVideo settings request =
     (request & comment)
     (request & watchDate)
     (request & tags)
-  else Left "Incorrect Password!"
 
 decoder :: Decoder Request
 decoder = Request
@@ -49,4 +47,4 @@ decoder = Request
   <*> Decoder.field "comment" Decoder.string
   <*> Decoder.field "watchDate" (Decoder.maybe Date.decoder)
   <*> Decoder.field "tags" (Decoder.list Decoder.string)
-  <*> Decoder.field "password" (Password <$> Decoder.string)
+  <*> Decoder.field "secret" Decoder.string
