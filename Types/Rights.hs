@@ -47,7 +47,7 @@ readSecret txt =
       else Nothing
     _ -> Nothing
 
-data Right = Movie | Video deriving (Eq, Enum, Show, Read, Ord)
+data Right = Movie | VideoAdd | VideoMod deriving (Eq, Enum, Show, Read, Ord)
 
 showRight :: Right -> Text
 showRight = Text.pack . show
