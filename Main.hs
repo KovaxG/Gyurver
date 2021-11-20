@@ -280,11 +280,15 @@ process mainFile
           (Response.make Unauthorized ("Who even are you?" :: Text))
 
     Endpoint.PutVideoJSON reqNr -> do
-      Logger.info log $ "[API] Modified video with nr: " <> Text.pack (show reqNr)
+      let videoNr = Text.pack (show reqNr)
+      Logger.info log $ "[API] Modified video with nr: " <> videoNr
       Response.processJsonBody content VideoEdit.decoder $ \video ->
         Rights.allowed rightsDB (Just $ VideoEdit.secret video) Rights.VideoMod
           (DB.repsertWithIndex vidsDB (VideoEdit.toVideo video reqNr) Video.nr >> Response.success)
-          (Response.make Unauthorized ("Who even are you?" :: Text))
+          (do
+            Logger.warn log $ "Failed to edit video nr " <> videoNr <> " with secret: \"" <> VideoEdit.secret video <> "\"!"
+            Response.make Unauthorized ("Who even are you?" :: Text)
+          )
 
     Endpoint.PostCokk2021Login ->
       Cokk2021Handler.login content cokk2021UserDB cokk2021WaterDB log
@@ -311,15 +315,15 @@ process mainFile
       Cokk2021Handler.equipItem content cokk2021UserDB cokk2021ItemDB log settings
 
     Endpoint.DeleteVideoJSON reqNr -> do
-      Logger.info log $ "[API] Delete video nr: " <> Text.pack (show reqNr)
-      Response.processJsonBody content Password.decoder $ \pwd@(Password pwdt) ->
-        if pwd == (settings & Settings.password)
-        then do
-          DB.delete vidsDB (\v -> Video.nr v == reqNr)
-          Response.success
-        else do
-          Logger.info log $ "Bad password: " <> pwdt
-          Response.make Unauthorized ("Bad password!" :: Text)
+      let videoNr = Text.pack (show reqNr)
+      Logger.info log $ "[API] Delete video nr: " <> videoNr
+      let secret = content
+      Rights.allowed rightsDB (Just secret) Rights.VideoMod
+        (DB.delete vidsDB (\v -> Video.nr v == reqNr) >> Response.success)
+        (do
+          Logger.warn log $ "Failed to delete video nr " <> videoNr <> " with secret: \"" <> secret <> "\"!"
+          Response.make Unauthorized ("Don't." :: Text)
+        )
 
     Endpoint.OptionsVideo -> do
       Logger.info log "Someone asked if you can post to /api/videos/new, sure."

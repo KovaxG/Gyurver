@@ -52,13 +52,10 @@ type alias VideoEditRequest =
   , secret : String
   }
 
-type alias VideoDeleteRequest = { password : String }
+type alias VideoDeleteRequest = { secret : String }
 
 itemToVideoDeleteRequest : VideoItem -> VideoDeleteRequest
-itemToVideoDeleteRequest item = { password = item.secret }
-
-encodeDeleteRequest : VideoDeleteRequest -> Value
-encodeDeleteRequest req = Encode.object [("password", Encode.string req.password)]
+itemToVideoDeleteRequest item = { secret = item.secret }
 
 encode : VideoEditRequest -> Value
 encode req =
@@ -244,7 +241,7 @@ deleteVideo model nr =
         { method = "DELETE"
         , headers = []
         , url = Settings.path ++ Endpoints.videoJson nr
-        , body = Http.jsonBody (encodeDeleteRequest request)
+        , body = Http.stringBody "application/text" request.secret
         , expect = Http.expectString toMessage
         , timeout = Nothing
         , tracker = Nothing
