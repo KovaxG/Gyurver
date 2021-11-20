@@ -279,16 +279,12 @@ process mainFile
           (DB.insertWithIndex vidsDB (VideoAdd.toVideo request) Video.nr >> Response.success)
           (Response.make Unauthorized ("Who even are you?" :: Text))
 
-    Endpoint.PostVideoJSON reqNr -> do
+    Endpoint.PutVideoJSON reqNr -> do
       Logger.info log $ "[API] Modified video with nr: " <> Text.pack (show reqNr)
       Response.processJsonBody content VideoEdit.decoder $ \video ->
-        case VideoEdit.toVideo settings video of
-          Right videoWithoutIndex -> do
-            DB.repsertWithIndex vidsDB (videoWithoutIndex reqNr) Video.nr
-            Response.success
-          Left error -> do
-            Logger.info log error
-            Response.make Unauthorized error
+        Rights.allowed rightsDB (Just $ VideoEdit.secret video) Rights.Video
+          (DB.repsertWithIndex vidsDB (VideoEdit.toVideo video reqNr) Video.nr >> Response.success)
+          (Response.make Unauthorized ("Who even are you?" :: Text))
 
     Endpoint.PostCokk2021Login ->
       Cokk2021Handler.login content cokk2021UserDB cokk2021WaterDB log

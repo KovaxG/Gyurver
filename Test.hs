@@ -107,9 +107,9 @@ endpointTests =
   , test "alpha videos API GET" $ parse "GET /api/video/asdf" === Other "GET /api/video/asdf"
   , test "missing videos API GET" $ parse "GET /api/video/" === Other "GET /api/video/"
 
-  , test "correct video API POST" $ parse "POST /api/video/42" === PostVideoJSON 42
-  , test "alpha videos API POST" $ parse "POST /api/video/asdf" === Other "POST /api/video/asdf"
-  , test "missing videos API POST" $ parse "POST /api/video/" === Other "POST /api/video/"
+  , test "correct video API POST" $ parse "PUT /api/video/42" === PutVideoJSON 42
+  , test "alpha videos API POST" $ parse "PUT /api/video/asdf" === Other "PUT /api/video/asdf"
+  , test "missing videos API POST" $ parse "PUT /api/video/" === Other "PUT /api/video/"
 
   , test "correct video OPTIONS" $ parse "OPTIONS /api/video/42" === OptionsVideoJSON 42
   , test "alpha videos OPTIONS" $ parse "OPTIONS /api/video/asdf" === Other "OPTIONS /api/video/asdf"

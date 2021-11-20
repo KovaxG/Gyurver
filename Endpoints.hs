@@ -69,7 +69,7 @@ data Endpoint
   | GetVideosAddPage
   | GetResource Text
   | PostVideo
-  | PostVideoJSON Int
+  | PutVideoJSON Int
   | DeleteVideoJSON Int
   | OptionsVideo
   | OptionsVideoJSON Int
@@ -120,7 +120,7 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "GET /api/videouri" $> GetVideosJSON
 
         , Parsec.string "GET /api/video/" >> GetVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
-        , Parsec.string "POST /api/video/" >> PostVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
+        , Parsec.string "PUT /api/video/" >> PutVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
         , Parsec.string "OPTIONS /api/video/" >> OptionsVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
         , Parsec.string "DELETE /api/video/" >> DeleteVideoJSON <$> (read <$> Parsec.many1 Parsec.digit)
 

@@ -38,7 +38,7 @@ type alias VideoItem =
   , tags : String
   , comment : String
   , error : String
-  , password : String
+  , secret : String
   }
 
 type alias VideoEditRequest =
@@ -49,13 +49,13 @@ type alias VideoEditRequest =
   , comment : String
   , watchDate : Maybe Date
   , tags : List String
-  , password : String
+  , secret : String
   }
 
 type alias VideoDeleteRequest = { password : String }
 
 itemToVideoDeleteRequest : VideoItem -> VideoDeleteRequest
-itemToVideoDeleteRequest item = { password = item.password }
+itemToVideoDeleteRequest item = { password = item.secret }
 
 encodeDeleteRequest : VideoDeleteRequest -> Value
 encodeDeleteRequest req = Encode.object [("password", Encode.string req.password)]
@@ -70,7 +70,7 @@ encode req =
     , ("comment", Encode.string req.comment)
     , ("watchDate", Maybe.withDefault Encode.null <| Maybe.map Date.encode req.watchDate)
     , ("tags", Encode.list Encode.string req.tags)
-    , ("password", Encode.string req.password)
+    , ("secret", Encode.string req.secret)
     ]
 
 itemToVideoEditRequest : VideoItem -> VideoEditRequest
@@ -82,7 +82,7 @@ itemToVideoEditRequest item =
   , watchDate = ElmDate.fromIsoString item.watchDate |> Result.map Just |> Result.withDefault item.video.watchDate
   , tags = List.map String.trim <| String.split "," item.tags
   , comment = item.comment
-  , password = item.password
+  , secret = item.secret
   }
 
 videoEditRequestToVideo : Int -> VideoEditRequest -> Video
@@ -108,7 +108,7 @@ newVideoItem v =
   , watchDate = Maybe.withDefault "" <| Maybe.map ElmDate.toIsoString v.watchDate
   , tags = String.join ", "  v.tags
   , error = ""
-  , password = ""
+  , secret = ""
   }
 
 type alias Model =
@@ -127,7 +127,7 @@ type VideoEdit
   | DateChanged String
   | WatchDateChanged String
   | TagsChanged String
-  | PasswordCanged String
+  | SecretCanged String
 
 type Msg
   = SetVideos (List Video)
@@ -175,7 +175,7 @@ update msg model = case msg of
   Delete nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> { item | status = Deleting }) model.videos }, Cmd.none)
   CancelDelete nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> newVideoItem item.video) model.videos }, Cmd.none)
 
-  SaveChanges nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | status = EditWaiting}) model.videos }, postVideo model nr)
+  SaveChanges nr -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | status = EditWaiting}) model.videos }, putVideo model nr)
   SaveChangesSuccess video -> ({ model | videos = Util.mapIf (\item -> item.video.nr == video.nr) (\_ -> newVideoItem video) model.videos }, Cmd.none)
   SaveChangesFailed nr str -> ({ model | videos = Util.mapIf (\item -> item.video.nr == nr) (\item -> {item | error = str, status = Editing}) model.videos }, Cmd.none)
 
@@ -186,7 +186,7 @@ update msg model = case msg of
   VideoDelete nr change ->
     let updateVideo =
           case change of
-            PasswordChanged str -> (\item -> {item | password = str})
+            PasswordChanged str -> (\item -> {item | secret = str})
     in ({model | videos = Util.mapIf (\item -> item.video.nr == nr) updateVideo model.videos}, Cmd.none)
 
   VideoEdit nr change ->
@@ -198,11 +198,11 @@ update msg model = case msg of
             DateChanged str -> (\item -> {item | date = str})
             WatchDateChanged str -> (\item -> {item | watchDate = str})
             TagsChanged str -> (\item -> {item | tags = str})
-            PasswordCanged str -> (\item -> {item | password = str})
+            SecretCanged str -> (\item -> {item | secret = str})
     in ({model | videos = Util.mapIf (\item -> item.video.nr == nr) updateVideo model.videos}, Cmd.none)
 
-postVideo : Model -> Int -> Cmd Msg
-postVideo model nr =
+putVideo : Model -> Int -> Cmd Msg
+putVideo model nr =
   let toMessage : Video -> Result Error String -> Msg
       toMessage video result =
         result
@@ -215,10 +215,14 @@ postVideo model nr =
     |> List.head
     |> Maybe.map itemToVideoEditRequest
     |> Maybe.map (\request ->
-      Http.post
-        { url = Settings.path ++ Endpoints.videoJson nr
+      Http.request
+        { method = "PUT"
+        , headers = []
+        , url = Settings.path ++ Endpoints.videoJson nr
         , body = Http.jsonBody (encode request)
         , expect = Http.expectString (toMessage <| videoEditRequestToVideo nr request)
+        , timeout = Nothing
+        , tracker = Nothing
         })
     |> Maybe.withDefault Cmd.none
 
@@ -333,7 +337,7 @@ deleteVideoToHtml model item =
       , text item.video.comment
       , br [] []
       , strong [] [text "Password "]
-      , Input.password [Input.onInput (VideoDelete item.video.nr << PasswordChanged), Input.value item.password]
+      , Input.password [Input.onInput (VideoDelete item.video.nr << PasswordChanged), Input.value item.secret]
       , div [] [text item.error]
       , Button.button [Button.onClick (CancelDelete item.video.nr)] [text "🔙"]
       , Button.button [Button.onClick (PerformDeletion item.video.nr)] [text "❌"]
@@ -371,8 +375,8 @@ editableVideoToHtml _ item =
     [ Grid.col []
       [ strong [] [text "Comment "]
       , Textarea.textarea [Textarea.onInput (VideoEdit item.video.nr << CommentChanged), Textarea.value item.comment]
-      , strong [] [text "Password "]
-      , Input.password [Input.onInput (VideoEdit item.video.nr << PasswordCanged), Input.value item.password]
+      , strong [] [text "Secret "]
+      , Input.password [Input.onInput (VideoEdit item.video.nr << SecretCanged), Input.value item.secret]
       , div [] [text item.error]
       , Button.button [Button.onClick (CancelEdit item.video.nr)] [text "🔙"]
       , if item.status == EditWaiting
