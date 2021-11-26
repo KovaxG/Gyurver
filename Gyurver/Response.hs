@@ -10,6 +10,7 @@ module Gyurver.Response
   , addHeaders
   , success
   , processJsonBody
+  , fromCode
   ) where
 
 import           Data.Function ((&))
@@ -33,6 +34,7 @@ data Status
   | InternalServerError
   | PaymentRequired
   | Forbidden
+  deriving (Eq)
 
 instance Show Status where
   show status =
@@ -44,6 +46,17 @@ instance Show Status where
       InternalServerError -> "500 Internal Server Error"
       PaymentRequired -> "402 Payment Required"
       Forbidden -> "403 Forbidden"
+
+fromCode :: Int -> Maybe Status
+fromCode n = case n of
+  200 -> Just OK
+  400 -> Just BadRequest
+  401 -> Just Unauthorized
+  404 -> Just NotFound
+  500 -> Just InternalServerError
+  402 -> Just PaymentRequired
+  403 -> Just Forbidden
+  _ -> Nothing
 
 data Response = Response
   { status  :: Status
@@ -85,6 +98,7 @@ make status thing = do
 success :: IO Response
 success = make OK ("OK Boomer" :: Text)
 
+-- TODO I should say implicitly that if something supports toJson it is also a CanSend
 class CanSend a where
   toBytes :: a -> Response
 

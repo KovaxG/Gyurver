@@ -3,6 +3,7 @@ module Endpoints
   , Resource(..)
   , Operation(..)
   , RightsOperation(..)
+  , TaskOperation (..)
   , parse
   , parseResource
   ) where
@@ -28,6 +29,13 @@ data RightsOperation
   | AddSecret
   | UpdateSecret
   | DeleteSecret
+  deriving (Show, Eq)
+
+data TaskOperation
+  = GetTasks
+  | PostTask
+  | PutTask Text
+  | DeleteTask Text
   deriving (Show, Eq)
 
 parseResource :: Text -> Maybe Resource
@@ -82,6 +90,9 @@ data Endpoint
   | Other Text
   | Rights RightsOperation
   | RightsPage
+  | Tasks TaskOperation
+  | TasksDelay Int
+  | TasksCode Int
   deriving (Eq, Show)
 
 
@@ -167,6 +178,14 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "DELETE /api/rights" $> Rights DeleteSecret
 
         , Parsec.string "GET /jogok" $> RightsPage
+
+        , Parsec.string "GET /api/tasks" $> Tasks GetTasks
+        , Parsec.string "POST /api/tasks" $> Tasks PostTask
+        , Parsec.string "PUT /api/tasks/" >> Tasks . PutTask <$> (Text.pack <$> Parsec.many1 Parsec.anyChar)
+        , Parsec.string "DELETE /api/tasks/" >> Tasks . DeleteTask <$> (Text.pack <$> Parsec.many1 Parsec.anyChar)
+
+        , Parsec.string "GET /api/behaviour/tasks/delay/" >> TasksDelay <$> (read <$> Parsec.many1 Parsec.digit)
+        , Parsec.string "GET /api/behaviour/tasks/code/" >> TasksCode <$> (read <$> Parsec.many1 Parsec.digit)
 
         , Parsec.string "POST /api/suggestionbox" $> PostSuggestion
 

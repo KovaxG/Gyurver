@@ -18,6 +18,7 @@ import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 import qualified Data.Map as Map
 import           Data.Monoid ((<>))
+import           Data.IORef
 
 import qualified Events.Cokk2020 as Cokk2020
 import qualified Events.Cokk2021.Handlers as Cokk2021Handler
@@ -49,9 +50,12 @@ import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
 import qualified Types.Rights as Rights
 import           Types.PageHit (PageHit)
+import qualified Types.Task as Tasks
 import qualified Endpoints as Endpoint
 import           Utils (($>), (</>))
 import qualified Utils
+import           Text.Parsec (Reply(Ok))
+import           Control.Concurrent
 
 log :: Logger
 log = File
@@ -69,6 +73,10 @@ main = do
   suggestionBoxDB <- DB.getHandle "suggestionBox"
   blogDB <- DB.getHandle "blogLookup"
   rightsDB <- DB.getHandle "rights"
+
+  tasksDB <- DB.getHandle "tasks"
+  tasksDelay <- newIORef 0
+  tasksCode <- newIORef OK
 
   cokk2021UserDB <- DB.getHandle "cokk2021User"
   cokk2021WaterDB <- DB.getHandle "cokk2021Water"
@@ -92,6 +100,9 @@ main = do
                      movieDiffDB
                      blogDB
                      rightsDB
+                     tasksDB
+                     tasksDelay
+                     tasksCode
                      pageHitDB
                      settings
             )
@@ -129,6 +140,9 @@ process :: Response
         -> DBHandle Movie.MovieDiff
         -> DBHandle Blog.Index
         -> DBHandle Rights.Row
+        -> DBHandle Tasks.Task
+        -> IORef Int
+        -> IORef Response.Status
         -> DBHandle PageHit
         -> Settings
         -> Request
@@ -143,6 +157,9 @@ process mainFile
         movieDiffDB
         blogDB
         rightsDB
+        tasksDB
+        tasksDelay
+        tasksCode
         pageHitDB
         settings
         Request{requestType, path, content, attributes} = do
@@ -395,6 +412,52 @@ process mainFile
               Rights.DeletedSuccessfuly -> Response.make OK ()
               Rights.SecretNotFound -> Response.make BadRequest ("Secret does not exist!" :: Text)
               Rights.InvalidSecret -> Response.make BadRequest ("Invalid Secret!" :: Text)
+
+    Endpoint.Tasks operation -> do
+      delaySecs <- readIORef tasksDelay
+      threadDelay (delaySecs * 1000000)
+
+      returnCode <- readIORef tasksCode
+
+      if returnCode /= OK
+      then Response.make returnCode ()
+      else case operation of
+        Endpoint.GetTasks -> do
+          tasks <- DB.everythingList tasksDB
+          Response.make OK (Tasks.toJson <$> tasks)
+
+        Endpoint.PostTask ->
+          Response.processJsonBody content Tasks.fromJson $ \task -> do
+            DB.insert tasksDB task
+            Response.make OK ()
+
+        Endpoint.PutTask tid ->
+          Response.processJsonBody content Tasks.fromJson $ \task -> do
+            status <- DB.modifyData tasksDB (\tasks ->
+                if Tasks.tid task `elem` fmap Tasks.tid tasks
+                then (Utils.mapIf (\t -> tid == Tasks.tid t) (const task) tasks, OK)
+                else (tasks, NotFound)
+              )
+            Response.make status ()
+
+        Endpoint.DeleteTask tid -> do
+          DB.delete tasksDB (\t -> Tasks.tid t == tid)
+          Response.make OK ()
+
+    Endpoint.TasksCode code -> do
+      let statusMaybe = Response.fromCode code
+      maybe (Response.make BadRequest ("I don't know that code :(" :: Text)) (\status -> do
+        writeIORef tasksCode status
+        let response =
+              if code == 200
+              then "Ok, I will return tasks normally from now on."
+              else ("Ok, I will always return " <> Text.pack (show code) <> " from now on." :: Text)
+        Response.make OK response
+        ) statusMaybe
+
+    Endpoint.TasksDelay delay -> do
+      writeIORef tasksDelay delay
+      Response.make OK ("Ok, I will wait for " <> Text.pack (show delay) <> " seconds before answering." :: Text)
 
     Endpoint.Other req -> do
       Logger.warn log $ "Weird request: " <> req

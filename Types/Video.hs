@@ -65,4 +65,4 @@ videoDecoder =
 
 instance DBFormat Video where
   encode = Json.toString . videoToJson
-  decode =  eitherToMaybe . (=<<) (Decoder.run videoDecoder) . Json.parseJson
+  decode = eitherToMaybe . (=<<) (Decoder.run videoDecoder) . Json.parseJson
