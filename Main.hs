@@ -49,7 +49,6 @@ import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
 import qualified Types.Rights as Rights
 import           Types.PageHit (PageHit)
-import qualified Types.PageHit as PageHit
 import qualified Endpoints as Endpoint
 import           Utils (($>), (</>))
 import qualified Utils
@@ -80,6 +79,7 @@ main = do
   settings <- readSettings log
   Logger.info log (Text.pack $ show settings)
   Server.run log
+            pageHitDB
             (settings & Settings.hostAddress)
             (settings & Settings.port)
             (process fileResponse
@@ -158,8 +158,6 @@ process mainFile
             Response.make OK successMsg
           else
             Response.make BadRequest ("I need the name of the film in the body!" :: Text)
-
-  savePageHit pageHitDB requestType path
 
   case Endpoint.parse $ Text.unwords [Text.pack $ show requestType, path] of
     Endpoint.Ping ->
@@ -438,9 +436,3 @@ sendFile path = do
     (Response.make InternalServerError ("Could not read file!" :: Text))
     (Response.make OK)
     contentOpt
-
-savePageHit :: DBHandle PageHit -> RequestType -> Text -> IO ()
-savePageHit db requestType path = do
-  now <- DateTime.getCurrentDateTime
-  let pageHit = PageHit.make now (Text.pack $ show requestType) path
-  DB.insert db pageHit
