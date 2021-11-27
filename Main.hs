@@ -357,6 +357,10 @@ process mainFile
       Logger.info log $ "Someone asked if you can post to /api/video/" <> Text.pack (show reqNr) <> ", sure."
       allowHeaders
 
+    Endpoint.TaskOptions _ -> allowHeaders
+
+    Endpoint.TasksOptions -> allowHeaders
+
     Endpoint.GetFilmsPage -> do
       Logger.info log "Requested Films page"
       return mainFile

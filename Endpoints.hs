@@ -93,6 +93,8 @@ data Endpoint
   | Tasks TaskOperation
   | TasksDelay Int
   | TasksCode Int
+  | TasksOptions
+  | TaskOptions Text
   deriving (Eq, Show)
 
 
@@ -183,6 +185,8 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "POST /api/tasks" $> Tasks PostTask
         , Parsec.string "PUT /api/tasks/" >> Tasks . PutTask <$> (Text.pack <$> Parsec.many1 Parsec.anyChar)
         , Parsec.string "DELETE /api/tasks/" >> Tasks . DeleteTask <$> (Text.pack <$> Parsec.many1 Parsec.anyChar)
+        , Parsec.string "OPTIONS /api/tasks" $> TasksOptions
+        , Parsec.string "OPTIONS /api/tasks/" >> TaskOptions <$> (Text.pack <$> Parsec.many1 Parsec.anyChar)
 
         , Parsec.string "GET /api/behaviour/tasks/delay/" >> TasksDelay <$> (read <$> Parsec.many1 Parsec.digit)
         , Parsec.string "GET /api/behaviour/tasks/code/" >> TasksCode <$> (read <$> Parsec.many1 Parsec.digit)
