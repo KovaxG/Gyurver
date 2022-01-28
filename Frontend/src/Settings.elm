@@ -22,4 +22,4 @@ path =
 
 
 version : String
-version = "0.8.3"
+version = "0.8.4"

@@ -62,9 +62,6 @@ log = File
 
 main :: IO ()
 main = do
-  Logger.info log "Caching main file..."
-  fileResponse <- sendFile mainPath
-
   Logger.info log "Gyurver is starting..."
 
   tojasDB <- DB.getHandle "cokkolo2020"
@@ -90,8 +87,7 @@ main = do
             pageHitDB
             (settings & Settings.hostAddress)
             (settings & Settings.port)
-            (process fileResponse
-                     tojasDB
+            (process tojasDB
                      vidsDB
                      cokk2021UserDB
                      cokk2021WaterDB
@@ -130,8 +126,7 @@ readSettings log =
       Logger.info log $ "Loaded settings, ip is " <> Text.pack (show (Settings.hostAddress settings))
       return settings
 
-process :: Response
-        -> DBHandle Cokk2020.Tojas
+process :: DBHandle Cokk2020.Tojas
         -> DBHandle Video
         -> DBHandle Cokk2021User.User
         -> DBHandle Cokk2021WaterLog.WaterLog
@@ -147,8 +142,7 @@ process :: Response
         -> Settings
         -> Request
         -> IO Response
-process mainFile
-        tojasDB
+process tojasDB
         vidsDB
         cokk2021UserDB
         cokk2021WaterDB
@@ -182,7 +176,7 @@ process mainFile
 
     Endpoint.GetLandingPage -> do
       Logger.info log $ "Requested landing page, sending " <> mainPath
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetCV -> do
       Logger.info log "Requested CV."
@@ -194,15 +188,15 @@ process mainFile
 
     Endpoint.GetArticlesPage -> do
       Logger.info log "Requested articles page."
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetBlogPage -> do
       Logger.info log "Requested blog page."
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetBlogItemPage blogNr -> do
       Logger.info log $ "Requested blog with index " <> Text.pack (show blogNr)
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetBlogItemsJSON -> do
       Logger.info log "Requested blog items"
@@ -235,7 +229,7 @@ process mainFile
 
     Endpoint.GetVideosPage -> do
       Logger.info log "Requested video list."
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetVideosJSON -> do
       Logger.info log "[API] Requested video list."
@@ -250,19 +244,19 @@ process mainFile
 
     Endpoint.GetCokk2020ResultsPage -> do
       Logger.info log "Requested results for 2020 Cokk."
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetCokk2021ResultsPage -> do
       Logger.info log "Requested results for 2021 Cokk."
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetCokk2020Page -> do
       Logger.info log "Requested cokk 2020 page."
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetCokk2021Page -> do
       Logger.info log "Requested cokk 2021 page"
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetCokk2021Participants ->
       Cokk2021Handler.getParticipants cokk2021UserDB cokk2021WaterDB
@@ -280,7 +274,7 @@ process mainFile
 
     Endpoint.GetVideosAddPage -> do
       Logger.info log "Requested video add page."
-      return mainFile
+      sendFile mainPath
 
     Endpoint.GetResource resource -> do
       Logger.info log $ "Requesting resource [" <> resource <> "]."
@@ -363,7 +357,7 @@ process mainFile
 
     Endpoint.GetFilmsPage -> do
       Logger.info log "Requested Films page"
-      return mainFile
+      sendFile mainPath
 
     Endpoint.Film operation -> do
       now <- Date.getCurrentDate
@@ -379,7 +373,7 @@ process mainFile
 
     Endpoint.RightsPage -> do
       Logger.info log "Endpoints page requested."
-      return mainFile
+      sendFile mainPath
 
     Endpoint.Rights operation -> do
       let pass = Maybe.fromMaybe "" $ Map.lookup "Gyurpass" attributes

@@ -1,7 +1,7 @@
 module Video.Vids exposing (Model, Msg, init, update, view)
 
 import Browser exposing (Document)
-import Html exposing (Html, text, h1, h3, br, strong, div, iframe, input)
+import Html exposing (Html, text, h1, h3, br, strong, div, iframe, input, hr)
 import Html.Attributes exposing (src, placeholder, value)
 import Html.Events exposing (onInput)
 import Bootstrap.CDN as CDN
@@ -253,13 +253,17 @@ view model =
   let searchTermMatches vid = String.contains (String.toLower model.titleFilter) (String.toLower vid.title)
       noSelectedTags = List.isEmpty model.tagFilter
       oneTagIsSelectedFromVid vid = List.any (\t -> List.member t model.tagFilter) vid.tags
-      filtered = List.filter (\item -> searchTermMatches item.video && (noSelectedTags || oneTagIsSelectedFromVid item.video)) model.videos
+      filteredVideos = List.filter (\item -> searchTermMatches item.video && (noSelectedTags || oneTagIsSelectedFromVid item.video)) model.videos
+
+      videos =
+        filteredVideos
+        |> List.map (videoItemToHtml model)
+        |> List.intersperse (hr [] [])
   in
     { title = "Videos"
     , body =
       [ CDN.stylesheet
-      , Grid.container []
-        (h1 [] [text "Videos"] :: searchSection model filtered :: List.map (videoItemToHtml model) filtered)
+      , Grid.container [] (searchSection model filteredVideos :: videos)
       ]
     }
 
