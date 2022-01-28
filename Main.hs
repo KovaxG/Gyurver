@@ -71,10 +71,6 @@ main = do
   blogDB <- DB.getHandle "blogLookup"
   rightsDB <- DB.getHandle "rights"
 
-  tasksDB <- DB.getHandle "tasks"
-  tasksDelay <- newIORef 0
-  tasksCode <- newIORef OK
-
   cokk2021UserDB <- DB.getHandle "cokk2021User"
   cokk2021WaterDB <- DB.getHandle "cokk2021Water"
   cokk2021ItemDB <- DB.getHandle "cokk2021Item"
@@ -96,9 +92,6 @@ main = do
                      movieDiffDB
                      blogDB
                      rightsDB
-                     tasksDB
-                     tasksDelay
-                     tasksCode
                      pageHitDB
                      settings
             )
@@ -135,9 +128,6 @@ process :: DBHandle Cokk2020.Tojas
         -> DBHandle Movie.MovieDiff
         -> DBHandle Blog.Index
         -> DBHandle Rights.Row
-        -> DBHandle Tasks.Task
-        -> IORef Int
-        -> IORef Response.Status
         -> DBHandle PageHit
         -> Settings
         -> Request
@@ -151,9 +141,6 @@ process tojasDB
         movieDiffDB
         blogDB
         rightsDB
-        tasksDB
-        tasksDelay
-        tasksCode
         pageHitDB
         settings
         Request{requestType, path, content, attributes} = do
@@ -351,10 +338,6 @@ process tojasDB
       Logger.info log $ "Someone asked if you can post to /api/video/" <> Text.pack (show reqNr) <> ", sure."
       allowHeaders
 
-    Endpoint.TaskOptions _ -> allowHeaders
-
-    Endpoint.TasksOptions -> allowHeaders
-
     Endpoint.GetFilmsPage -> do
       Logger.info log "Requested Films page"
       sendFile mainPath
@@ -410,52 +393,6 @@ process tojasDB
               Rights.DeletedSuccessfuly -> Response.make OK ()
               Rights.SecretNotFound -> Response.make BadRequest ("Secret does not exist!" :: Text)
               Rights.InvalidSecret -> Response.make BadRequest ("Invalid Secret!" :: Text)
-
-    Endpoint.Tasks operation -> do
-      delaySecs <- readIORef tasksDelay
-      threadDelay (delaySecs * 1000000)
-
-      returnCode <- readIORef tasksCode
-
-      if returnCode /= OK
-      then Response.make returnCode ()
-      else case operation of
-        Endpoint.GetTasks -> do
-          tasks <- DB.everythingList tasksDB
-          Response.make OK (Tasks.toJson <$> tasks)
-
-        Endpoint.PostTask ->
-          Response.processJsonBody content Tasks.fromJson $ \task -> do
-            DB.insert tasksDB task
-            Response.make OK ()
-
-        Endpoint.PutTask tid ->
-          Response.processJsonBody content Tasks.fromJson $ \task -> do
-            status <- DB.modifyData tasksDB (\tasks ->
-                if Tasks.tid task `elem` fmap Tasks.tid tasks
-                then (Utils.mapIf (\t -> tid == Tasks.tid t) (const task) tasks, OK)
-                else (tasks, NotFound)
-              )
-            Response.make status ()
-
-        Endpoint.DeleteTask tid -> do
-          DB.delete tasksDB (\t -> Tasks.tid t == tid)
-          Response.make OK ()
-
-    Endpoint.TasksCode code -> do
-      let statusMaybe = Response.fromCode code
-      maybe (Response.make BadRequest ("I don't know that code :(" :: Text)) (\status -> do
-        writeIORef tasksCode status
-        let response =
-              if code == 200
-              then "Ok, I will return tasks normally from now on."
-              else ("Ok, I will always return " <> Text.pack (show code) <> " from now on." :: Text)
-        Response.make OK response
-        ) statusMaybe
-
-    Endpoint.TasksDelay delay -> do
-      writeIORef tasksDelay delay
-      Response.make OK ("Ok, I will wait for " <> Text.pack (show delay) <> " seconds before answering." :: Text)
 
     Endpoint.Other req -> do
       Logger.warn log $ "Weird request: " <> req
