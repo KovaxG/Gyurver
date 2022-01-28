@@ -87,6 +87,8 @@ endpointTests =
 
   , test "suggestion box" $ parse "POST /api/suggestionbox" === PostSuggestion
 
+  , test "page hits today" $ parse "GET /api/todayhits" === GetRequestsForToday
+
   , test "videos page EN" $ parse "GET /videos" === GetVideosPage
   , test "videos page HU" $ parse "GET /videok" === GetVideosPage
   , test "videos page RO" $ parse "GET /videouri" === GetVideosPage

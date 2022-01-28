@@ -85,4 +85,6 @@ cokk2021FightJson = "/api/cokk2021/fight"
 rightsPageJson = "/api/rights"
 suggestionBox = "/api/suggestionbox"
 
+pageHitsToday = "/api/todayhits"
+
 cv = "/cv"

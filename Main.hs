@@ -49,6 +49,7 @@ import qualified Types.Password as Password
 import           Types.Settings (Settings)
 import qualified Types.Settings as Settings
 import qualified Types.Rights as Rights
+import qualified Types.PageHit as PageHit
 import           Types.PageHit (PageHit)
 import qualified Types.Task as Tasks
 import qualified Endpoints as Endpoint
@@ -329,6 +330,12 @@ process tojasDB
           Logger.warn log $ "Failed to delete video nr " <> videoNr <> " with secret: \"" <> secret <> "\"!"
           Response.make Unauthorized ("Don't." :: Text)
         )
+
+    Endpoint.GetRequestsForToday -> do
+      allHits <- DB.everythingList pageHitDB
+      today <- Date.getCurrentDate
+      let hitsToday = length $ filter (==today) $ map (DateTime.toDate . PageHit.date) allHits
+      Response.make OK hitsToday
 
     Endpoint.OptionsVideo -> do
       Logger.info log "Someone asked if you can post to /api/videos/new, sure."

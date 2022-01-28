@@ -110,6 +110,14 @@ instance CanSend () where
     , content = BS.empty
     }
 
+instance CanSend Int where
+  toBytes n = Response
+    { status = OK
+    , address = "localhost"
+    , headers = [("Content-Type", "application/json; charset=utf-8")]
+    , content = BS.pack $ show n
+    }
+
 instance CanSend ByteString where
   toBytes b = Response
     { status = OK
@@ -122,7 +130,7 @@ instance CanSend Text where
   toBytes t = Response
     { status = OK
     , address = "localhost"
-    , headers = [ ("Content-Type", "text/html; charset=utf-8") ]
+    , headers = [("Content-Type", "text/html; charset=utf-8")]
     , content = TextEncoding.encodeUtf8 t
     }
 

@@ -90,6 +90,7 @@ data Endpoint
   | Other Text
   | Rights RightsOperation
   | RightsPage
+  | GetRequestsForToday
   deriving (Eq, Show)
 
 
@@ -177,6 +178,8 @@ parse s = fromRight (Other s) $ Parsec.parse rule "Parsing Endpoint" s
         , Parsec.string "GET /jogok" $> RightsPage
 
         , Parsec.string "POST /api/suggestionbox" $> PostSuggestion
+
+        , Parsec.string "GET /api/todayhits" $> GetRequestsForToday
 
         , Parsec.string "GET /cv" $> GetCV
         , Parsec.string "GET /favicon.ico" $> GetFavicon

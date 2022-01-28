@@ -1,4 +1,4 @@
-module Types.PageHit (PageHit, make) where
+module Types.PageHit (PageHit, make, date) where
 
 import           Component.Database (DBFormat(..))
 import           Data.Text (Text)
@@ -15,7 +15,7 @@ data PageHit = PageHit
   } deriving (Show, Eq)
 
 make :: DateTime -> Text -> Text -> Double -> PageHit
-make d m u ms = PageHit d m u ms
+make = PageHit
 
 textEncode :: PageHit -> Text
 textEncode (PageHit dt m u ms) = Text.unwords [DateTime.textEncoder dt, m, u, Text.pack $ show ms]
