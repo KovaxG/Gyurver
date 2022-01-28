@@ -299,7 +299,7 @@ process mainFile
     Endpoint.PostVideo -> do
       Logger.info log "[API] Adding new video to list."
       Response.processJsonBody content VideoAdd.decoder $ \request ->
-        Rights.allowed rightsDB (Just $ VideoAdd.secret request) Rights.VideoAdd
+        Rights.allowed rightsDB (Just $ VideoAdd.secret request) Rights.Video
           (DB.insertWithIndex vidsDB (VideoAdd.toVideo request) Video.nr >> Response.success)
           (Response.make Unauthorized ("Who even are you?" :: Text))
 
@@ -307,7 +307,7 @@ process mainFile
       let videoNr = Text.pack (show reqNr)
       Logger.info log $ "[API] Modified video with nr: " <> videoNr
       Response.processJsonBody content VideoEdit.decoder $ \video ->
-        Rights.allowed rightsDB (Just $ VideoEdit.secret video) Rights.VideoMod
+        Rights.allowed rightsDB (Just $ VideoEdit.secret video) Rights.Video
           (DB.repsertWithIndex vidsDB (VideoEdit.toVideo video reqNr) Video.nr >> Response.success)
           (do
             Logger.warn log $ "Failed to edit video nr " <> videoNr <> " with secret: \"" <> VideoEdit.secret video <> "\"!"
@@ -342,7 +342,7 @@ process mainFile
       let videoNr = Text.pack (show reqNr)
       Logger.info log $ "[API] Delete video nr: " <> videoNr
       let secret = content
-      Rights.allowed rightsDB (Just secret) Rights.VideoMod
+      Rights.allowed rightsDB (Just secret) Rights.Video
         (DB.delete vidsDB (\v -> Video.nr v == reqNr) >> Response.success)
         (do
           Logger.warn log $ "Failed to delete video nr " <> videoNr <> " with secret: \"" <> secret <> "\"!"

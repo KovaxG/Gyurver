@@ -144,7 +144,7 @@ view model =
           , maybeDateInput model.watchDate WatchDateChanged WatchDateShow
           , text "Tags"
           , textInput model.tags TagsChanged
-          , text "Password"
+          , text "Secret"
           , passwordInput model
           , Button.button
             [ Button.primary

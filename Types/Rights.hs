@@ -35,6 +35,17 @@ import qualified Utils
 
 newtype Secret = Secret Text deriving (Eq)
 
+data Right
+  = Movie
+  | Video
+  deriving (Eq, Enum, Show, Ord)
+
+data Row = Row
+  { enabled :: Bool
+  , secret :: Secret
+  , rights :: Set Right
+  }
+
 showSecret :: Secret -> Text
 showSecret (Secret s) = s
 
@@ -47,19 +58,16 @@ readSecret txt =
       else Nothing
     _ -> Nothing
 
-data Right = Movie | VideoAdd | VideoMod deriving (Eq, Enum, Show, Read, Ord)
-
 showRight :: Right -> Text
 showRight = Text.pack . show
 
 readRight :: Text -> Maybe Right
-readRight = Utils.safeRead
-
-data Row = Row
-  { enabled :: Bool
-  , secret :: Secret
-  , rights :: Set Right
-  }
+readRight s = case s of
+  "Movie" -> Just Movie
+  "Video" -> Just Video
+  "VideoAdd" -> Just Video
+  "VideoMod" -> Just Video
+  _ -> Nothing
 
 toJsonRows :: [Row] -> Json
 toJsonRows = JsonArray . fmap toJsonRow
