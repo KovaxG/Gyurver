@@ -7,8 +7,8 @@ import           Data.Map (Map)
 import qualified Data.Map as Map
 import Text.Parsec (parse, string, (<|>), spaces, alphaNum, many, many1, char, option, sepBy, noneOf, newline, anyChar, parserFail, parserReturn)
 
-import Gyurver.Gyurror
-import Utils
+import Gyurver.Gyurror (Gyurror(..))
+import Utils (mapLeft, safeRead)
 
 data RequestType = GET | POST | OPTIONS | DELETE | PUT deriving (Show, Read)
 
@@ -69,7 +69,8 @@ parseRequest =
     attributes = Map.fromList <$> many attribute
     attribute = do
       key <- Text.pack <$> many keyChar
-      string ": "
+      char ':'
+      spaces
       value <- Text.pack <$> many valueChar
       newline
       return (key, value)
