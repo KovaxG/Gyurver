@@ -82,7 +82,4 @@ defaultSettings = Settings
 - `/api/cokk2021/fight` run a match between 2 eggs for 2021 Cokkoles (Post)
 - `/api/films` endpoint for film stuff (Get, Post, Delete, Put)
 - `/api/blog/#` get a specific blog (Get)
-- `/api/tasks` list of task data (get, post)
-- `/api/tasks/:id` get the metadata of all blogs (Get)
-- `/api/behaviour/tasks/code/#` set default return code for tasks (Get)
-- `/api/behaviour/tasks/delay/#` set default return delay for tasks (Get)
+- `/api/todayhits` how many hits did we get today? (Get)

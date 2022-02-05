@@ -1,26 +1,31 @@
 module Films exposing (Model, Msg, init, update, view)
 
-import Bootstrap.CDN as CDN
-import Bootstrap.Grid as Grid
-import Bootstrap.Button as Button
 import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Form.Input as Input
-import Browser exposing (Document)
+import Bootstrap.Button as Button
+import Bootstrap.Alert as Alert
+import Bootstrap.Modal as Modal
+import Bootstrap.Grid as Grid
+import Bootstrap.CDN as CDN
+
+import Html exposing (Html, div, text, br, span, h4, hr)
 import Json.Decode as Decode exposing (Decoder)
-import Html exposing (Html, div, text, br, span)
 import Html.Attributes exposing (style)
+import Browser exposing (Document)
 import Time exposing (Month(..))
-import Http
 import List.Extra as List
 import Random
+import Http
 
-import Types.Date as Date exposing (Date)
 import Types.Language exposing (Language(..))
+import Types.Date as Date exposing (Date)
 import Endpoints
-import Util
 import Settings
+import Util
 
 type alias Password = String
+
+type Mode = Normal | Edit | Delete
 
 type alias Film =
   { title : String
@@ -32,24 +37,26 @@ type alias Film =
 type alias Model =
   { films : List Film
   , random : Maybe Film
-  , newFilm : Maybe String
+  , newFilm : String
   , secret : String
   , errorMsg : String
-  , editMode : Bool
-  , deleteMode : Bool
+  , mode : Mode
   , dateView : Bool
+  , suggestionModalVisibility : Modal.Visibility
+  , editModalVisibility : Modal.Visibility
   }
 
 initialModel : Model
 initialModel =
   { films = []
   , random = Nothing
-  , newFilm = Nothing
+  , newFilm = ""
   , secret = ""
   , errorMsg = ""
-  , editMode = False
-  , deleteMode = False
+  , mode = Normal
   , dateView = False
+  , suggestionModalVisibility = Modal.hidden
+  , editModalVisibility = Modal.hidden
   }
 
 decodeFilm : Decoder Film
@@ -65,7 +72,6 @@ type Msg
   = Populate (List Film)
   | ChooseRandomFilm
   | RandomFilm Int
-  | ShowInputField Bool
   | NewFilmChanged String
   | SecretChanged String
   | AddNewFilm String Password
@@ -78,6 +84,10 @@ type Msg
   | ToggleDeleteMode
   | Failure String
   | ToggleDateView
+  | CloseSuggestionModal
+  | OpenSuggestionModal
+  | EditFailure String
+  | CloseEditModal
 
 init : (Model, Cmd Msg)
 init =
@@ -96,35 +106,63 @@ update msg model = case msg of
   Populate films -> ({ initialModel | films = films }, Cmd.none)
   ChooseRandomFilm -> (model, Random.generate RandomFilm <| Random.int 0 (List.length model.films))
   RandomFilm index -> ({ model | random = getRandomUnwatched index model.films }, Cmd.none)
-  ShowInputField b ->
-    if b
-    then ({ model | newFilm = Just "", errorMsg = "" }, Cmd.none)
-    else ({ model | newFilm = Nothing, errorMsg = "" }, Cmd.none)
-  NewFilmChanged ft -> ({ model | newFilm = Just ft }, Cmd.none)
+  NewFilmChanged ft -> ({ model | newFilm = ft }, Cmd.none)
   SecretChanged ss -> ({ model | secret = ss }, Cmd.none)
-  AddNewFilm title secret -> (model, request "POST" secret title AddNewFilmSuccess)
+  AddNewFilm title secret -> (model, request "POST" secret title AddNewFilmSuccess Failure)
   AddNewFilmSuccess title ->
-    ({ model | newFilm = Just "", errorMsg = "", films = model.films ++ [Film title False (Err "just now") Nothing] }, Cmd.none)
-  Failure err -> ({ model | errorMsg = err }, Cmd.none)
-  ChangeEditMode -> ({ model | editMode = not model.editMode, secret = "", errorMsg = "" }, Cmd.none)
-  DeleteMovie title secret -> (model, request "DELETE" secret title DeleteMovieSuccess)
-  DeleteMovieSuccess title -> ({ model | films = model.films |> List.filter (\f -> f.title /= title), errorMsg = "" }, Cmd.none)
-  FilmWatched title secret -> (model, request "PUT" secret title FilmWatchedSuccess)
-  FilmWatchedSuccess title ->
-    ( { model | errorMsg = "", films = model.films |> List.map (\f -> if f.title == title then { f | watched = not f.watched, lastDiff = Nothing } else f) }
+    ( { model
+      | newFilm = ""
+      , errorMsg = ""
+      , films = model.films ++ [Film title False (Err "just now") Nothing]
+      , suggestionModalVisibility = Modal.hidden
+      }
     , Cmd.none
     )
-  ToggleDeleteMode -> ({ model | deleteMode = not model.deleteMode }, Cmd.none)
+  Failure err -> ({ model | errorMsg = err }, Cmd.none)
+  ChangeEditMode ->
+    let
+      toggleMode : Mode -> Mode
+      toggleMode mode = case mode of
+        Normal -> Edit
+        Edit -> Normal
+        Delete -> Normal
+    in
+      ({ model | mode = toggleMode model.mode, secret = "", errorMsg = "" }, Cmd.none)
+  DeleteMovie title secret -> (model, request "DELETE" secret title DeleteMovieSuccess EditFailure)
+  DeleteMovieSuccess title -> ({ model | films = model.films |> List.filter (\f -> f.title /= title), errorMsg = "" }, Cmd.none)
+  FilmWatched title secret -> (model, request "PUT" secret title FilmWatchedSuccess EditFailure)
+  FilmWatchedSuccess title ->
+    ( { model
+      | errorMsg = ""
+      , films = model.films
+          |> List.map (\f -> if f.title == title then { f | watched = not f.watched, lastDiff = Nothing } else f)
+      }
+    , Cmd.none
+    )
+  ToggleDeleteMode ->
+    let
+      toggleMode : Mode -> Mode
+      toggleMode mode = case mode of
+        Normal -> Normal
+        Edit -> Delete
+        Delete -> Edit
+    in
+      ({ model | mode = toggleMode model.mode }, Cmd.none)
   ToggleDateView -> ({ model | dateView = not model.dateView }, Cmd.none)
+  CloseSuggestionModal -> ({ model | suggestionModalVisibility = Modal.hidden, newFilm = "" }, Cmd.none)
+  OpenSuggestionModal -> ({ model | suggestionModalVisibility = Modal.shown, errorMsg = "" }, Cmd.none)
+  EditFailure err -> ({ model | editModalVisibility = Modal.shown, errorMsg = err }, Cmd.none)
+  CloseEditModal -> ({ model | editModalVisibility = Modal.hidden, errorMsg = "" }, Cmd.none)
 
-request : String -> String -> String -> (String -> Msg) -> Cmd Msg
-request method secret title successMsg =
+request : String -> String -> String -> (String -> Msg) -> (String -> Msg) -> Cmd Msg
+request method secret title successMsg failMsg =
   Http.request
     { method = method
     , headers = [ Http.header "Gyursecret" secret ]
     , url = Settings.path ++ Endpoints.filmItemsJson
     , body = Http.stringBody "text" title
-    , expect = Http.expectWhatever <| Util.processMessage (always <| successMsg title) Failure
+    -- TODO implement custom error messages!
+    , expect = Http.expectWhatever <| Util.processMessage (always <| successMsg title) failMsg
     , timeout = Nothing
     , tracker = Nothing
     }
@@ -140,7 +178,17 @@ view state =
   { title = "Films"
   , body =
     [ CDN.stylesheet
-    , [ showModel state |> Grid.row [] ] |> Grid.container []
+    , [ Modal.config CloseSuggestionModal
+        |> Modal.h3 [] [text "Film Javaslat"]
+        |> Modal.body [] [suggestionPanel state]
+        |> Modal.view state.suggestionModalVisibility
+      , Modal.config CloseEditModal
+        |> Modal.h3 [] [text "Módosítás"]
+        |> Modal.body [] [editModalBody state]
+        |> Modal.view state.editModalVisibility
+      , showModel state
+        |> Grid.row []
+      ] |> Grid.container []
     ]
   }
 
@@ -148,18 +196,21 @@ showModel : Model -> List (Grid.Column Msg)
 showModel model =
   [ showFilmPanel model
   , showFilms model
-  ]
+  ] |> List.map (\e -> Grid.col [] [e])
 
-showFilms : Model -> Grid.Column Msg
+showFilms : Model -> Html Msg
 showFilms model =
-  let filmsDivStyle = [style "height" "75vh", style "overflow" "scroll"]
+  let
+    filmsDivStyle = [style "height" "75vh", style "overflow" "scroll"]
+    films = model.films |> List.sortBy (\f -> if f.watched then 1 else 0)
   in
 
-    [ div filmsDivStyle (List.indexedMap (showFilm model.dateView model.secret model.deleteMode model.editMode) model.films)
-    ] |> Grid.col []
+    [ h4 [] [text "Filmek"]
+    , div filmsDivStyle (List.indexedMap (showFilm model.dateView model.secret model.mode) films)
+    ] |> div []
 
-showFilm : Bool -> Password -> Bool -> Bool -> Int -> Film -> Html Msg
-showFilm dateView secret deleteMode editMode index film =
+showFilm : Bool -> Password -> Mode -> Int -> Film -> Html Msg
+showFilm dateView secret mode index film =
   let deleteButton =
         Button.button
           [ Button.danger
@@ -183,85 +234,104 @@ showFilm dateView secret deleteMode editMode index film =
 
       dateStyle = style "color" "lightgray"
   in
-    (  (if editMode && deleteMode then deleteButton else text "")
-    :: (if editMode then watchedButton else text "")
+    (  (if mode == Delete then deleteButton else text "")
+    :: (if mode == Edit || mode == Delete then watchedButton else text "")
     :: text (String.fromInt (index + 1) ++ ". ")
     :: text film.title
     :: (if dateView then span [dateStyle] [text <| " " ++ addedStr] else text "")
     :: (if film.watched then [ text " ✔️ " , span [dateStyle] [text <| if dateView then modifiedStr else ""] ] else [])
     ) |> div []
 
-showFilmPanel : Model -> Grid.Column Msg
+showFilmPanel : Model -> Html Msg
 showFilmPanel model =
   [ randomFilmSection model.random
   , dateViewPanel
+  , filmSuggestionPanel
   , editPanel model
-  ] |> Grid.col []
+  ] |> div []
+
+filmSuggestionPanel : Html Msg
+filmSuggestionPanel =
+  [ text "Film Javaslat: "
+  , Button.button
+    [ Button.outlinePrimary
+    , Button.attrs [ Spacing.m2 ]
+    , Button.onClick OpenSuggestionModal
+    ] [text "☝️"]
+  ] |> div []
 
 dateViewPanel : Html Msg
 dateViewPanel =
-  Button.button
+  [ text "Dátumos Nézet: "
+  , Button.button
     [ Button.outlinePrimary
     , Button.attrs [ Spacing.m2 ]
     , Button.onClick ToggleDateView
     ] [text "📅"]
+  ] |> div []
+
 
 randomFilmSection : Maybe Film -> Html Msg
 randomFilmSection selected =
-  [ Button.button
+  [ h4 [] [text "Film választás"]
+  , text "Véletlenszerű (egyenlő esély, nem nézett): "
+  , Button.button
     [ Button.outlinePrimary
     , Button.attrs [ Spacing.m2 ]
     , Button.onClick ChooseRandomFilm
-    ] [text "Random Film"]
-  , selected |> Maybe.map (text << .title) |> Maybe.withDefault (text "")
+    ] [text "🎲"]
+  , br [] []
+  , selected |> Maybe.map (\s -> Alert.simpleSuccess [] [text s.title]) |> Maybe.withDefault (text "")
+  , hr [] []
   ] |> div []
 
 editPanel  : Model -> Html Msg
 editPanel model =
-  [ Button.button
-    [ if model.editMode then Button.outlineDark else Button.outlineInfo
-    , Button.attrs [ Spacing.m2 ]
-    , Button.onClick ChangeEditMode
-    ] [text <| if model.editMode then "🔙" else "✍️"]
-  , div [] <| if model.editMode
+  let isEditMode = model.mode == Edit || model.mode == Delete
+  in
+  [ text "Módosítás: "
+  , Button.button
+      [ if isEditMode then Button.outlineDark else Button.outlineInfo
+      , Button.attrs [ Spacing.m2 ]
+      , Button.onClick ChangeEditMode
+      ] [text <| if isEditMode then "🔙" else "✍️"]
+  , if isEditMode
     then
-      [ newFilmSection model
-      , text "Secret: "
-      , Input.password [ Input.small, Input.value model.secret, Input.onInput SecretChanged ]
-      , br [] []
-      , Button.button
-        [ Button.outlineDanger
-        , Button.attrs [ Spacing.m1 ]
-        , Button.onClick ToggleDeleteMode
-        ] [text "🗑️"]
-      , br [] []
-      ]
-    else []
+      Button.button
+      [ Button.outlineDanger
+      , Button.attrs [ Spacing.m1 ]
+      , Button.onClick ToggleDeleteMode
+      ] [text "🗑️"]
+    else text ""
+  ] |> div []
+
+suggestionPanel : Model -> Html Msg
+suggestionPanel model =
+  [ text "Cím"
+  , Input.text [Input.small, Input.value model.newFilm, Input.onInput NewFilmChanged]
+  , br [] []
+  , text "Titok"
+  , Input.password [Input.small, Input.value model.secret, Input.onInput SecretChanged]
+  , Button.button
+    [ Button.outlineSuccess
+    , Button.disabled (String.isEmpty model.newFilm || String.isEmpty model.secret)
+    , Button.attrs [ Spacing.m2 ]
+    , Button.onClick (AddNewFilm model.newFilm model.secret)
+    ] [text "Mentés"]
+  , br [] []
   , text model.errorMsg
   ] |> div []
 
-newFilmSection : Model -> Html Msg
-newFilmSection model =
-  case model.newFilm of
-    Nothing ->
-      [ Button.button
-        [ Button.outlineSuccess
-        , Button.attrs [ Spacing.m2 ]
-        , Button.onClick (ShowInputField True)
-        ] [text "➕"]
-      ] |> div []
-    Just newFilm ->
-      [ Button.button
-        [ Button.outlineDark
-        , Button.attrs [ Spacing.m2 ]
-        , Button.onClick (ShowInputField False)
-        ] [text "✖️"]
-      , Button.button
-        [ Button.outlineSuccess
-        , Button.attrs [ Spacing.m2 ]
-        , Button.onClick (AddNewFilm newFilm model.secret)
-        ] [text "✔️"]
-      , br [] []
-      , text "Film: "
-      , Input.text [Input.small, Input.value newFilm, Input.onInput NewFilmChanged]
-      ] |> div []
+editModalBody : Model -> Html Msg
+editModalBody model =
+  [ text "Titok"
+  , Input.password [Input.small, Input.value model.secret, Input.onInput SecretChanged]
+  , Button.button
+    [ Button.outlineSuccess
+    , Button.disabled (String.isEmpty model.secret)
+    , Button.attrs [ Spacing.m2 ]
+    , Button.onClick (AddNewFilm model.newFilm model.secret)
+    ] [text "Mentés"]
+  , br [] []
+  , text model.errorMsg
+  ] |> div []
