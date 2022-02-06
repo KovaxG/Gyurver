@@ -52,7 +52,7 @@ parseRequest =
       requestTypeString <- Text.pack <$> many1 alphaNum
       maybe (parserFail "Could not decode request type.") parserReturn $ safeRead requestTypeString
 
-    path = Text.pack <$> many pathChars
+    path = Text.pack <$> many1 pathChars
     pathChars = alphaNum <|> char '/' <|> char '.' <|> char '_'
 
     query = option Map.empty queryPairs

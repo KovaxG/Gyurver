@@ -18,7 +18,6 @@ import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 import qualified Data.Map as Map
 import           Data.Monoid ((<>))
-import           Data.IORef
 
 import qualified Events.Cokk2020 as Cokk2020
 import qualified Events.Cokk2021.Handlers as Cokk2021Handler
@@ -56,7 +55,6 @@ import qualified Endpoints as Endpoint
 import           Utils (($>), (</>))
 import qualified Utils
 import           Text.Parsec (Reply(Ok))
-import           Control.Concurrent
 
 log :: Logger
 log = File

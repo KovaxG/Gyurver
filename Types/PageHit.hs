@@ -17,9 +17,6 @@ data PageHit = PageHit
 make :: DateTime -> Text -> Text -> Double -> PageHit
 make = PageHit
 
--- TODO for some reason, url can be empty string!
--- Quick Fix: if string is empty, just add some default
--- Normal Fix: investigate this
 textEncode :: PageHit -> Text
 textEncode (PageHit dt m u ms) = Text.unwords [DateTime.textEncoder dt, m, u, Text.pack $ show ms]
 
