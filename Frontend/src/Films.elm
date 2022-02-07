@@ -330,6 +330,9 @@ editModalBody model =
     [ Button.outlineSuccess
     , Button.disabled (String.isEmpty model.secret)
     , Button.attrs [ Spacing.m2 ]
+    -- TODO this should repeat the message that failed
+    -- if pressed watched, it should send the watched message with the new secret
+    -- if pressed delete, same business, just send delete message
     , Button.onClick (AddNewFilm model.newFilm model.secret)
     ] [text "Mentés"]
   , br [] []

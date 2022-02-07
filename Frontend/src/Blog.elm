@@ -126,10 +126,8 @@ displayBlogPost bp =
   h3 [] [text bp.title]
   :: displayInfo bp
   :: (List.map displaySection bp.sections)
-  ++ [hr [] []]
-  ++ (List.map displayFoot bp.footnotes)
-  ++ [br [] []]
-  ++ (List.map displayRef bp.references)
+  ++ (hr [] [] :: List.map displayFoot bp.footnotes)
+  ++ (br [] [] :: List.map displayRef bp.references)
   |> div []
 
 displayInfo : BlogPost -> Html Msg
