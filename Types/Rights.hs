@@ -14,6 +14,8 @@ module Types.Rights
   , toJsonRows
   , getAll
   , allowed
+  , movie
+  , video
   ) where
 
 import qualified Data.Char as Char
@@ -32,13 +34,20 @@ import           Component.Database (DBHandle, DBFormat(..))
 import qualified Component.Database as DB
 import           Types.Password (Password(..))
 import qualified Utils
+import Types.Video (videoToJson)
 
 newtype Secret = Secret Text deriving (Eq)
 
-data Right
-  = Movie
-  | Video
-  deriving (Eq, Enum, Show, Ord)
+newtype Right = R Text deriving (Eq, Ord)
+
+instance Show Right where
+  show (R s) = Text.unpack s
+
+movie :: Right
+movie = R "Movie"
+
+video :: Right
+video = R "Video"
 
 data Row = Row
   { enabled :: Bool
@@ -61,13 +70,8 @@ readSecret txt =
 showRight :: Right -> Text
 showRight = Text.pack . show
 
-readRight :: Text -> Maybe Right
-readRight s = case s of
-  "Movie" -> Just Movie
-  "Video" -> Just Video
-  "VideoAdd" -> Just Video
-  "VideoMod" -> Just Video
-  _ -> Nothing
+readRight :: Text -> Right
+readRight = R
 
 toJsonRows :: [Row] -> Json
 toJsonRows = JsonArray . fmap toJsonRow
@@ -99,7 +103,7 @@ readEnabled t = case t of
 instance DBFormat Row where
   encode (Row e s rs) = showEnabled e <> " " <> showSecret s <> " " <> Text.unwords (showRight <$> Set.toList rs)
   decode txt = case Text.words txt of
-    (e:s:rs) -> Row <$> readEnabled e <*> readSecret s <*> fmap Set.fromList (traverse readRight rs)
+    (e:s:rs) -> Row <$> readEnabled e <*> readSecret s <*> Just (Set.fromList (map readRight rs))
     _ -> Nothing
 
 rowDecoder :: Decoder Row
@@ -113,7 +117,7 @@ rowDecoder =
     secretDecoder = Decoder.withParser readSecret "Failed to decode secret."
 
     rightDecoder :: Decoder Right
-    rightDecoder = Decoder.withParser readRight "Failed to decode rights."
+    rightDecoder = fmap R Decoder.string
 
     rightsDecoder :: Decoder (Set Right)
     rightsDecoder = Set.fromList <$> Decoder.list rightDecoder

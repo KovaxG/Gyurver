@@ -146,7 +146,7 @@ process tojasDB
   let
     movieProcessing :: Maybe Text -> (Text -> MovieDiff) -> Text -> IO Response
     movieProcessing secret diff successMsg =
-      Rights.allowed rightsDB secret Rights.Movie mainLogic (Response.make Unauthorized ())
+      Rights.allowed rightsDB secret Rights.movie mainLogic (Response.make Unauthorized ())
       where
         mainLogic =
           if not (Text.null content)
@@ -279,7 +279,7 @@ process tojasDB
     Endpoint.PostVideo -> do
       Logger.info log "[API] Adding new video to list."
       Response.processJsonBody content VideoAdd.decoder $ \request ->
-        Rights.allowed rightsDB (Just $ VideoAdd.secret request) Rights.Video
+        Rights.allowed rightsDB (Just $ VideoAdd.secret request) Rights.video
           (DB.insertWithIndex vidsDB (VideoAdd.toVideo request) Video.nr >> Response.success)
           (Response.make Unauthorized ("Who even are you?" :: Text))
 
@@ -287,7 +287,7 @@ process tojasDB
       let videoNr = Text.pack (show reqNr)
       Logger.info log $ "[API] Modified video with nr: " <> videoNr
       Response.processJsonBody content VideoEdit.decoder $ \video ->
-        Rights.allowed rightsDB (Just $ VideoEdit.secret video) Rights.Video
+        Rights.allowed rightsDB (Just $ VideoEdit.secret video) Rights.video
           (DB.repsertWithIndex vidsDB (VideoEdit.toVideo video reqNr) Video.nr >> Response.success)
           (do
             Logger.warn log $ "Failed to edit video nr " <> videoNr <> " with secret: \"" <> VideoEdit.secret video <> "\"!"
@@ -322,7 +322,7 @@ process tojasDB
       let videoNr = Text.pack (show reqNr)
       Logger.info log $ "[API] Delete video nr: " <> videoNr
       let secret = content
-      Rights.allowed rightsDB (Just secret) Rights.Video
+      Rights.allowed rightsDB (Just secret) Rights.video
         (DB.delete vidsDB (\v -> Video.nr v == reqNr) >> Response.success)
         (do
           Logger.warn log $ "Failed to delete video nr " <> videoNr <> " with secret: \"" <> secret <> "\"!"
