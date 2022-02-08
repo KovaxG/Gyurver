@@ -27,6 +27,13 @@ type alias Password = String
 
 type Mode = Normal | Edit | Delete
 
+type Suspended = SDelete String | SWatched String
+
+suspendedToMsg : String -> Suspended -> Msg
+suspendedToMsg sec sus = case sus of
+  SDelete title -> DeleteMovie title sec
+  SWatched title -> FilmWatched title sec
+
 type alias Film =
   { title : String
   , watched : Bool
@@ -44,6 +51,7 @@ type alias Model =
   , dateView : Bool
   , suggestionModalVisibility : Modal.Visibility
   , editModalVisibility : Modal.Visibility
+  , suspended : Maybe Suspended
   }
 
 initialModel : Model
@@ -57,6 +65,7 @@ initialModel =
   , dateView = False
   , suggestionModalVisibility = Modal.hidden
   , editModalVisibility = Modal.hidden
+  , suspended = Nothing
   }
 
 decodeFilm : Decoder Film
@@ -86,7 +95,7 @@ type Msg
   | ToggleDateView
   | CloseSuggestionModal
   | OpenSuggestionModal
-  | EditFailure String
+  | EditFailure Suspended String
   | CloseEditModal
 
 init : (Model, Cmd Msg)
@@ -128,12 +137,22 @@ update msg model = case msg of
         Delete -> Normal
     in
       ({ model | mode = toggleMode model.mode, secret = "", errorMsg = "" }, Cmd.none)
-  DeleteMovie title secret -> (model, request "DELETE" secret title DeleteMovieSuccess EditFailure)
-  DeleteMovieSuccess title -> ({ model | films = model.films |> List.filter (\f -> f.title /= title), errorMsg = "" }, Cmd.none)
-  FilmWatched title secret -> (model, request "PUT" secret title FilmWatchedSuccess EditFailure)
+  DeleteMovie title secret -> (model, request "DELETE" secret title DeleteMovieSuccess (EditFailure (SDelete title)))
+  DeleteMovieSuccess title ->
+    ( { model
+      | films = model.films |> List.filter (\f -> f.title /= title)
+      , errorMsg = ""
+      , suspended = Nothing
+      , editModalVisibility = Modal.hidden
+      }
+    , Cmd.none
+    )
+  FilmWatched title secret -> (model, request "PUT" secret title FilmWatchedSuccess (EditFailure (SWatched title)))
   FilmWatchedSuccess title ->
     ( { model
       | errorMsg = ""
+      , suspended = Nothing
+      , editModalVisibility = Modal.hidden
       , films = model.films
           |> List.map (\f -> if f.title == title then { f | watched = not f.watched, lastDiff = Nothing } else f)
       }
@@ -151,8 +170,8 @@ update msg model = case msg of
   ToggleDateView -> ({ model | dateView = not model.dateView }, Cmd.none)
   CloseSuggestionModal -> ({ model | suggestionModalVisibility = Modal.hidden, newFilm = "" }, Cmd.none)
   OpenSuggestionModal -> ({ model | suggestionModalVisibility = Modal.shown, errorMsg = "" }, Cmd.none)
-  EditFailure err -> ({ model | editModalVisibility = Modal.shown, errorMsg = err }, Cmd.none)
-  CloseEditModal -> ({ model | editModalVisibility = Modal.hidden, errorMsg = "" }, Cmd.none)
+  EditFailure sus err -> ({ model | editModalVisibility = Modal.shown, errorMsg = err, suspended = Just sus }, Cmd.none)
+  CloseEditModal -> ({ model | editModalVisibility = Modal.hidden, errorMsg = "", suspended = Nothing }, Cmd.none)
 
 request : String -> String -> String -> (String -> Msg) -> (String -> Msg) -> Cmd Msg
 request method secret title successMsg failMsg =
@@ -330,10 +349,9 @@ editModalBody model =
     [ Button.outlineSuccess
     , Button.disabled (String.isEmpty model.secret)
     , Button.attrs [ Spacing.m2 ]
-    -- TODO this should repeat the message that failed
-    -- if pressed watched, it should send the watched message with the new secret
-    -- if pressed delete, same business, just send delete message
-    , Button.onClick (AddNewFilm model.newFilm model.secret)
+    , case model.suspended of
+        Just sus -> Button.onClick (suspendedToMsg model.secret sus)
+        Nothing -> Button.attrs []
     ] [text "Mentés"]
   , br [] []
   , text model.errorMsg
